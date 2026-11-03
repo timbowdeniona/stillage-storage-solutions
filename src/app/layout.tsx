@@ -1,33 +1,8 @@
 import type { Metadata } from 'next';
-import { Barlow_Condensed, Inter, JetBrains_Mono, Roboto_Slab } from 'next/font/google';
 import './globals.css';
 import { VatProvider } from '@/context/VatContext';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
-
-const barlow = Barlow_Condensed({
-  subsets: ['latin'],
-  weight: ['600', '700', '800'],
-  variable: '--font-barlow',
-});
-
-const robotoSlab = Roboto_Slab({
-  subsets: ['latin'],
-  weight: ['600', '700'],
-  variable: '--font-slab',
-});
-
-const inter = Inter({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  variable: '--font-inter',
-});
-
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ['latin'],
-  weight: ['500', '700'],
-  variable: '--font-mono',
-});
 
 export const metadata: Metadata = {
   title: {
@@ -44,10 +19,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en-GB"
-      className={`${barlow.variable} ${robotoSlab.variable} ${inter.variable} ${jetbrainsMono.variable}`}
-    >
+    <html lang="en-GB">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&family=Roboto+Slab:wght@600;700&display=swap"
+          rel="stylesheet"
+        />
+      </head>
       <body className="font-sans antialiased min-h-screen flex flex-col bg-surface-white text-steel-900">
         <VatProvider>
           <Header />
