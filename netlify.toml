@@ -1,0 +1,43 @@
+# Netlify Configuration for Stillage Storage Solutions (stillagestoragesolutions.co.uk)
+# Next.js (App Router) + Rust Serverless APIs
+
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "22"
+  RUST_BACKTRACE = "1"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+# Route clean /api/rust/* paths to compiled Rust Lambda/Netlify functions
+[[redirects]]
+  from = "/api/rust/quote"
+  to = "/.netlify/functions/quote"
+  status = 200
+
+[[redirects]]
+  from = "/api/rust/checkout"
+  to = "/.netlify/functions/checkout"
+  status = 200
+
+[[redirects]]
+  from = "/api/rust/algolia-sync"
+  to = "/.netlify/functions/algolia-sync"
+  status = 200
+
+# Security and caching headers for static assets
+[[headers]]
+  for = "/images/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"

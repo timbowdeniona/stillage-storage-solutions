@@ -1,0 +1,29 @@
+[package]
+name = "stillage-storage-rust-apis"
+version = "0.1.0"
+edition = "2021"
+description = "Rust Serverless APIs for Stillage Storage Solutions (stillagestoragesolutions.co.uk) deployed on Netlify Functions"
+
+[lib]
+name = "stillage_commerce"
+path = "src/lib.rs"
+
+[[bin]]
+name = "quote"
+path = "src/bin/quote.rs"
+
+[[bin]]
+name = "checkout"
+path = "src/bin/checkout.rs"
+
+[[bin]]
+name = "algolia-sync"
+path = "src/bin/algolia_sync.rs"
+
+[dependencies]
+aws_lambda_events = { version = "0.15", default-features = false, features = ["apigw"] }
+lambda_runtime = "0.13"
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tokio = { version = "1.40", features = ["macros", "rt-multi-thread"] }

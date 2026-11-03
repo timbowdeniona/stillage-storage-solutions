@@ -1,0 +1,114 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-brand-navy: #0f2342;
+  --color-brand-navy-dark: #09172c;
+  --color-stillage-blue: #145da0;
+  --color-stillage-blue-dark: #0d447a;
+  --color-surface-sand: #f2e3ce;
+  --color-surface-sand-light: #faf5ee;
+  --color-surface-white: #ffffff;
+  --color-steel-900: #1c2026;
+  --color-steel-600: #4a525d;
+  --color-steel-200: #dce1e7;
+  --color-accent-teal: #00897b;
+  --color-safety-amber: #d97706;
+}
+
+body {
+  color: var(--color-steel-900);
+  background-color: var(--color-surface-white);
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+/* Blueprint Industrial Grid Background Pattern */
+.bg-blueprint-grid {
+  background-image:
+    linear-gradient(to right, rgba(20, 93, 160, 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(20, 93, 160, 0.08) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Modern Web Guidance: Responsive Table with Container Queries & Sticky Headers */
+.table-wrapper {
+  overflow: auto;
+  max-inline-size: 100%;
+  max-block-size: min(520px, 80vh);
+  container-type: inline-size;
+  border: 1px solid var(--color-steel-200);
+  background: var(--color-surface-white);
+}
+
+.responsive-data-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  --label-1: "Parameter";
+  --label-2: "Specification";
+  --label-3: "Standard / Tolerance";
+  --label-4: "Status";
+}
+
+.responsive-data-table thead {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 1;
+  background: var(--color-brand-navy);
+  color: var(--color-surface-white);
+}
+
+.responsive-data-table tbody th {
+  position: sticky;
+  inset-inline-start: 0;
+  background: var(--color-surface-white);
+  font-weight: 600;
+  text-align: start;
+}
+
+@container (width < 600px) {
+  .responsive-data-table,
+  .responsive-data-table thead,
+  .responsive-data-table tbody,
+  .responsive-data-table tr,
+  .responsive-data-table th,
+  .responsive-data-table td {
+    display: block;
+  }
+
+  .responsive-data-table thead {
+    display: none;
+  }
+
+  .responsive-data-table tr {
+    margin-block-end: 1rem;
+    border: 1px solid var(--color-steel-200);
+  }
+
+  .responsive-data-table tbody th {
+    position: sticky;
+    inset-block-start: 0;
+    z-index: 2;
+    background: var(--color-surface-sand-light);
+    border-bottom: 1px solid var(--color-steel-200);
+  }
+
+  .responsive-data-table td:nth-child(2)::before {
+    content: var(--label-2) ": ";
+    font-weight: 600;
+    color: var(--color-steel-600);
+  }
+
+  .responsive-data-table td:nth-child(3)::before {
+    content: var(--label-3) ": ";
+    font-weight: 600;
+    color: var(--color-steel-600);
+  }
+
+  .responsive-data-table td:nth-child(4)::before {
+    content: var(--label-4) ": ";
+    font-weight: 600;
+    color: var(--color-steel-600);
+  }
+}
