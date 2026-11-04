@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stillage Storage Solutions — Client Colour Palette &amp; Typography Sheet</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&family=Roboto+Slab:wght@600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --navy: #0F2342;
+      --navy-dark: #09172C;
+      --navy-light: #18345E;
+      --blue: #145DA0;
+      --blue-dark: #0D447A;
+      --blue-light: #2176C7;
+      --sand: #F2E3CE;
+      --sand-light: #FAF5EE;
+      --white: #FFFFFF;
+      --steel-900: #1C2026;
+      --steel-600: #4A525D;
+      --steel-200: #DCE1E7;
+      --teal: #00897B;
+      --amber: #D97706;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--steel-900);
+      background: var(--sand-light);
+      line-height: 1.5;
+      padding: 32px 20px;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    .sheet {
+      max-width: 1040px;
+      margin: 0 auto;
+      background: var(--white);
+      border: 1px solid var(--steel-200);
+      box-shadow: 0 10px 30px rgba(15, 35, 66, 0.08);
+    }
+    .top-bar {
+      background: var(--navy);
+      color: var(--white);
+      padding: 28px 36px;
+      border-bottom: 5px solid var(--blue);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .brand-title {
+      font-family: 'Roboto Slab', serif;
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    .brand-sub {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--sand);
+      margin-top: 4px;
+    }
+    .print-btn {
+      background: var(--blue);
+      color: var(--white);
+      border: none;
+      padding: 10px 18px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      cursor: pointer;
+      border-radius: 3px;
+    }
+    .print-btn:hover { background: var(--blue-light); }
+    .content { padding: 36px; }
+    .section { margin-bottom: 42px; }
+    .section-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--blue);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+    }
+    .section-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 30px;
+      font-weight: 800;
+      color: var(--navy);
+      text-transform: uppercase;
+      margin-top: 2px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--steel-200);
+      margin-bottom: 20px;
+    }
+    .swatch-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(215px, 1fr));
+      gap: 16px;
+    }
+    .swatch-card {
+      border: 1px solid var(--steel-200);
+      border-radius: 4px;
+      overflow: hidden;
+      background: var(--white);
+    }
+    .swatch-color {
+      height: 92px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .swatch-body { padding: 12px; }
+    .swatch-name { font-weight: 700; font-size: 14px; color: var(--steel-900); }
+    .swatch-hex {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--blue);
+      margin-top: 2px;
+    }
+    .swatch-use { font-size: 12px; color: var(--steel-600); margin-top: 4px; }
+    .font-box {
+      border: 1px solid var(--steel-200);
+      border-left: 5px solid var(--blue);
+      background: var(--sand-light);
+      padding: 20px 24px;
+      margin-bottom: 16px;
+    }
+    .font-meta {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--blue);
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+    .font-note { font-size: 12px; color: var(--steel-600); margin-top: 10px; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin-top: 12px;
+    }
+    th, td {
+      border: 1px solid var(--steel-200);
+      padding: 10px 12px;
+      text-align: left;
+    }
+    th {
+      background: var(--navy);
+      color: var(--white);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 15px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+    .dot {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      vertical-align: middle;
+      margin-right: 6px;
+      border: 1px solid rgba(0,0,0,0.2);
+    }
+    @media print {
+      body { background: #FFFFFF; padding: 0; }
+      .sheet { box-shadow: none; border: none; max-width: 100%; }
+      .print-btn { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="sheet">
+    <header class="top-bar">
+      <div>
+        <div class="brand-title">STILLAGE STORAGE SOLUTIONS</div>
+        <div class="brand-sub">stillagestoragesolutions.co.uk • Client Colour Palette &amp; Typography Specification Sheet</div>
+      </div>
+      <button class="print-btn" onclick="window.print()">Print / Save as PDF</button>
+    </header>
+
+    <div class="content">
+      <!-- 1. COLOUR PALETTE -->
+      <section class="section">
+        <div class="section-tag">Section 01</div>
+        <h2 class="section-title">Colour Palette &amp; Visual Swatches</h2>
+        <div class="swatch-grid">
+          <div class="swatch-card">
+            <div class="swatch-color" style="background:#0F2342; color:#FFFFFF">
+              <span>#0F2342</span>
+              <span style="color:#F2E3CE">Aa — Brand Navy</span>
+            </div>
+            <div class="swatch-body">
+              <div class="swatch-name">Brand Navy (Primary)</div>
+              <div class="swatch-hex">#0F2342</div>
+              <div class="swatch-use">Main Header, Hero Banner, Footer &amp; Table Headers</div>
+            </div>
+          </div>
+
+          <div class="swatch-card">
+            <div class="swatch-color" style="background:#09172C; color:#FFFFFF">
+              <span>#09172C</span>
+              <span style="color:#00897B">● UKCA Utility Bar</span>
+            </div>
+            <div class="swatch-body">
+              <div class="swatch-name">Brand Navy Dark</div>
+              <div class="swatch-hex">#09172C</div>
+              <div class="swatch-use">Top Utility Bar &amp; Footer Trust Strip</div>
+            </div>
+          </div>
+
+          <div class="swatch-card">
+            <div class="swatch-color" style="background:#145DA0; color:#FFFFFF">
+              <span>#145DA0</span>
+              <span>CONFIGURE &amp; BUY &rarr;</span>
+            </div>
+            <div class="swatch-body">
+              <div class="swatch-name">Stillage Blue (RAL 5010)</div>
+              <div class="swatch-hex">#145DA0</div>
+              <div class="swatch-use">Primary CTA Buttons, Active Filters &amp; Selected Borders</div>
+            </div>
+          </div>
+
+          <div class="swatch-card">
+            <div class="swatch-color" style="background:#0D447A; color:#FFFFFF">
+              <span>#0D447A</span>
+              <span>CTA Hover State</span>
+            </div>
+            <div class="swatch-body">
+              <div class="swatch-name">Stillage Blue Dark</div>
+              <div class="swatch-hex">#0D447A</div>
+              <div class="swatch-use">Button Hover &amp; Deep Interactive Accent</div>
+            </div>
+          </div>
+
+          <div class="swatch-card">
+            <div class="swatch-color" style="background:#F2E3CE; color:#0F2342; border-bottom:1px solid #DCE1E7">
+              <span>#F2E3CE</span>
+              <span>Warm Product Stage</span>
+            </div>
+            <div class="swatch-body">
+              <div class="swatch-name">Workshop Sand</div>
+              <div class="swatch-hex">#F2E3CE</div>
+              <div class="swatch-use">Product Cutout Stage, Card Hover &amp; Badges on Navy</div>
+            </div>
+          </div>
+
+          <div class="swatch-card">
+            <div class="swatch-color" style="background:#FAF5EE; color:#1C2026; border-bottom:1px solid #DCE1E7">
+              <span>#FAF5EE</span>
+              <span>Soft Section Fill</span>
+            </div>
+            <div class="swatch-body">
+              <div class="swatch-name">Workshop Sand Light</div>
+              <div class="swatch-hex">#FAF5EE</div>
+              <div class="swatch-use">Alternating Page Sections, Search Bar &amp; Quote Box</div>
+            </div>
+          </div>
+
+          <div class="swatch-card">
+            <div class="swatch-color" style="background:#1C2026; color:#FFFFFF">
+              <span>#1C2026</span>
+              <span>Primary Body Copy</span>
+            </div>
+            <div class="swatch-body">
+              <div class="swatch-name">Steel 900 (Primary Ink)</div>
+              <div class="swatch-hex">#1C2026</div>
+              <div class="swatch-use">Headings, Descriptions &amp; Spec Values</div>
+            </div>
+          </div>
+
+          <div class="swatch-card">
+            <div class="swatch-color" style="background:#4A525D; color:#FFFFFF">
+              <span>#4A525D</span>
+              <span>Secondary Spec Label</span>
+            </div>
+            <div class="swatch-body">
+              <div class="swatch-name">Steel 600 (Muted Ink)</div>
+              <div class="swatch-hex">#4A525D</div>
+              <div class="swatch-use">Sub-captions, Metadata &amp; Secondary VAT Prices</div>
+            </div>
+          </div>
+
+          <div class="swatch-card">
+            <div class="swatch-color" style="background:#DCE1E7; color:#1C2026">
+              <span>#DCE1E7</span>
+              <span>1px Blueprint Border</span>
+            </div>
+            <div class="swatch-body">
+              <div class="swatch-name">Steel 200 (Grid Line)</div>
+              <div class="swatch-hex">#DCE1E7</div>
+              <div class="swatch-use">Card Borders, Spec Tables &amp; Dividers</div>
+            </div>
+          </div>
+
+          <div class="swatch-card">
+            <div class="swatch-color" style="background:#00897B; color:#FFFFFF">
+              <span>#00897B</span>
+              <span>✓ UKCA / SWL Tested</span>
+            </div>
+            <div class="swatch-body">
+              <div class="swatch-name">Certification Teal</div>
+              <div class="swatch-hex">#00897B</div>
+              <div class="swatch-use">UKCA Certification &amp; Trust Icons</div>
+            </div>
+          </div>
+
+          <div class="swatch-card">
+            <div class="swatch-color" style="background:#D97706; color:#FFFFFF">
+              <span>#D97706</span>
+              <span>SAVE 10% (10+ UNITS)</span>
+            </div>
+            <div class="swatch-body">
+              <div class="swatch-name">Safety Amber</div>
+              <div class="swatch-hex">#D97706</div>
+              <div class="swatch-use">Bulk Tier Savings Badges &amp; Tail-Lift Notices</div>
+            </div>
+          </div>
+
+          <div class="swatch-card">
+            <div class="swatch-color" style="background:#FFFFFF; color:#1C2026; border-bottom:1px solid #DCE1E7">
+              <span>#FFFFFF</span>
+              <span>Studio White Canvas</span>
+            </div>
+            <div class="swatch-body">
+              <div class="swatch-name">Studio White</div>
+              <div class="swatch-hex">#FFFFFF</div>
+              <div class="swatch-use">Main Page Canvas &amp; Default Product Cards</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. TYPOGRAPHY SPECIMENS -->
+      <section class="section">
+        <div class="section-tag">Section 02</div>
+        <h2 class="section-title">Typography &amp; Google Font Specimens</h2>
+
+        <div class="font-box">
+          <div class="font-meta">
+            <span>1. DISPLAY &amp; SECTION HEADINGS — BARLOW CONDENSED (Weights: 600, 700, 800)</span>
+            <span>Alternatives: Oswald, Chakra Petch, Space Grotesk</span>
+          </div>
+          <div style="font-family:'Barlow Condensed', sans-serif; font-size:36px; font-weight:800; color:var(--navy); text-transform:uppercase; line-height:1.05;">
+            HEAVY-DUTY STEEL STILLAGES, CANTILEVER RACKS &amp; POST PALLETS
+          </div>
+          <div style="font-family:'Barlow Condensed', sans-serif; font-size:22px; font-weight:700; color:var(--steel-900); text-transform:uppercase; margin-top:6px;">
+            3-Bay Double-Sided Heavy Duty Cantilever Bar &amp; Pipe Stillage Rack
+          </div>
+          <div class="font-note">Used for: Hero headlines, category titles, product cards, navigation links, and uppercase CTA buttons.</div>
+        </div>
+
+        <div class="font-box" style="background:var(--navy); color:var(--white); border-left-color:var(--sand);">
+          <div class="font-meta" style="color:var(--sand);">
+            <span>2. BRAND WORDMARK — ROBOTO SLAB (Weight: 700)</span>
+            <span>Alternatives: Zilla Slab, Arvo, or match Barlow Condensed</span>
+          </div>
+          <div style="font-family:'Roboto Slab', serif; font-size:30px; font-weight:700; letter-spacing:0.5px;">
+            STILLAGE STORAGE SOLUTIONS
+          </div>
+          <div class="font-note" style="color:#DCE1E7;">Used for: Standalone brand wordmark in the website header and footer.</div>
+        </div>
+
+        <div class="font-box" style="background:var(--white); border-left-color:var(--steel-900);">
+          <div class="font-meta">
+            <span>3. UI CONTROLS &amp; BODY COPY — INTER (Weights: 400, 500, 600, 700)</span>
+            <span>Alternatives: Plus Jakarta Sans, IBM Plex Sans, DM Sans</span>
+          </div>
+          <div style="font-family:'Inter', sans-serif; font-size:15px; font-weight:500; color:var(--steel-900);">
+            Engineered in heavy-gauge British box section steel, our 3-Bay Double-Sided Cantilever Bar Stillage provides 24 individual load arms across four vertical tiers. Each arm features welded upturned safety lugs to prevent round tube or bar stock from rolling off during forklift transport.
+          </div>
+          <div class="font-note">Used for: Product descriptions, bullet highlights, delivery policies, and checkout inputs.</div>
+        </div>
+
+        <div class="font-box" style="border-left-color:var(--teal);">
+          <div class="font-meta" style="color:var(--teal);">
+            <span>4. TECHNICAL SPECS, SKUS &amp; PRICING — JETBRAINS MONO (Weights: 500, 700)</span>
+            <span>Alternatives: IBM Plex Mono, Space Mono, Roboto Mono</span>
+          </div>
+          <div style="font-family:'JetBrains Mono', monospace; font-size:22px; font-weight:700; color:var(--navy);">
+            £385.00 Ex. VAT &nbsp;|&nbsp; £462.00 Inc. VAT &nbsp;|&nbsp; 10+ Rate: £346.50
+          </div>
+          <div style="font-family:'JetBrains Mono', monospace; font-size:14px; font-weight:700; color:var(--blue); margin-top:6px;">
+            SKU: SSS-CANT-3B8A • SWL: 1,500kg UDL • EXT: 2400(L) × 1100(W) × 1450(H) mm • 80×80×4mm RHS
+          </div>
+          <div class="font-note">Used for: SKUs, millimetre dimensions, SWL badges, specification tables, and Ex./Inc. VAT pricing.</div>
+        </div>
+      </section>
+
+      <!-- 3. CLIENT CHANGE SIGN-OFF TABLE -->
+      <section class="section" style="margin-bottom:0;">
+        <div class="section-tag">Section 03</div>
+        <h2 class="section-title">Client Feedback &amp; Customisation Table</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Element / Token</th>
+              <th>Current Setting</th>
+              <th>Client Approved / Requested Change</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Primary Header / Hero Colour</strong></td>
+              <td><span class="dot" style="background:#0F2342"></span>Brand Navy (<code>#0F2342</code>)</td>
+              <td></td>
+            </tr>
+            <tr>
+              <td><strong>Primary Button / Stillage Blue</strong></td>
+              <td><span class="dot" style="background:#145DA0"></span>RAL 5010 Stillage Blue (<code>#145DA0</code>)</td>
+              <td></td>
+            </tr>
+            <tr>
+              <td><strong>Product Stage Backdrop</strong></td>
+              <td><span class="dot" style="background:#F2E3CE"></span>Workshop Sand (<code>#F2E3CE</code>)</td>
+              <td></td>
+            </tr>
+            <tr>
+              <td><strong>Highlight / Discount Badge</strong></td>
+              <td><span class="dot" style="background:#D97706"></span>Safety Amber (<code>#D97706</code>)</td>
+              <td></td>
+            </tr>
+            <tr>
+              <td><strong>Heading Font</strong></td>
+              <td>Barlow Condensed (Uppercase Bold)</td>
+              <td></td>
+            </tr>
+            <tr>
+              <td><strong>Brand Wordmark Font</strong></td>
+              <td>Roboto Slab (Bold)</td>
+              <td></td>
+            </tr>
+            <tr>
+              <td><strong>Body / Spec Fonts</strong></td>
+              <td>Inter (Body) + JetBrains Mono (Specs/Prices)</td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </div>
+  </div>
+</body>
+</html>
