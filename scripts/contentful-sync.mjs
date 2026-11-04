@@ -2,8 +2,44 @@
 // Run with: CONTENTFUL_MANAGEMENT_TOKEN=CFPAT-... npm run contentful:sync
 
 import { fileURLToPath } from 'node:url';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 
-const CMA_TOKEN = process.env.CONTENTFUL_MANAGEMENT_TOKEN;
+function resolveManagementToken() {
+  if (process.env.CONTENTFUL_MANAGEMENT_TOKEN) {
+    return process.env.CONTENTFUL_MANAGEMENT_TOKEN;
+  }
+  for (const envFile of ['.env.local', '.env']) {
+    try {
+      const envPath = path.resolve(process.cwd(), envFile);
+      if (fs.existsSync(envPath)) {
+        const content = fs.readFileSync(envPath, 'utf8');
+        const match = content.match(/^\s*CONTENTFUL_MANAGEMENT_TOKEN\s*=\s*(.+)\s*$/m);
+        if (match && match[1]) {
+          const val = match[1].trim().replace(/^['"]|['"]$/g, '');
+          if (val && val !== 'your_contentful_cma_pat_token_here') {
+            return val;
+          }
+        }
+      }
+    } catch {
+      // Ignore if unreadable
+    }
+  }
+  try {
+    const rcPath = path.join(os.homedir(), '.contentfulrc.json');
+    if (fs.existsSync(rcPath)) {
+      const parsed = JSON.parse(fs.readFileSync(rcPath, 'utf8'));
+      if (parsed.managementToken) return parsed.managementToken;
+    }
+  } catch {
+    // Ignore if unreadable
+  }
+  return undefined;
+}
+
+const CMA_TOKEN = resolveManagementToken();
 const TARGET_SPACE_ID = process.env.NEXT_PUBLIC_CONTENTFUL_SPACE_ID || 'q9ktabz6dqby';
 const ENVIRONMENT_ID = process.env.NEXT_PUBLIC_CONTENTFUL_ENVIRONMENT || 'master';
 const BASE_URL = 'https://api.contentful.com';

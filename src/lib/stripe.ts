@@ -3,8 +3,13 @@ import { BasketOrderSummary } from '@/types/catalog';
 
 const STRIPE_API_BASE = 'https://api.stripe.com/v1';
 
+function readRuntimeEnv(name: string): string {
+  if (typeof process === 'undefined' || !process.env) return '';
+  return (process.env[name] || '').trim();
+}
+
 export function getStripeSecretKey(): string | undefined {
-  const key = process.env.STRIPE_SECRET_KEY?.trim();
+  const key = readRuntimeEnv('STRIPE_SECRET_KEY');
   if (!key || key === 'sk_test_your_stripe_secret_key') {
     return undefined;
   }
@@ -12,11 +17,9 @@ export function getStripeSecretKey(): string | undefined {
 }
 
 export function getStripePublishableKey(): string | undefined {
-  const key = (
-    process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ||
-    process.env.PUBLIC_STRIPE_PUBLISHABLE_KEY ||
-    ''
-  ).trim();
+  const key =
+    readRuntimeEnv('NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY') ||
+    readRuntimeEnv('PUBLIC_STRIPE_PUBLISHABLE_KEY');
   if (!key || key === 'pk_test_your_stripe_publishable_key') {
     return undefined;
   }

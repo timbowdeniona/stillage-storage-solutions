@@ -7,9 +7,14 @@ import {
 } from '@/types/catalog';
 import { SEED_PRODUCTS } from '@/data/seedCatalog';
 
-const ALGOLIA_APP_ID = process.env.NEXT_PUBLIC_ALGOLIA_APP_ID || '';
-const ALGOLIA_SEARCH_KEY = process.env.NEXT_PUBLIC_ALGOLIA_SEARCH_KEY || '';
-const ALGOLIA_INDEX = process.env.NEXT_PUBLIC_ALGOLIA_INDEX_NAME || 'stillage_products';
+function getEnv(name: string, fallback = ''): string {
+  if (typeof process === 'undefined' || !process.env) return fallback;
+  return process.env[name] || fallback;
+}
+
+const ALGOLIA_APP_ID = getEnv('NEXT_PUBLIC_ALGOLIA_APP_ID');
+const ALGOLIA_SEARCH_KEY = getEnv('NEXT_PUBLIC_ALGOLIA_SEARCH_KEY');
+const ALGOLIA_INDEX = getEnv('NEXT_PUBLIC_ALGOLIA_INDEX_NAME', 'stillage_products');
 
 export interface SearchFilterOptions {
   query?: string;

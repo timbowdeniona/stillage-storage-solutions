@@ -34,7 +34,7 @@ When attaching this GitHub repository to Netlify, set the following environment 
 ```env
 NEXT_PUBLIC_CONTENTFUL_SPACE_ID=q9ktabz6dqby
 NEXT_PUBLIC_CONTENTFUL_ENVIRONMENT=master
-CONTENTFUL_ACCESS_TOKEN=7WWIQoILhWsAxzElN-B-_RKBelueStszNqvsCR3HfsE
+CONTENTFUL_ACCESS_TOKEN=your_contentful_cda_token_here
 ```
 
 *(Optional)* Add `NEXT_PUBLIC_ALGOLIA_APP_ID`, `NEXT_PUBLIC_ALGOLIA_SEARCH_KEY`, `ALGOLIA_ADMIN_API_KEY`, and `STRIPE_SECRET_KEY` when connecting live Algolia and Stripe accounts.

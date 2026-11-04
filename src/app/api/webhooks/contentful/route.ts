@@ -6,9 +6,10 @@ export async function POST(request: Request) {
     const payload = await request.json();
     const entryId = payload?.sys?.id || payload?.objectID || payload?.id || 'unknown';
     const topic = request.headers.get('x-contentful-topic') || '';
-    const algoliaAppId = process.env.NEXT_PUBLIC_ALGOLIA_APP_ID;
-    const algoliaAdminKey = process.env.ALGOLIA_ADMIN_API_KEY;
-    const algoliaIndex = process.env.NEXT_PUBLIC_ALGOLIA_INDEX_NAME || 'stillage_products';
+    const env = typeof process !== 'undefined' && process.env ? process.env : ({} as Record<string, string | undefined>);
+    const algoliaAppId = env['NEXT_PUBLIC_ALGOLIA_APP_ID'];
+    const algoliaAdminKey = env['ALGOLIA_ADMIN_API_KEY'];
+    const algoliaIndex = env['NEXT_PUBLIC_ALGOLIA_INDEX_NAME'] || 'stillage_products';
 
     // Handle Contentful unpublish or delete events
     if (

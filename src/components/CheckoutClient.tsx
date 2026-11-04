@@ -83,9 +83,7 @@ export function CheckoutClient() {
   const [sessionLoading, setSessionLoading] = useState<boolean>(false);
   const [sessionError, setSessionError] = useState<string | null>(null);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
-  const [publishableKey, setPublishableKey] = useState<string>(
-    process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || ''
-  );
+  const [publishableKey, setPublishableKey] = useState<string>('');
   const [activeOrderReference, setActiveOrderReference] = useState<string | null>(null);
   const [copiedTestCard, setCopiedTestCard] = useState<boolean>(false);
 
@@ -963,7 +961,7 @@ export function CheckoutClient() {
                 </div>
               )}
 
-              {!publishableKey && !sessionLoading && (
+              {!publishableKey && clientSecret && !sessionLoading && (
                 <div className="p-4 bg-amber-50 border border-accent-amber text-brand-navy text-xs rounded-sm space-y-1.5">
                   <div className="font-bold uppercase font-display text-sm">
                     Publishable Key Needed for Embedded Form

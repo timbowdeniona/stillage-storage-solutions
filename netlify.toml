@@ -2,12 +2,14 @@
 # Next.js (App Router) + Rust Serverless APIs
 
 [build]
-  command = "npm run build"
+  command = "npm run build && rm -rf .next/cache/fetch-cache"
   publish = ".next"
 
 [build.environment]
   NODE_VERSION = "22"
   RUST_BACKTRACE = "1"
+  SECRETS_SCAN_OMIT_PATHS = ".next/cache/**,README.md,.env.example"
+  SECRETS_SCAN_OMIT_KEYS = "NEXT_PUBLIC_CONTENTFUL_SPACE_ID,NEXT_PUBLIC_CONTENTFUL_ENVIRONMENT,NEXT_PUBLIC_ALGOLIA_APP_ID,NEXT_PUBLIC_ALGOLIA_SEARCH_KEY,NEXT_PUBLIC_ALGOLIA_INDEX_NAME,PUBLIC_STRIPE_PUBLISHABLE_KEY,NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY"
 
 [functions]
   directory = "netlify/functions"

@@ -1,9 +1,14 @@
 import { SEED_BLOG_POSTS, SEED_CATEGORIES, SEED_PRODUCTS } from '@/data/seedCatalog';
 import { BlogPost, Category, Product } from '@/types/catalog';
 
-const CONTENTFUL_SPACE_ID = process.env.NEXT_PUBLIC_CONTENTFUL_SPACE_ID || 'q9ktabz6dqby';
-const CONTENTFUL_ENVIRONMENT = process.env.NEXT_PUBLIC_CONTENTFUL_ENVIRONMENT || 'master';
-const CONTENTFUL_CDA_TOKEN = process.env.CONTENTFUL_ACCESS_TOKEN || '';
+function getEnv(name: string, fallback = ''): string {
+  if (typeof process === 'undefined' || !process.env) return fallback;
+  return process.env[name] || fallback;
+}
+
+const CONTENTFUL_SPACE_ID = getEnv('NEXT_PUBLIC_CONTENTFUL_SPACE_ID', 'q9ktabz6dqby');
+const CONTENTFUL_ENVIRONMENT = getEnv('NEXT_PUBLIC_CONTENTFUL_ENVIRONMENT', 'master');
+const CONTENTFUL_CDA_TOKEN = getEnv('CONTENTFUL_ACCESS_TOKEN', '');
 
 interface ContentfulEntry<T> {
   sys: { id: string };
