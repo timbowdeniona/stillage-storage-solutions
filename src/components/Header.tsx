@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -12,20 +12,88 @@ import {
   Menu,
   X,
   SlidersHorizontal,
+  Database,
+  ArrowRight,
+  Sparkles,
 } from 'lucide-react';
 import { useVat } from '@/context/VatContext';
+import { SEED_PRODUCTS } from '@/data/seedCatalog';
+import { searchProductsWithAlgolia } from '@/lib/algolia';
+import { ParsedSearchIntent, Product } from '@/types/catalog';
 
 export function Header() {
-  const { showIncVat, setShowIncVat, basket, formatPrice } = useVat();
+  const { showIncVat, setShowIncVat, basket, formatPrice, formatBothPrices } = useVat();
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [autocompleteOpen, setAutocompleteOpen] = useState(false);
+  const [instantHits, setInstantHits] = useState<Product[]>([]);
+  const [instantIntent, setInstantIntent] = useState<ParsedSearchIntent>({
+    cleanedQuery: '',
+    intentBadges: [],
+  });
+  const [instantEngine, setInstantEngine] = useState<'algolia-dsn' | 'algolia-local-replica'>(
+    'algolia-local-replica'
+  );
+  const searchContainerRef = useRef<HTMLFormElement>(null);
   const router = useRouter();
+
+  useEffect(() => {
+    const trimmed = searchQuery.trim();
+    if (!trimmed) {
+      setInstantHits([]);
+      setInstantIntent({ cleanedQuery: '', intentBadges: [] });
+      return;
+    }
+
+    let active = true;
+    searchProductsWithAlgolia(SEED_PRODUCTS, { query: trimmed }).then((res) => {
+      if (active) {
+        setInstantHits(res.hits.slice(0, 4));
+        setInstantIntent(res.parsedIntent);
+        setInstantEngine(res.engine);
+      }
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [searchQuery]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        searchContainerRef.current &&
+        !searchContainerRef.current.contains(e.target as Node)
+      ) {
+        setAutocompleteOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = searchQuery.trim();
+    setAutocompleteOpen(false);
     router.push(trimmed ? `/products?q=${encodeURIComponent(trimmed)}` : '/products');
   };
+
+  // Modern Web Guidance (ime-safe-enter-submit): guard custom keydown handler against IME composition
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Escape') {
+      setAutocompleteOpen(false);
+      return;
+    }
+    if (e.key === 'Enter') {
+      if (e.nativeEvent.isComposing || e.keyCode === 229) {
+        e.preventDefault();
+        return;
+      }
+    }
+  };
+
+  const showDropdown = autocompleteOpen && searchQuery.trim().length > 0;
 
   const totalUnits = basket.reduce((acc, item) => acc + item.quantity, 0);
   const totalExVat = basket.reduce((acc, item) => acc + item.lineTotalExVatPence, 0);
@@ -124,15 +192,35 @@ export function Header() {
             </div>
           </Link>
 
-          {/* Algolia Instant Search Bar */}
-          <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-xl">
+          {/* Algolia Instant Search Bar with Typeahead Autocomplete */}
+          <form
+            ref={searchContainerRef}
+            onSubmit={handleSearch}
+            action="/products"
+            method="GET"
+            className="hidden md:flex flex-1 max-w-xl relative"
+          >
             <div className="relative flex w-full">
+              <label htmlFor="header-algolia-search" className="sr-only">
+                Search stillages and storage racks
+              </label>
               <input
+                id="header-algolia-search"
+                name="q"
                 type="search"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => setAutocompleteOpen(true)}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setAutocompleteOpen(true);
+                }}
+                onKeyDown={handleSearchKeyDown}
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck={false}
+                aria-expanded={showDropdown}
+                aria-controls="header-algolia-autocomplete"
                 placeholder="Search by stillage type, SKU (e.g. SSS-CANT), dimensions or SWL..."
-                aria-label="Search stillages and storage racks"
                 className="w-full bg-brand-navyDark text-white placeholder-steel-400 text-sm px-4 py-2.5 rounded-l border border-white/20 focus:outline-none focus:border-surface-sand"
               />
               <button
@@ -143,6 +231,102 @@ export function Header() {
                 Search
               </button>
             </div>
+
+            {/* Instant Algolia Autocomplete Overlay */}
+            {showDropdown && (
+              <div
+                id="header-algolia-autocomplete"
+                role="region"
+                aria-label="Instant Algolia search suggestions"
+                className="absolute left-0 right-0 top-full mt-1.5 bg-surface-white text-steel-900 border-2 border-brand-navy shadow-2xl rounded-sm z-50 overflow-hidden"
+              >
+                <div className="bg-surface-sandLight px-3.5 py-2 border-b border-steel-200 flex flex-wrap items-center justify-between gap-2 text-[11px] font-mono">
+                  <span className="inline-flex items-center gap-1.5 text-brand-navy font-bold">
+                    <Database className="w-3.5 h-3.5 text-stillage-blue" />
+                    {instantEngine === 'algolia-dsn'
+                      ? 'Algolia Live InstantSearch'
+                      : 'Algolia Instant Replica'}
+                  </span>
+                  {instantIntent.intentBadges.length > 0 && (
+                    <span className="inline-flex items-center gap-1 text-stillage-blue font-bold">
+                      <Sparkles className="w-3 h-3" />
+                      {instantIntent.intentBadges[0]}
+                    </span>
+                  )}
+                </div>
+
+                {instantHits.length === 0 ? (
+                  <div className="p-4 text-xs text-steel-600 font-mono">
+                    No direct SKU matches for &ldquo;{searchQuery}&rdquo; — press Enter to consult our AI Steel Stillage Engineer.
+                  </div>
+                ) : (
+                  <div className="divide-y divide-steel-200">
+                    {instantHits.map((hit) => {
+                      const queryParams = new URLSearchParams();
+                      if (instantIntent.suggestedFinishOption) {
+                        queryParams.set('finish', instantIntent.suggestedFinishOption);
+                      }
+                      if (instantIntent.suggestedMobilityOption) {
+                        queryParams.set('mobility', instantIntent.suggestedMobilityOption);
+                      }
+                      const qs = queryParams.toString();
+                      const targetHref = `/products/${hit.slug}${qs ? `?${qs}` : ''}`;
+
+                      return (
+                        <Link
+                          key={hit.id}
+                          href={targetHref}
+                          onClick={() => setAutocompleteOpen(false)}
+                          className="p-3 hover:bg-surface-sand/40 flex items-center justify-between gap-3 transition-colors"
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            <img
+                              src={hit.primaryImage}
+                              alt={hit.title}
+                              width={44}
+                              height={44}
+                              className="w-11 h-11 object-contain bg-surface-sand p-1 rounded-sm border border-steel-200 shrink-0"
+                            />
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-2 font-mono text-[10px]">
+                                <span className="font-bold text-stillage-blue">{hit.sku}</span>
+                                <span className="text-steel-400">•</span>
+                                <span className="text-brand-navy font-bold">{hit.swlKg}kg SWL</span>
+                                <span className="text-steel-400">•</span>
+                                <span className="text-steel-600">
+                                  {hit.externalLengthMm}×{hit.externalWidthMm}mm
+                                </span>
+                              </div>
+                              <div className="font-display font-bold text-sm uppercase text-brand-navy truncate">
+                                {hit.title}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="text-right font-mono shrink-0">
+                            <div className="text-xs font-bold text-brand-navy">
+                              {formatBothPrices(hit.basePriceExVatPence).primary}
+                            </div>
+                            <div className="text-[10px] text-steel-600">
+                              {formatBothPrices(hit.basePriceExVatPence).label}
+                            </div>
+                          </div>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+
+                <div className="bg-brand-navy text-surface-sand px-3.5 py-2 flex items-center justify-between text-xs font-mono">
+                  <button
+                    type="submit"
+                    className="hover:underline inline-flex items-center gap-1.5 font-bold"
+                  >
+                    <span>View All Algolia Results for &ldquo;{searchQuery}&rdquo;</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            )}
           </form>
 
           {/* Right Actions: Catalog Filter & Active Quote Basket */}
@@ -156,14 +340,14 @@ export function Header() {
             </Link>
 
             <Link
-              href="/products"
+              href="/checkout"
               className="inline-flex items-center gap-2.5 bg-surface-sand text-brand-navy hover:bg-white px-3.5 py-2 rounded font-mono text-xs font-bold transition-colors"
             >
               <ShoppingBag className="w-4 h-4 text-stillage-blue" />
               <span>
                 {totalUnits > 0
                   ? `${totalUnits} Unit${totalUnits > 1 ? 's' : ''} (${formatPrice(totalExVat)})`
-                  : 'Order / Quote'}
+                  : 'Order / Checkout'}
               </span>
             </Link>
 
@@ -222,6 +406,12 @@ export function Header() {
             >
               Demountable Post Pallets
             </Link>
+            <Link
+              href="/blog"
+              className="px-3.5 py-2.5 text-surface-sand font-bold hover:bg-stillage-blue/40 transition-colors"
+            >
+              Technical Blog &amp; Guides
+            </Link>
           </div>
           <div className="text-[11px] font-mono text-surface-sand/90 py-2">
             BULK TIERS: 5+ UNITS (-5%) | 10+ UNITS (-10%)
@@ -233,10 +423,18 @@ export function Header() {
       {mobileMenuOpen && (
         <div className="md:hidden bg-brand-navyDark border-t border-white/15 px-4 pt-3 pb-5 space-y-3">
           <form onSubmit={handleSearch} className="flex">
+            <label htmlFor="mobile-algolia-search" className="sr-only">
+              Search stillages, SKUs, SWL
+            </label>
             <input
+              id="mobile-algolia-search"
+              name="q"
               type="search"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              autoCorrect="off"
+              autoCapitalize="off"
+              spellCheck={false}
               placeholder="Search stillages, SKUs, SWL..."
               className="w-full bg-brand-navy text-white text-sm px-3 py-2 rounded-l border border-white/20"
             />
@@ -289,6 +487,13 @@ export function Header() {
               className="py-2 px-3 rounded hover:bg-white/5"
             >
               Post Pallets &amp; Cradles
+            </Link>
+            <Link
+              href="/blog"
+              onClick={() => setMobileMenuOpen(false)}
+              className="py-2 px-3 rounded bg-white/5 text-surface-sand font-bold"
+            >
+              Technical Blog &amp; Engineering Guides
             </Link>
           </div>
         </div>

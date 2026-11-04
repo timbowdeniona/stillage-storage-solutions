@@ -107,14 +107,38 @@ export function Footer() {
 
         <div>
           <h4 className="font-display font-bold uppercase tracking-wider text-surface-sand mb-3">
-            Technical &amp; Delivery
+            Technical Guides &amp; Delivery
           </h4>
           <ul className="space-y-2 text-xs text-steel-200">
-            <li>Standard Finish: RAL 5010 Gentian Blue</li>
-            <li>HGV Pallet Network (Up to 4 units/pallet)</li>
-            <li>Lorry Tail-Lift Offloading Option (+£15)</li>
-            <li>Free Works Forklift Collection Available</li>
-            <li>UKCA &amp; SWL Plate Certification</li>
+            <li>
+              <Link href="/blog" className="text-surface-sand font-bold hover:underline">
+                Technical Blog &amp; Engineering Guides &rarr;
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/blog/swl-puwer-ukca-stillage-stacking-safety-guide"
+                className="hover:text-white"
+              >
+                SWL, PUWER &amp; 4-High Stacking Guide
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/blog/hot-dip-galvanised-vs-ral-5010-painted-steel-stillages"
+                className="hover:text-white"
+              >
+                Hot-Dip Galvanised vs RAL 5010 Finishes
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/blog/hgv-pallet-delivery-tail-lift-offloading-guide"
+                className="hover:text-white"
+              >
+                HGV Pallet Delivery &amp; Tail-Lift Guide
+              </Link>
+            </li>
           </ul>
         </div>
 

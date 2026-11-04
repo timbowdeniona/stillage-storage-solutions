@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import {
   Check,
   ShieldCheck,
@@ -10,10 +12,14 @@ import {
   ShoppingBag,
   Layers,
   AlertTriangle,
+  PlusCircle,
+  ArrowRight,
+  Sparkles,
 } from 'lucide-react';
 import { FINISH_OPTIONS, MOBILITY_OPTIONS } from '@/data/seedCatalog';
 import { Product, QuoteResponse } from '@/types/catalog';
 import { calculateQuote } from '@/lib/pricing';
+import { trackAlgoliaEvent } from '@/lib/algolia';
 import { formatGBP, useVat } from '@/context/VatContext';
 
 interface ProductConfiguratorProps {
@@ -21,7 +27,17 @@ interface ProductConfiguratorProps {
 }
 
 export function ProductConfigurator({ product }: ProductConfiguratorProps) {
-  const { showIncVat, formatBothPrices, addToBasket } = useVat();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const {
+    showIncVat,
+    formatBothPrices,
+    addToBasket,
+    deliveryPostcode,
+    setDeliveryPostcode,
+    requiresTailLift: ctxTailLift,
+    setRequiresTailLift: setCtxTailLift,
+  } = useVat();
 
   // Stage visual controls
   const [backdropMode, setBackdropMode] = useState<'sand' | 'white' | 'blueprint'>(
@@ -29,12 +45,36 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
   );
   const [activeImageIndex, setActiveImageIndex] = useState<0 | 1>(0);
 
-  // Configurator state
-  const [finishOption, setFinishOption] = useState<string>('standard-blue');
-  const [mobilityOption, setMobilityOption] = useState<string>('standard-feet');
-  const [quantity, setQuantity] = useState<number>(4);
-  const [postcode, setPostcode] = useState<string>('B1 1AA');
-  const [requiresTailLift, setRequiresTailLift] = useState<boolean>(false);
+  // Configurator state (supports deep-linking from Algolia Recommendations & AI Spec Advisor)
+  const [finishOption, setFinishOption] = useState<string>(() => {
+    const param = searchParams.get('finish');
+    return FINISH_OPTIONS.some((f) => f.id === param) ? (param as string) : 'standard-blue';
+  });
+  const [mobilityOption, setMobilityOption] = useState<string>(() => {
+    const param = searchParams.get('mobility');
+    return MOBILITY_OPTIONS.some((m) => m.id === param) ? (param as string) : 'standard-feet';
+  });
+  const [quantity, setQuantity] = useState<number>(() => {
+    const param = Number(searchParams.get('qty'));
+    return param >= 1 && param <= 500 ? param : 4;
+  });
+  const [postcode, setPostcode] = useState<string>(deliveryPostcode || 'B1 1AA');
+  const [requiresTailLift, setRequiresTailLift] = useState<boolean>(ctxTailLift);
+
+  useEffect(() => {
+    const fin = searchParams.get('finish');
+    if (fin && FINISH_OPTIONS.some((f) => f.id === fin)) {
+      setFinishOption(fin);
+    }
+    const mob = searchParams.get('mobility');
+    if (mob && MOBILITY_OPTIONS.some((m) => m.id === mob)) {
+      setMobilityOption(mob);
+    }
+    const qty = Number(searchParams.get('qty'));
+    if (qty >= 1 && qty <= 500) {
+      setQuantity(qty);
+    }
+  }, [searchParams]);
 
   // Live quote from Rust/Next API
   const [quote, setQuote] = useState<QuoteResponse>(() =>
@@ -101,51 +141,49 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
   const selectedMobility =
     MOBILITY_OPTIONS.find((m) => m.id === mobilityOption) || MOBILITY_OPTIONS[0];
 
-  const handleCheckout = async (paymentMode: 'card' | 'b2b_proforma') => {
-    setSubmitting(true);
-    setOrderStatusMessage(null);
-
+  const syncCurrentConfigToBasket = () => {
+    trackAlgoliaEvent({
+      eventType: 'conversion',
+      eventName: 'Configured Stillage Added to Order',
+      objectIDs: [product.id],
+    });
     addToBasket({
       sku: product.sku,
       title: product.title,
       slug: product.slug,
       quantity: quote.quantity,
+      basePriceExVatPence: product.basePriceExVatPence,
+      finishOption,
       finishName: selectedFinish.name,
+      mobilityOption,
       mobilityName: selectedMobility.name,
+      primaryImage: product.primaryImage,
       unitPriceExVatPence: quote.discountedUnitExVatPence,
       lineTotalExVatPence: quote.lineSubtotalExVatPence,
     });
-
-    try {
-      const res = await fetch('/api/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          quoteRequest: {
-            sku: product.sku,
-            basePriceExVatPence: product.basePriceExVatPence,
-            quantity,
-            finishOption,
-            mobilityOption,
-            postcode,
-            requiresTailLift,
-          },
-          productTitle: product.title,
-          paymentMode,
-          companyName: companyName || 'UK Trade Buyer',
-        }),
-      });
-      const data = await res.json();
-      if (data?.message) {
-        setOrderStatusMessage(data.message);
+    setDeliveryPostcode(postcode);
+    setCtxTailLift(requiresTailLift);
+    if (companyName.trim()) {
+      try {
+        window.localStorage.setItem('sss_checkout_company', companyName.trim());
+      } catch {
+        // Ignore storage errors
       }
-    } catch {
-      setOrderStatusMessage(
-        `Added ${quote.quantity}x ${product.title} (${product.sku}) to your active order basket.`
-      );
-    } finally {
-      setSubmitting(false);
     }
+  };
+
+  const handleCheckout = (paymentMode: 'card' | 'b2b_proforma') => {
+    setSubmitting(true);
+    setOrderStatusMessage(null);
+    syncCurrentConfigToBasket();
+    router.push(`/checkout?mode=${paymentMode}`);
+  };
+
+  const handleAddToBasketOnly = () => {
+    syncCurrentConfigToBasket();
+    setOrderStatusMessage(
+      `Added ${quote.quantity}× ${product.title} (${selectedFinish.code}, ${selectedMobility.name}) to your order basket.`
+    );
   };
 
   const galleryImages = [
@@ -543,6 +581,52 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
                 <div>Pallets Required: {quote.palletCount}</div>
               </div>
             </div>
+
+            {/* Smart HGV Pallet & Bulk Tier AI Optimizer */}
+            <div className="mt-3 bg-surface-sandLight border border-steel-200 border-l-4 border-l-stillage-blue p-2.5 text-xs flex items-center justify-between gap-2">
+              <div className="flex items-start gap-2">
+                <Sparkles className="w-4 h-4 text-stillage-blue shrink-0 mt-0.5" />
+                <div className="text-steel-800 leading-snug">
+                  {quantity % 4 !== 0 ? (
+                    <>
+                      <strong className="text-brand-navy">Unused HGV Pallet Space:</strong>{' '}
+                      {4 - (quantity % 4)} more unit{4 - (quantity % 4) > 1 ? 's' : ''} can stack on
+                      Pallet #{quote.palletCount} for <strong>£0 extra freight</strong>.
+                    </>
+                  ) : quantity === 4 ? (
+                    <>
+                      <strong className="text-brand-navy">Bulk Tier Alert:</strong> Stepping to{' '}
+                      <strong>5+ units</strong> (or 8 units on 2 full pallets) unlocks{' '}
+                      <strong>5% Off</strong> every configured stillage.
+                    </>
+                  ) : (
+                    <>
+                      <strong className="text-brand-navy">Optimal Pallet Load:</strong>{' '}
+                      {quote.palletCount} full HGV pallet space{quote.palletCount > 1 ? 's' : ''}{' '}
+                      ({quantity} units) with{' '}
+                      <strong>{quote.discountPercentage}% Bulk Trade Discount</strong> active.
+                    </>
+                  )}
+                </div>
+              </div>
+              {quantity % 4 !== 0 ? (
+                <button
+                  type="button"
+                  onClick={() => setQuantity(quantity + (4 - (quantity % 4)))}
+                  className="shrink-0 bg-brand-navy hover:bg-stillage-blue text-surface-sand px-2.5 py-1 rounded-sm font-mono text-[11px] font-bold transition-colors"
+                >
+                  Fill Pallet ({quantity + (4 - (quantity % 4))})
+                </button>
+              ) : quantity === 4 ? (
+                <button
+                  type="button"
+                  onClick={() => setQuantity(8)}
+                  className="shrink-0 bg-brand-navy hover:bg-stillage-blue text-surface-sand px-2.5 py-1 rounded-sm font-mono text-[11px] font-bold transition-colors"
+                >
+                  2 Pallets / -5% (8)
+                </button>
+              ) : null}
+            </div>
           </div>
 
           {/* Step 4: UK Postcode Pallet Freight & Offloading Method */}
@@ -644,17 +728,25 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
 
           {/* Optional Company Name for B2B Proforma */}
           <div>
+            <label
+              htmlFor="configurator-company-input"
+              className="block font-mono text-[11px] text-steel-600 mb-1"
+            >
+              Optional: Company Name / PO Reference for VAT Invoice
+            </label>
             <input
+              id="configurator-company-input"
               type="text"
+              name="organization"
+              autoComplete="organization"
               value={companyName}
               onChange={(e) => setCompanyName(e.target.value)}
-              placeholder="Optional: Company Name / PO Reference for VAT Invoice"
-              aria-label="Company Name or Purchase Order Reference"
+              placeholder="e.g. Midlands Engineering Ltd / PO-4829"
               className="w-full px-3 py-2 border border-steel-200 rounded-sm text-xs"
             />
           </div>
 
-          {/* Dual Conversion CTAs */}
+          {/* Conversion CTAs */}
           <div className="space-y-2.5">
             <button
               type="button"
@@ -663,7 +755,9 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
               className="w-full bg-stillage-blue hover:bg-stillage-blueDark text-white font-display font-bold uppercase tracking-wider text-base py-3.5 px-5 rounded-sm flex items-center justify-center gap-2 shadow transition-colors"
             >
               <ShoppingBag className="w-4 h-4" />
-              <span>Buy Online Now — Instant Checkout</span>
+              <span>
+                Buy Online Now — {formatGBP(quote.totalIncVatPence)} Inc. VAT
+              </span>
             </button>
 
             <button
@@ -675,12 +769,34 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
               <FileText className="w-4 h-4 text-accent-amber" />
               <span>Generate Official B2B VAT Proforma Invoice</span>
             </button>
+
+            <button
+              type="button"
+              onClick={handleAddToBasketOnly}
+              className="w-full bg-surface-sandLight hover:bg-surface-sand text-brand-navy border border-steel-200 font-display font-bold uppercase tracking-wider text-xs py-2.5 px-4 rounded-sm flex items-center justify-center gap-2 transition-colors"
+            >
+              <PlusCircle className="w-3.5 h-3.5 text-stillage-blue" />
+              <span>Add Specification to Order Basket &amp; Keep Browsing</span>
+            </button>
           </div>
 
           {orderStatusMessage && (
-            <div className="p-3.5 bg-emerald-50 border border-emerald-600 text-emerald-950 text-xs font-medium rounded-sm flex items-start gap-2.5">
-              <Layers className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
-              <div>{orderStatusMessage}</div>
+            <div
+              role="status"
+              aria-live="polite"
+              className="p-3.5 bg-emerald-50 border border-emerald-600 text-emerald-950 text-xs font-medium rounded-sm flex items-start justify-between gap-2.5"
+            >
+              <div className="flex items-start gap-2.5">
+                <Layers className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
+                <div>{orderStatusMessage}</div>
+              </div>
+              <Link
+                href="/checkout"
+                className="shrink-0 inline-flex items-center gap-1 font-mono font-bold text-stillage-blue hover:underline"
+              >
+                <span>View Checkout</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
             </div>
           )}
         </div>

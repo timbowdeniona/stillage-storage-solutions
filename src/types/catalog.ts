@@ -36,6 +36,102 @@ export interface Product {
   highlights: string[];
 }
 
+export interface AlgoliaProductRecord extends Product {
+  objectID: string;
+  footprintMm: string;
+  dimensionsText: string;
+  compatibleSkus: string[];
+  useCases: string[];
+  environmentTags: string[];
+  recommendedFinishIds: string[];
+  recommendedMobilityIds: string[];
+}
+
+export interface ProductRecommendation {
+  product: Product;
+  relationship: 'compatible-equipment' | 'similar-specification';
+  matchReason: string;
+  score: number;
+  suggestedConfig?: {
+    finishOption?: string;
+    mobilityOption?: string;
+    quantity?: number;
+    note?: string;
+  };
+}
+
+export interface ProductRecommendationsResult {
+  compatibleEquipment: ProductRecommendation[];
+  similarSpecifications: ProductRecommendation[];
+  engine: 'algolia-recommend' | 'algolia-dsn-scored' | 'algolia-local-replica';
+}
+
+export interface ParsedSearchIntent {
+  cleanedQuery: string;
+  detectedMinSwlKg?: number;
+  detectedFootprintMm?: string;
+  detectedCategorySlug?: string;
+  suggestedFinishOption?: string;
+  suggestedMobilityOption?: string;
+  intentBadges: string[];
+}
+
+export interface AiSpecAdvisorRequest {
+  prompt: string;
+  environment?: 'indoor' | 'outdoor' | 'foundry';
+  handling?: 'forklift' | 'telehandler' | 'castors' | 'crane';
+  targetSwlKg?: number;
+}
+
+export interface BespokeCadBrief {
+  referenceCode: string;
+  suggestedDimensionsMm: string;
+  targetSwlKg: number;
+  recommendedSteelGauge: string;
+  recommendedFinish: string;
+  complianceStandard: string;
+  engineeringSummary: string;
+}
+
+export interface AiSpecAdvisorResponse {
+  model: string;
+  engine: 'gemini-3.8-flash-algolia-rag' | 'algolia-rag-engineering-engine';
+  executiveSummary: string;
+  primaryRecommendation: {
+    product: Product;
+    finishOption: string;
+    finishName: string;
+    mobilityOption: string;
+    mobilityName: string;
+    recommendedQuantity: number;
+    rationale: string;
+    complianceNote: string;
+    configuratorUrl: string;
+  };
+  complementaryFleet: ProductRecommendation[];
+  palletOptimizationTip: string;
+  bespokeCadBrief: BespokeCadBrief;
+}
+
+export interface BlogPost {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  category: string;
+  author: string;
+  authorRole: string;
+  publishedAt: string;
+  readingTimeMinutes: number;
+  featured: boolean;
+  heroImage: string;
+  backdropStyle: 'sand' | 'white';
+  tags: string[];
+  keyTakeaways: string[];
+  body: string;
+  relatedProductSkus: string[];
+}
+
 export interface FinishOption {
   id: 'standard-blue' | 'raw-steel' | 'galvanised' | 'custom-ral';
   name: string;
@@ -81,4 +177,51 @@ export interface QuoteResponse {
   vatAmountPence: number;
   totalIncVatPence: number;
   engine: string;
+}
+
+export interface CheckoutLineItemInput {
+  sku: string;
+  title: string;
+  slug?: string;
+  basePriceExVatPence: number;
+  quantity: number;
+  finishOption: string;
+  finishName?: string;
+  mobilityOption: string;
+  mobilityName?: string;
+  primaryImage?: string;
+}
+
+export interface ComputedBasketLineItem {
+  sku: string;
+  title: string;
+  slug: string;
+  quantity: number;
+  basePriceExVatPence: number;
+  finishOption: string;
+  finishName: string;
+  mobilityOption: string;
+  mobilityName: string;
+  primaryImage?: string;
+  configuredUnitExVatPence: number;
+  discountPercentage: number;
+  discountedUnitExVatPence: number;
+  lineSubtotalExVatPence: number;
+  bulkSavingsExVatPence: number;
+}
+
+export interface BasketOrderSummary {
+  items: ComputedBasketLineItem[];
+  totalUnits: number;
+  goodsSubtotalExVatPence: number;
+  totalBulkSavingsExVatPence: number;
+  palletCount: number;
+  deliveryZone: string;
+  postcode: string;
+  requiresTailLift: boolean;
+  deliveryExVatPence: number;
+  tailLiftSurchargePence: number;
+  totalExVatPence: number;
+  vatAmountPence: number;
+  totalIncVatPence: number;
 }

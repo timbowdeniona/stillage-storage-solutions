@@ -7,7 +7,7 @@ Modern industrial e-commerce storefront and configurator for **Stillage Storage 
 ## Architecture & Stack
 
 - **Frontend**: Next.js (App Router, TypeScript, Tailwind CSS)
-- **CMS**: Contentful (`category` and `product` content models seeded in Space `q9ktabz6dqby`)
+- **CMS**: Contentful (`category`, `product`, and `blogPost` content models seeded in Space `q9ktabz6dqby` with local test/seed fallback)
 - **Search**: Algolia InstantSearch REST client (`src/lib/algolia.ts`) with automatic local replica fallback
 - **Backend APIs**:
   - **Rust Serverless Functions (`netlify/functions/`)**:

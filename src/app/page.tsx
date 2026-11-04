@@ -9,11 +9,16 @@ import {
   CheckCircle2,
   SlidersHorizontal,
 } from 'lucide-react';
-import { getCategories, getProducts } from '@/lib/contentful';
+import { getCategories, getFeaturedBlogPosts, getProducts } from '@/lib/contentful';
 import { ProductCard } from '@/components/ProductCard';
+import { BlogCard } from '@/components/BlogCard';
 
 export default async function HomePage() {
-  const [categories, products] = await Promise.all([getCategories(), getProducts()]);
+  const [categories, products, featuredPosts] = await Promise.all([
+    getCategories(),
+    getProducts(),
+    getFeaturedBlogPosts(3),
+  ]);
   const featuredProducts = products.filter((p) => p.featured).slice(0, 4);
 
   return (
@@ -218,6 +223,33 @@ export default async function HomePage() {
               <ProductCard key={product.id} product={product} />
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Technical Blog & Engineering Guides Section */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 border-b border-steel-200">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
+          <div>
+            <div className="font-mono text-xs uppercase tracking-widest text-stillage-blue font-bold">
+              CONTENTFUL BLOG &amp; KNOWLEDGE BASE
+            </div>
+            <h2 className="font-display font-extrabold text-3xl sm:text-4xl uppercase text-brand-navy mt-1">
+              Technical Stillage Guides &amp; Safety Standards
+            </h2>
+          </div>
+          <Link
+            href="/blog"
+            className="inline-flex items-center gap-2 font-display font-bold uppercase tracking-wider text-sm text-stillage-blue hover:text-brand-navy"
+          >
+            <span>View All Engineering Guides</span>
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {featuredPosts.map((post) => (
+            <BlogCard key={post.id} post={post} />
+          ))}
         </div>
       </section>
 

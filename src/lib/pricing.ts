@@ -1,4 +1,11 @@
-import { QuoteRequest, QuoteResponse } from '@/types/catalog';
+import {
+  BasketOrderSummary,
+  CheckoutLineItemInput,
+  ComputedBasketLineItem,
+  QuoteRequest,
+  QuoteResponse,
+} from '@/types/catalog';
+import { FINISH_OPTIONS, MOBILITY_OPTIONS, SEED_PRODUCTS } from '@/data/seedCatalog';
 
 export const UK_VAT_RATE = 0.2;
 
@@ -135,5 +142,100 @@ export function calculateQuote(req: QuoteRequest): QuoteResponse {
     vatAmountPence,
     totalIncVatPence,
     engine: 'stillage-rust-parity-v1',
+  };
+}
+
+export function calculateBasketSummary(
+  rawItems: CheckoutLineItemInput[],
+  postcode: string = 'B1 1AA',
+  requiresTailLift: boolean = false
+): BasketOrderSummary {
+  const computedItems: ComputedBasketLineItem[] = rawItems.map((item) => {
+    // Look up authoritative base price from seed catalog if SKU matches, else use provided basePriceExVatPence
+    const catalogProduct = SEED_PRODUCTS.find((p) => p.sku === item.sku);
+    const basePriceExVatPence = catalogProduct
+      ? catalogProduct.basePriceExVatPence
+      : Math.max(1000, item.basePriceExVatPence || 30000);
+    const title = catalogProduct ? catalogProduct.title : item.title;
+    const slug = catalogProduct ? catalogProduct.slug : item.slug || item.sku.toLowerCase();
+    const primaryImage = catalogProduct ? catalogProduct.primaryImage : item.primaryImage;
+
+    const quantity = Math.max(1, Math.floor(item.quantity || 1));
+    const finishModifierPence = getFinishModifierPence(item.finishOption);
+    const mobilityModifierPence = getMobilityModifierPence(item.mobilityOption);
+    const configuredUnitExVatPence = Math.max(
+      1000,
+      basePriceExVatPence + finishModifierPence + mobilityModifierPence
+    );
+
+    const discountPercentage = getBulkDiscountPercentage(quantity);
+    const discountedUnitExVatPence = Math.round(
+      configuredUnitExVatPence * (1 - discountPercentage / 100)
+    );
+
+    const rawSubtotal = configuredUnitExVatPence * quantity;
+    const lineSubtotalExVatPence = discountedUnitExVatPence * quantity;
+    const bulkSavingsExVatPence = rawSubtotal - lineSubtotalExVatPence;
+
+    const finishObj = FINISH_OPTIONS.find((f) => f.id === item.finishOption);
+    const mobilityObj = MOBILITY_OPTIONS.find((m) => m.id === item.mobilityOption);
+
+    return {
+      sku: item.sku,
+      title,
+      slug,
+      quantity,
+      basePriceExVatPence,
+      finishOption: item.finishOption,
+      finishName: item.finishName || finishObj?.name || item.finishOption,
+      mobilityOption: item.mobilityOption,
+      mobilityName: item.mobilityName || mobilityObj?.name || item.mobilityOption,
+      primaryImage,
+      configuredUnitExVatPence,
+      discountPercentage,
+      discountedUnitExVatPence,
+      lineSubtotalExVatPence,
+      bulkSavingsExVatPence,
+    };
+  });
+
+  const totalUnits = computedItems.reduce((sum, i) => sum + i.quantity, 0);
+  const goodsSubtotalExVatPence = computedItems.reduce(
+    (sum, i) => sum + i.lineSubtotalExVatPence,
+    0
+  );
+  const totalBulkSavingsExVatPence = computedItems.reduce(
+    (sum, i) => sum + i.bulkSavingsExVatPence,
+    0
+  );
+
+  const { palletCount, deliveryZone, deliveryExVatPence, tailLiftSurchargePence } =
+    totalUnits > 0
+      ? calculatePalletDelivery(postcode, totalUnits, requiresTailLift)
+      : {
+          palletCount: 0,
+          deliveryZone: 'UK Mainland Standard Pallet Network (Zone B)',
+          deliveryExVatPence: 0,
+          tailLiftSurchargePence: 0,
+        };
+
+  const totalExVatPence = goodsSubtotalExVatPence + deliveryExVatPence;
+  const vatAmountPence = Math.round(totalExVatPence * UK_VAT_RATE);
+  const totalIncVatPence = totalExVatPence + vatAmountPence;
+
+  return {
+    items: computedItems,
+    totalUnits,
+    goodsSubtotalExVatPence,
+    totalBulkSavingsExVatPence,
+    palletCount,
+    deliveryZone,
+    postcode: (postcode || 'B1 1AA').trim().toUpperCase(),
+    requiresTailLift,
+    deliveryExVatPence,
+    tailLiftSurchargePence,
+    totalExVatPence,
+    vatAmountPence,
+    totalIncVatPence,
   };
 }

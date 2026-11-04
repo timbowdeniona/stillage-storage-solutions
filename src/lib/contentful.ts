@@ -1,5 +1,5 @@
-import { SEED_CATEGORIES, SEED_PRODUCTS } from '@/data/seedCatalog';
-import { Category, Product } from '@/types/catalog';
+import { SEED_BLOG_POSTS, SEED_CATEGORIES, SEED_PRODUCTS } from '@/data/seedCatalog';
+import { BlogPost, Category, Product } from '@/types/catalog';
 
 const CONTENTFUL_SPACE_ID = process.env.NEXT_PUBLIC_CONTENTFUL_SPACE_ID || 'q9ktabz6dqby';
 const CONTENTFUL_ENVIRONMENT = process.env.NEXT_PUBLIC_CONTENTFUL_ENVIRONMENT || 'master';
@@ -96,4 +96,44 @@ export async function getProducts(): Promise<Product[]> {
 export async function getProductBySlug(slug: string): Promise<Product | undefined> {
   const products = await getProducts();
   return products.find((p) => p.slug === slug);
+}
+
+export function mapContentfulBlogPost(item: ContentfulEntry<Partial<Omit<BlogPost, 'id'>>>): BlogPost {
+  return {
+    id: item.sys.id,
+    title: item.fields.title || 'Untitled Technical Guide',
+    slug: item.fields.slug || item.sys.id,
+    excerpt: item.fields.excerpt || '',
+    category: item.fields.category || 'Technical Standards & Safety',
+    author: item.fields.author || 'Stillage Storage Engineering Team',
+    authorRole: item.fields.authorRole || 'UK Steel Fabrication Specialists',
+    publishedAt: item.fields.publishedAt || '2026-10-01',
+    readingTimeMinutes: item.fields.readingTimeMinutes ?? 5,
+    featured: Boolean(item.fields.featured),
+    heroImage: item.fields.heroImage || '/images/products/cantilever-rack-cutout.png',
+    backdropStyle: item.fields.backdropStyle === 'white' ? 'white' : 'sand',
+    tags: item.fields.tags || [],
+    keyTakeaways: item.fields.keyTakeaways || [],
+    body: item.fields.body || '',
+    relatedProductSkus: item.fields.relatedProductSkus || [],
+  };
+}
+
+export async function getBlogPosts(): Promise<BlogPost[]> {
+  const items = await fetchContentfulEntries<Partial<Omit<BlogPost, 'id'>>>('blogPost');
+  const posts =
+    !items || items.length === 0 ? [...SEED_BLOG_POSTS] : items.map((item) => mapContentfulBlogPost(item));
+
+  return posts.sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
+}
+
+export async function getBlogPostBySlug(slug: string): Promise<BlogPost | undefined> {
+  const posts = await getBlogPosts();
+  return posts.find((post) => post.slug === slug);
+}
+
+export async function getFeaturedBlogPosts(limit = 3): Promise<BlogPost[]> {
+  const posts = await getBlogPosts();
+  const featured = posts.filter((post) => post.featured);
+  return (featured.length > 0 ? featured : posts).slice(0, limit);
 }

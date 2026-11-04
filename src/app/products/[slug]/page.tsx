@@ -1,11 +1,12 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ChevronRight } from 'lucide-react';
 import { getProductBySlug, getProducts } from '@/lib/contentful';
+import { getProductRecommendations } from '@/lib/algolia';
 import { ProductConfigurator } from '@/components/ProductConfigurator';
-import { ProductCard } from '@/components/ProductCard';
+import { AlgoliaRecommendations } from '@/components/AlgoliaRecommendations';
 
 interface ProductDetailPageProps {
   params: Promise<{ slug: string }>;
@@ -36,7 +37,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
     notFound();
   }
 
-  const relatedProducts = allProducts.filter((p) => p.slug !== product.slug).slice(0, 3);
+  const recommendations = await getProductRecommendations(product, allProducts, 3);
 
   return (
     <div>
@@ -69,33 +70,21 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
 
       {/* Main Configurator & Spec Stage */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <ProductConfigurator product={product} />
-
-        {/* Related Stillages */}
-        <section className="mt-16 pt-12 border-t border-steel-200">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <div className="font-mono text-xs uppercase text-stillage-blue font-bold">
-                COMPATIBLE HANDLING EQUIPMENT
-              </div>
-              <h2 className="font-display font-bold text-2xl sm:text-3xl uppercase text-brand-navy mt-0.5">
-                Other Heavy-Duty Stillage Specifications
-              </h2>
+        <Suspense
+          fallback={
+            <div className="font-mono text-sm text-steel-600 py-8">
+              Loading interactive steel configurator...
             </div>
-            <Link
-              href="/products"
-              className="font-display font-bold uppercase text-sm text-stillage-blue hover:underline"
-            >
-              View Full Range &rarr;
-            </Link>
-          </div>
+          }
+        >
+          <ProductConfigurator product={product} />
+        </Suspense>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {relatedProducts.map((rel) => (
-              <ProductCard key={rel.id} product={rel} />
-            ))}
-          </div>
-        </section>
+        {/* Algolia-Powered Compatible Equipment & Similar Specifications */}
+        <AlgoliaRecommendations
+          sourceProductSku={product.sku}
+          recommendations={recommendations}
+        />
       </div>
     </div>
   );

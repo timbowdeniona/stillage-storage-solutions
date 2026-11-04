@@ -116,3 +116,27 @@ body {
     color: var(--color-steel-600);
   }
 }
+
+/* Modern Web Guidance: Typography & Legibility for Technical Blog Articles */
+.heading-balance {
+  text-wrap: balance;
+}
+
+.article-prose {
+  max-width: 75ch;
+  line-height: 1.65;
+  text-align: start;
+  overflow-wrap: break-word;
+}
+
+.article-prose p,
+.article-prose li,
+.article-prose blockquote {
+  text-wrap: pretty;
+}
+
+.article-prose h2,
+.article-prose h3 {
+  text-wrap: balance;
+  line-height: 1.2;
+}
