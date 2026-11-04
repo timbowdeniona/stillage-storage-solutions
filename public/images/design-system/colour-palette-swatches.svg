@@ -1,0 +1,179 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 840" width="1100" height="840" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">
+  <!-- Background -->
+  <rect width="1100" height="840" fill="#FAF5EE" />
+  <rect x="20" y="20" width="1060" height="800" fill="#FFFFFF" stroke="#DCE1E7" stroke-width="2" />
+
+  <!-- Top Header Banner -->
+  <rect x="20" y="20" width="1060" height="76" fill="#0F2342" />
+  <text x="50" y="54" fill="#FFFFFF" font-size="22" font-weight="800" letter-spacing="1.5">STILLAGE STORAGE SOLUTIONS — VISUAL COLOUR PALETTE</text>
+  <text x="50" y="76" fill="#F2E3CE" font-size="13" font-family="monospace">stillagestoragesolutions.co.uk • Design System Swatch Sheet</text>
+
+  <!-- Row 1: Primary Brand & Structural Navy + Stillage Blue -->
+  <text x="50" y="132" fill="#0F2342" font-size="15" font-weight="700" letter-spacing="1">1. PRIMARY BRAND NAVY &amp; RAL 5010 STILLAGE BLUE ACCENTS</text>
+  <line x1="50" y1="142" x2="1050" y2="142" stroke="#DCE1E7" stroke-width="1" />
+
+  <!-- Card 1: Brand Navy -->
+  <g transform="translate(50, 156)">
+    <rect width="184" height="145" rx="4" fill="#FFFFFF" stroke="#DCE1E7" />
+    <rect width="184" height="86" rx="4" fill="#0F2342" />
+    <text x="14" y="34" fill="#FFFFFF" font-size="13" font-weight="700">Aa — White Text</text>
+    <text x="14" y="56" fill="#F2E3CE" font-size="12" font-weight="600">Aa — Sand Accent</text>
+    <text x="12" y="108" fill="#1C2026" font-size="13" font-weight="700">Brand Navy</text>
+    <text x="12" y="125" fill="#145DA0" font-size="12" font-family="monospace" font-weight="700">#0F2342</text>
+    <text x="12" y="139" fill="#4A525D" font-size="10">Header, Hero &amp; Footer</text>
+  </g>
+
+  <!-- Card 2: Brand Navy Dark -->
+  <g transform="translate(249, 156)">
+    <rect width="184" height="145" rx="4" fill="#FFFFFF" stroke="#DCE1E7" />
+    <rect width="184" height="86" rx="4" fill="#09172C" />
+    <text x="14" y="34" fill="#FFFFFF" font-size="13" font-weight="700">Aa — Utility Bar</text>
+    <text x="14" y="56" fill="#00897B" font-size="12" font-weight="700">● UKCA Badge</text>
+    <text x="12" y="108" fill="#1C2026" font-size="13" font-weight="700">Brand Navy Dark</text>
+    <text x="12" y="125" fill="#145DA0" font-size="12" font-family="monospace" font-weight="700">#09172C</text>
+    <text x="12" y="139" fill="#4A525D" font-size="10">Top Utility &amp; Sub-Bars</text>
+  </g>
+
+  <!-- Card 3: Stillage Blue (RAL 5010) -->
+  <g transform="translate(448, 156)">
+    <rect width="184" height="145" rx="4" fill="#FFFFFF" stroke="#DCE1E7" />
+    <rect width="184" height="86" rx="4" fill="#145DA0" />
+    <text x="14" y="36" fill="#FFFFFF" font-size="13" font-weight="700">CONFIGURE &amp; BUY →</text>
+    <text x="14" y="58" fill="#F2E3CE" font-size="11" font-family="monospace">RAL 5010 Standard</text>
+    <text x="12" y="108" fill="#1C2026" font-size="13" font-weight="700">Stillage Blue</text>
+    <text x="12" y="125" fill="#145DA0" font-size="12" font-family="monospace" font-weight="700">#145DA0</text>
+    <text x="12" y="139" fill="#4A525D" font-size="10">Primary Buttons &amp; Active</text>
+  </g>
+
+  <!-- Card 4: Stillage Blue Dark -->
+  <g transform="translate(647, 156)">
+    <rect width="184" height="145" rx="4" fill="#FFFFFF" stroke="#DCE1E7" />
+    <rect width="184" height="86" rx="4" fill="#0D447A" />
+    <text x="14" y="46" fill="#FFFFFF" font-size="13" font-weight="700">Button Hover State</text>
+    <text x="12" y="108" fill="#1C2026" font-size="13" font-weight="700">Stillage Blue Dark</text>
+    <text x="12" y="125" fill="#145DA0" font-size="12" font-family="monospace" font-weight="700">#0D447A</text>
+    <text x="12" y="139" fill="#4A525D" font-size="10">CTA Hover &amp; Deep Accent</text>
+  </g>
+
+  <!-- Card 5: Stillage Blue Light -->
+  <g transform="translate(846, 156)">
+    <rect width="184" height="145" rx="4" fill="#FFFFFF" stroke="#DCE1E7" />
+    <rect width="184" height="86" rx="4" fill="#2176C7" />
+    <text x="14" y="46" fill="#FFFFFF" font-size="13" font-weight="700">Interactive Highlight</text>
+    <text x="12" y="108" fill="#1C2026" font-size="13" font-weight="700">Stillage Blue Light</text>
+    <text x="12" y="125" fill="#145DA0" font-size="12" font-family="monospace" font-weight="700">#2176C7</text>
+    <text x="12" y="139" fill="#4A525D" font-size="10">Search Hover &amp; Icons</text>
+  </g>
+
+  <!-- Row 2: Surfaces, Workshop Sand & Industrial Steel Greys -->
+  <text x="50" y="340" fill="#0F2342" font-size="15" font-weight="700" letter-spacing="1">2. PRODUCT STAGE BACKDROPS &amp; INDUSTRIAL STEEL GREYS</text>
+  <line x1="50" y1="350" x2="1050" y2="350" stroke="#DCE1E7" stroke-width="1" />
+
+  <!-- Card 6: Workshop Sand -->
+  <g transform="translate(50, 364)">
+    <rect width="184" height="145" rx="4" fill="#FFFFFF" stroke="#DCE1E7" />
+    <rect width="184" height="86" rx="4" fill="#F2E3CE" stroke="#E5D0B1" />
+    <text x="14" y="36" fill="#0F2342" font-size="13" font-weight="700">Blue Steel Stage</text>
+    <text x="14" y="56" fill="#145DA0" font-size="12" font-weight="700">£385.00 Ex. VAT</text>
+    <text x="12" y="108" fill="#1C2026" font-size="13" font-weight="700">Workshop Sand</text>
+    <text x="12" y="125" fill="#145DA0" font-size="12" font-family="monospace" font-weight="700">#F2E3CE</text>
+    <text x="12" y="139" fill="#4A525D" font-size="10">Product Stage &amp; Badges</text>
+  </g>
+
+  <!-- Card 7: Workshop Sand Light -->
+  <g transform="translate(249, 364)">
+    <rect width="184" height="145" rx="4" fill="#FFFFFF" stroke="#DCE1E7" />
+    <rect width="184" height="86" rx="4" fill="#FAF5EE" stroke="#DCE1E7" />
+    <text x="14" y="46" fill="#1C2026" font-size="13" font-weight="600">Section Backdrop</text>
+    <text x="12" y="108" fill="#1C2026" font-size="13" font-weight="700">Sand Light</text>
+    <text x="12" y="125" fill="#145DA0" font-size="12" font-family="monospace" font-weight="700">#FAF5EE</text>
+    <text x="12" y="139" fill="#4A525D" font-size="10">Alternating Page Sections</text>
+  </g>
+
+  <!-- Card 8: Steel 900 Primary Ink -->
+  <g transform="translate(448, 364)">
+    <rect width="184" height="145" rx="4" fill="#FFFFFF" stroke="#DCE1E7" />
+    <rect width="184" height="86" rx="4" fill="#1C2026" />
+    <text x="14" y="46" fill="#FFFFFF" font-size="13" font-weight="700">Primary Body Ink</text>
+    <text x="12" y="108" fill="#1C2026" font-size="13" font-weight="700">Steel 900 (Ink)</text>
+    <text x="12" y="125" fill="#145DA0" font-size="12" font-family="monospace" font-weight="700">#1C2026</text>
+    <text x="12" y="139" fill="#4A525D" font-size="10">Headings &amp; Core Copy</text>
+  </g>
+
+  <!-- Card 9: Steel 600 Secondary Ink -->
+  <g transform="translate(647, 364)">
+    <rect width="184" height="145" rx="4" fill="#FFFFFF" stroke="#DCE1E7" />
+    <rect width="184" height="86" rx="4" fill="#4A525D" />
+    <text x="14" y="46" fill="#FFFFFF" font-size="13" font-weight="600">Muted Spec Labels</text>
+    <text x="12" y="108" fill="#1C2026" font-size="13" font-weight="700">Steel 600 (Muted)</text>
+    <text x="12" y="125" fill="#145DA0" font-size="12" font-family="monospace" font-weight="700">#4A525D</text>
+    <text x="12" y="139" fill="#4A525D" font-size="10">Captions &amp; Sub-Labels</text>
+  </g>
+
+  <!-- Card 10: Steel 200 Blueprint Hairline -->
+  <g transform="translate(846, 364)">
+    <rect width="184" height="145" rx="4" fill="#FFFFFF" stroke="#DCE1E7" />
+    <rect width="184" height="86" rx="4" fill="#DCE1E7" />
+    <text x="14" y="46" fill="#1C2026" font-size="13" font-weight="600">1px Blueprint Grid</text>
+    <text x="12" y="108" fill="#1C2026" font-size="13" font-weight="700">Steel 200 (Border)</text>
+    <text x="12" y="125" fill="#145DA0" font-size="12" font-family="monospace" font-weight="700">#DCE1E7</text>
+    <text x="12" y="139" fill="#4A525D" font-size="10">Card &amp; Table Borders</text>
+  </g>
+
+  <!-- Row 3: Industrial Accents & Product Configurator Finish Swatches -->
+  <text x="50" y="548" fill="#0F2342" font-size="15" font-weight="700" letter-spacing="1">3. STATUS ACCENTS &amp; CONFIGURATOR STEEL FINISH SWATCHES</text>
+  <line x1="50" y1="558" x2="1050" y2="558" stroke="#DCE1E7" stroke-width="1" />
+
+  <!-- Card 11: Certification Teal -->
+  <g transform="translate(50, 572)">
+    <rect width="184" height="145" rx="4" fill="#FFFFFF" stroke="#DCE1E7" />
+    <rect width="184" height="86" rx="4" fill="#00897B" />
+    <text x="14" y="46" fill="#FFFFFF" font-size="13" font-weight="700">✓ UKCA / SWL Tested</text>
+    <text x="12" y="108" fill="#1C2026" font-size="13" font-weight="700">Certification Teal</text>
+    <text x="12" y="125" fill="#00897B" font-size="12" font-family="monospace" font-weight="700">#00897B</text>
+    <text x="12" y="139" fill="#4A525D" font-size="10">Engineering Trust Icons</text>
+  </g>
+
+  <!-- Card 12: Safety Amber -->
+  <g transform="translate(249, 572)">
+    <rect width="184" height="145" rx="4" fill="#FFFFFF" stroke="#DCE1E7" />
+    <rect width="184" height="86" rx="4" fill="#D97706" />
+    <text x="14" y="46" fill="#FFFFFF" font-size="13" font-weight="700">SAVE 10% (10+ UNITS)</text>
+    <text x="12" y="108" fill="#1C2026" font-size="13" font-weight="700">Safety Amber</text>
+    <text x="12" y="125" fill="#D97706" font-size="12" font-family="monospace" font-weight="700">#D97706</text>
+    <text x="12" y="139" fill="#4A525D" font-size="10">Bulk Discounts &amp; Tail-Lift</text>
+  </g>
+
+  <!-- Card 13: Raw Mill Steel Swatch -->
+  <g transform="translate(448, 572)">
+    <rect width="184" height="145" rx="4" fill="#FFFFFF" stroke="#DCE1E7" />
+    <rect width="184" height="86" rx="4" fill="#5A636E" />
+    <text x="14" y="46" fill="#FFFFFF" font-size="13" font-weight="700">RAW-MILL (-£10)</text>
+    <text x="12" y="108" fill="#1C2026" font-size="13" font-weight="700">Raw Mill Steel</text>
+    <text x="12" y="125" fill="#5A636E" font-size="12" font-family="monospace" font-weight="700">#5A636E</text>
+    <text x="12" y="139" fill="#4A525D" font-size="10">Unpainted Finish Swatch</text>
+  </g>
+
+  <!-- Card 14: Hot-Dip Galvanised Swatch -->
+  <g transform="translate(647, 572)">
+    <rect width="184" height="145" rx="4" fill="#FFFFFF" stroke="#DCE1E7" />
+    <rect width="184" height="86" rx="4" fill="#B6C0CB" />
+    <text x="14" y="46" fill="#1C2026" font-size="13" font-weight="700">HDG-1461 (+£45)</text>
+    <text x="12" y="108" fill="#1C2026" font-size="13" font-weight="700">Hot-Dip Galvanised</text>
+    <text x="12" y="125" fill="#4A525D" font-size="12" font-family="monospace" font-weight="700">#B6C0CB</text>
+    <text x="12" y="139" fill="#4A525D" font-size="10">Zinc Finish Swatch</text>
+  </g>
+
+  <!-- Card 15: Studio White -->
+  <g transform="translate(846, 572)">
+    <rect width="184" height="145" rx="4" fill="#FFFFFF" stroke="#DCE1E7" />
+    <rect x="6" y="6" width="172" height="74" rx="2" fill="#FFFFFF" stroke="#DCE1E7" stroke-dasharray="4 2" />
+    <text x="14" y="46" fill="#1C2026" font-size="13" font-weight="700">Clean Cutout Stage</text>
+    <text x="12" y="108" fill="#1C2026" font-size="13" font-weight="700">Studio White</text>
+    <text x="12" y="125" fill="#145DA0" font-size="12" font-family="monospace" font-weight="700">#FFFFFF</text>
+    <text x="12" y="139" fill="#4A525D" font-size="10">Default Card &amp; Page Canvas</text>
+  </g>
+
+  <!-- Footer Note -->
+  <text x="50" y="795" fill="#4A525D" font-size="12">All colours are configured as central tokens in src/app/globals.css and tailwind.config.ts — changing a hex code updates the entire platform.</text>
+</svg>

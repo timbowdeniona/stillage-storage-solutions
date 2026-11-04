@@ -1,10 +1,14 @@
 # Stillage Storage Solutions — Design System & Brand Tokens (`stillagestoragesolutions.co.uk`)
 
-This document lists every colour token, font family, surface treatment, and product finish swatch used across the website so they can be easily reviewed and customized.
+This document includes visual colour swatches, typography specimen boards, and token tables so they can be easily reviewed and customized.
+
+> **Live Interactive Preview on the Website**: Visit **`/design-system`** on the deployed site to inspect live Google Font specimens, interactive colour swatches, buttons, and product stage backdrops directly in the browser.
 
 ---
 
-## 1. Colour Palette
+## 1. Visual Colour Palette & Swatch Sheet
+
+![Stillage Storage Solutions Visual Colour Palette Swatches](./public/images/design-system/colour-palette-swatches.svg)
 
 ### 1.1 Primary Brand & Structural Colours
 Used for the main header, navigation bars, hero banner framing, and footer.
@@ -55,7 +59,9 @@ Used for body copy, technical specifications, and `1px` blueprint grid hairlines
 
 ---
 
-## 2. Typography & Fonts
+## 2. Visual Typography Specimens & Font Roles
+
+![Stillage Storage Solutions Typography Specimens](./public/images/design-system/typography-specimens.svg)
 
 All fonts are loaded from Google Fonts in `src/app/layout.tsx` and mapped to CSS variables in `src/app/globals.css`.
 

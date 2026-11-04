@@ -133,8 +133,13 @@ export function Footer() {
         </div>
       </div>
 
-      <div className="border-t border-white/10 py-5 text-center text-xs text-steel-400 font-mono">
-        &copy; {new Date().getFullYear()} Stillage Storage Solutions (stillagestoragesolutions.co.uk). All prices subject to UK VAT at 20%.
+      <div className="border-t border-white/10 py-5 px-4 text-center text-xs text-steel-400 font-mono flex flex-wrap items-center justify-center gap-4">
+        <span>
+          &copy; {new Date().getFullYear()} Stillage Storage Solutions (stillagestoragesolutions.co.uk). All prices subject to UK VAT at 20%.
+        </span>
+        <Link href="/design-system" className="text-surface-sand hover:underline">
+          View Design System &amp; Colour/Font Swatches &rarr;
+        </Link>
       </div>
     </footer>
   );
