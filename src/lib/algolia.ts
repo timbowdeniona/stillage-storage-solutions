@@ -166,6 +166,25 @@ function unwrapField<T>(val: unknown, fallback: T): T {
   return val as T;
 }
 
+function unwrapImageField(val: unknown, fallback?: string): string | undefined {
+  const unwrapped = unwrapField<unknown>(val, fallback);
+  if (typeof unwrapped === 'string') {
+    return unwrapped.startsWith('//') ? `https:${unwrapped}` : unwrapped;
+  }
+  if (unwrapped && typeof unwrapped === 'object') {
+    const assetId = (unwrapped as { sys?: { id?: string } }).sys?.id;
+    const assetFallbackMap: Record<string, string> = {
+      'asset-cantilever-rack-cutout': '/images/products/cantilever-rack-cutout.png',
+      'asset-cantilever-rack-sand': '/images/products/cantilever-rack-sand.png',
+      'asset-stacked-hopper-stillage': '/images/products/stacked-hopper-stillage.png',
+    };
+    if (assetId && assetFallbackMap[assetId]) {
+      return assetFallbackMap[assetId];
+    }
+  }
+  return fallback;
+}
+
 export function normalizeWebhookOrProductPayload(payload: Record<string, unknown>): AlgoliaProductRecord | null {
   if (!payload || typeof payload !== 'object') return null;
 
@@ -232,11 +251,12 @@ export function normalizeWebhookOrProductPayload(payload: Record<string, unknown
       seedFallback?.leadTimeText || 'In Stock — Dispatch in 2–3 Working Days'
     ),
     featured: Boolean(unwrapField<boolean>(rawFields.featured, seedFallback?.featured ?? false)),
-    primaryImage: unwrapField<string>(
-      rawFields.primaryImage,
-      seedFallback?.primaryImage || '/images/products/cantilever-rack-cutout.png'
-    ),
-    secondaryImage: unwrapField<string | undefined>(rawFields.secondaryImage, seedFallback?.secondaryImage),
+    primaryImage:
+      unwrapImageField(
+        rawFields.primaryImage,
+        seedFallback?.primaryImage || '/images/products/cantilever-rack-cutout.png'
+      ) || '/images/products/cantilever-rack-cutout.png',
+    secondaryImage: unwrapImageField(rawFields.secondaryImage, seedFallback?.secondaryImage),
     backdropStyle:
       unwrapField<string>(rawFields.backdropStyle, seedFallback?.backdropStyle || 'sand') === 'white'
         ? 'white'

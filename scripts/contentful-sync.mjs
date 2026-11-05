@@ -1,5 +1,5 @@
-// Contentful Content Model & Entry Seeder for Stillage Storage Solutions
-// Run with: CONTENTFUL_MANAGEMENT_TOKEN=CFPAT-... npm run contentful:sync
+// Contentful Content Model, Media Asset Uploader & Entry Seeder for Stillage Storage Solutions
+// Run with: npm run contentful:sync
 
 import { fileURLToPath } from 'node:url';
 import fs from 'node:fs';
@@ -43,6 +43,151 @@ const CMA_TOKEN = resolveManagementToken();
 const TARGET_SPACE_ID = process.env.NEXT_PUBLIC_CONTENTFUL_SPACE_ID || 'q9ktabz6dqby';
 const ENVIRONMENT_ID = process.env.NEXT_PUBLIC_CONTENTFUL_ENVIRONMENT || 'master';
 const BASE_URL = 'https://api.contentful.com';
+const UPLOAD_BASE_URL = 'https://upload.contentful.com';
+
+export const PRODUCT_MEDIA_ASSETS = [
+  {
+    id: 'asset-cantilever-rack-cutout',
+    localPath: '/images/products/cantilever-rack-cutout.png',
+    fileName: 'cantilever-rack-cutout.png',
+    contentType: 'image/png',
+    title: '3-Bay Double-Sided Heavy Duty Cantilever Bar & Pipe Stillage Rack (Cutout)',
+    description:
+      'Studio cutout of RAL 5010 Stillage Blue 3-bay double-sided cantilever bar and pipe storage rack.',
+  },
+  {
+    id: 'asset-cantilever-rack-sand',
+    localPath: '/images/products/cantilever-rack-sand.png',
+    fileName: 'cantilever-rack-sand.png',
+    contentType: 'image/png',
+    title: 'Double-Sided Cantilever Bar & Tube Stillage Rack (Workshop Sand Stage)',
+    description:
+      'Heavy-duty steel cantilever bar rack and mesh stillage photographed on warm workshop sand backdrop.',
+  },
+  {
+    id: 'asset-stacked-hopper-stillage',
+    localPath: '/images/products/stacked-hopper-stillage.png',
+    fileName: 'stacked-hopper-stillage.png',
+    contentType: 'image/png',
+    title: 'Modular 4-Tier Stackable Hopper & Solid Sheet Bin Stillage System',
+    description:
+      '4-high interlocking steel bin and top-feed conical hopper stillage tower with pressed steel stacking feet.',
+  },
+];
+
+const LOCAL_PATH_TO_ASSET_ID = Object.fromEntries(
+  PRODUCT_MEDIA_ASSETS.map((a) => [a.localPath, a.id])
+);
+
+export function makeAssetLink(localPathOrAssetId) {
+  if (!localPathOrAssetId) return undefined;
+  const assetId = LOCAL_PATH_TO_ASSET_ID[localPathOrAssetId] || localPathOrAssetId;
+  return {
+    sys: {
+      type: 'Link',
+      linkType: 'Asset',
+      id: assetId,
+    },
+  };
+}
+
+export const PRODUCT_CONTENT_TYPE = {
+  id: 'product',
+  name: 'Stillage Product',
+  description: 'Heavy-duty steel stillage, post pallet, or storage rack product',
+  displayField: 'title',
+  fields: [
+    { id: 'title', name: 'Title', type: 'Symbol', required: true, localized: false },
+    { id: 'slug', name: 'Slug', type: 'Symbol', required: true, localized: false },
+    { id: 'sku', name: 'SKU', type: 'Symbol', required: true, localized: false },
+    { id: 'categorySlug', name: 'Category Slug', type: 'Symbol', required: true, localized: false },
+    { id: 'categoryName', name: 'Category Name', type: 'Symbol', required: true, localized: false },
+    { id: 'shortDescription', name: 'Short Description', type: 'Text', required: true, localized: false },
+    { id: 'fullDescription', name: 'Full Description', type: 'Text', required: true, localized: false },
+    {
+      id: 'basePriceExVatPence',
+      name: 'Base Price Ex VAT (Pence)',
+      type: 'Integer',
+      required: true,
+      localized: false,
+    },
+    { id: 'swlKg', name: 'Safe Working Load (kg)', type: 'Integer', required: true, localized: false },
+    {
+      id: 'externalLengthMm',
+      name: 'External Length (mm)',
+      type: 'Integer',
+      required: true,
+      localized: false,
+    },
+    {
+      id: 'externalWidthMm',
+      name: 'External Width (mm)',
+      type: 'Integer',
+      required: true,
+      localized: false,
+    },
+    {
+      id: 'externalHeightMm',
+      name: 'External Height (mm)',
+      type: 'Integer',
+      required: true,
+      localized: false,
+    },
+    { id: 'unitWeightKg', name: 'Unit Weight (kg)', type: 'Integer', required: true, localized: false },
+    { id: 'stackableHeight', name: 'Stackable Rating', type: 'Symbol', required: true, localized: false },
+    {
+      id: 'steelSpecification',
+      name: 'Steel Box Section Specification',
+      type: 'Symbol',
+      required: true,
+      localized: false,
+    },
+    { id: 'standardFinish', name: 'Standard Finish', type: 'Symbol', required: true, localized: false },
+    { id: 'ukcaCertified', name: 'UKCA / LOLER Tested', type: 'Boolean', required: true, localized: false },
+    {
+      id: 'inStock',
+      name: 'In Stock for Immediate Dispatch',
+      type: 'Boolean',
+      required: true,
+      localized: false,
+    },
+    { id: 'leadTimeText', name: 'Lead Time Text', type: 'Symbol', required: true, localized: false },
+    { id: 'featured', name: 'Featured on Homepage', type: 'Boolean', required: false, localized: false },
+    {
+      id: 'primaryImage',
+      name: 'Primary Image',
+      type: 'Link',
+      linkType: 'Asset',
+      required: true,
+      localized: false,
+      validations: [{ linkMimetypeGroup: ['image'] }],
+    },
+    {
+      id: 'secondaryImage',
+      name: 'Secondary Image',
+      type: 'Link',
+      linkType: 'Asset',
+      required: false,
+      localized: false,
+      validations: [{ linkMimetypeGroup: ['image'] }],
+    },
+    {
+      id: 'backdropStyle',
+      name: 'Preferred Backdrop Style',
+      type: 'Symbol',
+      required: false,
+      localized: false,
+    },
+    {
+      id: 'highlights',
+      name: 'Key Engineering Highlights',
+      type: 'Array',
+      required: false,
+      localized: false,
+      items: { type: 'Symbol', validations: [] },
+    },
+  ],
+};
 
 export const BLOG_POST_CONTENT_TYPE = {
   id: 'blogPost',
@@ -60,7 +205,15 @@ export const BLOG_POST_CONTENT_TYPE = {
     { id: 'publishedAt', name: 'Published Date (YYYY-MM-DD)', type: 'Symbol', required: true, localized: false },
     { id: 'readingTimeMinutes', name: 'Reading Time (Minutes)', type: 'Integer', required: true, localized: false },
     { id: 'featured', name: 'Featured Article', type: 'Boolean', required: false, localized: false },
-    { id: 'heroImage', name: 'Hero Image Path', type: 'Symbol', required: true, localized: false },
+    {
+      id: 'heroImage',
+      name: 'Hero Image',
+      type: 'Link',
+      linkType: 'Asset',
+      required: true,
+      localized: false,
+      validations: [{ linkMimetypeGroup: ['image'] }],
+    },
     { id: 'backdropStyle', name: 'Preferred Backdrop Style', type: 'Symbol', required: false, localized: false },
     {
       id: 'tags',
@@ -90,6 +243,213 @@ export const BLOG_POST_CONTENT_TYPE = {
   ],
 };
 
+export const SEED_PRODUCT_ENTRIES = [
+  {
+    id: 'prod-triple-cantilever-rack',
+    title: '3-Bay Double-Sided Heavy Duty Cantilever Bar & Pipe Stillage Rack',
+    slug: '3-bay-double-sided-cantilever-bar-rack',
+    sku: 'SSS-CANT-3B8A',
+    categorySlug: 'cantilever-bar-racks',
+    categoryName: 'Cantilever & Bar Storage Racks',
+    shortDescription:
+      'Triple-upright double-sided steel cantilever stillage with 4 arm levels per column and anti-roll end stops for bar, pipe, and timber.',
+    fullDescription:
+      'Engineered in heavy-gauge British box section steel, our 3-Bay Double-Sided Cantilever Bar Stillage provides 24 individual load arms across four vertical tiers. Each arm features welded upturned safety lugs to prevent round tube, scaffolding, or steel bar stock from rolling off during forklift transport. Finished in tough industrial RAL 5010 Gentian Blue.',
+    basePriceExVatPence: 38500,
+    swlKg: 1500,
+    externalLengthMm: 2400,
+    externalWidthMm: 1100,
+    externalHeightMm: 1450,
+    unitWeightKg: 118,
+    stackableHeight: 'Base Skid Framed',
+    steelSpecification: '80x80x4mm Upright / 50x50x3mm Arms',
+    standardFinish: 'RAL 5010 Stillage Blue',
+    ukcaCertified: true,
+    inStock: true,
+    leadTimeText: 'In Stock — Dispatch in 2–3 Working Days',
+    featured: true,
+    primaryImage: makeAssetLink('/images/products/cantilever-rack-cutout.png'),
+    secondaryImage: makeAssetLink('/images/products/cantilever-rack-sand.png'),
+    backdropStyle: 'sand',
+    highlights: [
+      '3 Heavy-duty vertical stanchions with 4 double-sided arm tiers',
+      'Welded anti-roll upturned safety end lugs on every arm and base rail',
+      'Full perimeter box-section base frame for 4-way forklift handling',
+      '1,500 kg Safe Working Load (SWL) evenly distributed',
+    ],
+  },
+  {
+    id: 'prod-modular-hopper-tower',
+    title: 'Modular 4-Tier Stackable Hopper & Bin Stillage System',
+    slug: 'modular-4-tier-stackable-hopper-bin-stillage',
+    sku: 'SSS-HOP-4T1000',
+    categorySlug: 'hopper-bin-stillages',
+    categoryName: 'Stackable Hopper & Bin Stillages',
+    shortDescription:
+      '4-high interlocking steel bin and top-feed conical hopper stillage tower with pressed pyramid stacking feet and forklift base channels.',
+    fullDescription:
+      'Designed for high-density aggregate, component, and bulk material processing, this modular stackable stillage system combines an open forklift-pocket base frame, deep solid-sheet steel bin cages, and a top-mounted gravity feed hopper with safety mesh guard. Heavy-duty pressed steel stacking cups lock each unit securely up to 4 units high.',
+    basePriceExVatPence: 54000,
+    swlKg: 1000,
+    externalLengthMm: 1200,
+    externalWidthMm: 1200,
+    externalHeightMm: 2650,
+    unitWeightKg: 165,
+    stackableHeight: '4-High Interlocking',
+    steelSpecification: '50x50x3mm RHS + 2.5mm Sheet Steel',
+    standardFinish: 'RAL 5010 Stillage Blue',
+    ukcaCertified: true,
+    inStock: true,
+    leadTimeText: 'In Stock — Dispatch in 2–3 Working Days',
+    featured: true,
+    primaryImage: makeAssetLink('/images/products/stacked-hopper-stillage.png'),
+    secondaryImage: makeAssetLink('/images/products/cantilever-rack-cutout.png'),
+    backdropStyle: 'white',
+    highlights: [
+      'Self-centring pressed steel pyramid stacking feet & receiver cups',
+      'Integrated bottom forklift guide hoops for safe mast positioning',
+      'Top conical gravity hopper with upper mesh safety enclosure',
+      '1,000 kg SWL per tier — tested for 4-high vertical stacking',
+    ],
+  },
+  {
+    id: 'prod-solid-sheet-stillage-1200',
+    title: 'Heavy-Duty Solid Sheet Steel Bin Stillage (1200 x 1000mm)',
+    slug: 'heavy-duty-solid-sheet-steel-bin-stillage-1200x1000',
+    sku: 'SSS-SHT-1210',
+    categorySlug: 'sheet-stillages',
+    categoryName: 'Solid Sheet Steel Stillages',
+    shortDescription:
+      'Standard UK footprint solid-sided steel bin stillage with reinforced base ribs and pressed stacking feet. 1000kg SWL.',
+    fullDescription:
+      'Our flagship solid sheet steel stillage is built for demanding foundry, press-shop, and construction environments. Constructed from 50x50x3mm box section corner posts and 2mm corrugated steel side panels, it stacks 4-high at full 1,000 kg capacity.',
+    basePriceExVatPence: 18900,
+    swlKg: 1000,
+    externalLengthMm: 1200,
+    externalWidthMm: 1000,
+    externalHeightMm: 900,
+    unitWeightKg: 68,
+    stackableHeight: '4-High Stackable',
+    steelSpecification: '50x50x3mm Box + 2mm Sheet Panels',
+    standardFinish: 'RAL 5010 Stillage Blue',
+    ukcaCertified: true,
+    inStock: true,
+    leadTimeText: 'In Stock — Next Day / 48hr Pallet Dispatch',
+    featured: true,
+    primaryImage: makeAssetLink('/images/products/stacked-hopper-stillage.png'),
+    secondaryImage: makeAssetLink('/images/products/cantilever-rack-sand.png'),
+    backdropStyle: 'sand',
+    highlights: [
+      'Standard 1200 x 1000mm Euro/UK industrial footprint',
+      'Optional half-drop front gate or heavy-duty swivel castors',
+      'Stacks 4-high fully loaded to maximize warehouse floor space',
+      'Available in RAL 5010 Blue, Raw Unpainted, or Hot-Dip Galvanised',
+    ],
+  },
+  {
+    id: 'prod-half-drop-mesh-cage',
+    title: 'Mesh Sided Half-Drop Gate Stillage Cage (1200 x 1000 x 900mm)',
+    slug: 'mesh-sided-half-drop-gate-stillage-cage',
+    sku: 'SSS-MSH-1210HD',
+    categorySlug: 'mesh-stillages',
+    categoryName: 'Mesh Cages & Folding Stillages',
+    shortDescription:
+      '50x50mm welded steel mesh stillage with ergonomic half-drop front access gate for order picking while stacked.',
+    fullDescription:
+      'Combining 360-degree stock visibility with 1,000 kg structural rigidity, our Mesh Sided Half-Drop Gate Stillage allows warehouse operatives to pick components even when cages are stacked 4-high. Heavy-duty bolt latches keep the front gate rattle-free in transit.',
+    basePriceExVatPence: 17400,
+    swlKg: 1000,
+    externalLengthMm: 1200,
+    externalWidthMm: 1000,
+    externalHeightMm: 900,
+    unitWeightKg: 59,
+    stackableHeight: '4-High Stackable',
+    steelSpecification: '50x50x3mm RHS + 50x50x4mm Weldmesh',
+    standardFinish: 'RAL 5010 Stillage Blue',
+    ukcaCertified: true,
+    inStock: true,
+    leadTimeText: 'In Stock — Dispatch in 2–3 Working Days',
+    featured: true,
+    primaryImage: makeAssetLink('/images/products/cantilever-rack-sand.png'),
+    secondaryImage: makeAssetLink('/images/products/cantilever-rack-cutout.png'),
+    backdropStyle: 'white',
+    highlights: [
+      'Fold-down half front gate for accessible picking when stacked',
+      '50x50x4mm heavy-gauge welded wire mesh sides',
+      'Reinforced sheet steel floor over box-section crossbearers',
+      'Compatible with 360-degree lockable polyurethane castors',
+    ],
+  },
+  {
+    id: 'prod-post-pallet-demountable',
+    title: 'Heavy-Duty Post Pallet with Demountable Corner Posts (1130 x 1130mm)',
+    slug: 'heavy-duty-post-pallet-demountable-posts',
+    sku: 'SSS-PST-1111D',
+    categorySlug: 'post-pallets',
+    categoryName: 'Post Pallets & Pipe Cradles',
+    shortDescription:
+      'Open-sided stackable steel post pallet with 4 removable corner posts and flared self-locating cup feet.',
+    fullDescription:
+      'Ideal for storing scaffold tube, timber packs, extrusions, and palletised goods, our Demountable Post Pallet features four removable 60x60mm vertical posts that nest neatly on the base deck when empty, cutting return transport and idle storage volume by 75%.',
+    basePriceExVatPence: 14200,
+    swlKg: 1000,
+    externalLengthMm: 1130,
+    externalWidthMm: 1130,
+    externalHeightMm: 1050,
+    unitWeightKg: 46,
+    stackableHeight: '5-High Stackable',
+    steelSpecification: '60x60x3mm Posts / 50x50x3mm Base',
+    standardFinish: 'RAL 5010 Stillage Blue',
+    ukcaCertified: true,
+    inStock: true,
+    leadTimeText: 'In Stock — Dispatch in 1–2 Working Days',
+    featured: false,
+    primaryImage: makeAssetLink('/images/products/cantilever-rack-cutout.png'),
+    secondaryImage: makeAssetLink('/images/products/stacked-hopper-stillage.png'),
+    backdropStyle: 'sand',
+    highlights: [
+      '4 Demountable corner posts reduce empty storage height by 75%',
+      'Available with 1000mm, 1200mm, or 1500mm post heights',
+      'Heavy-duty pressed steel stacking cups for 5-high stability',
+      'Optional 4-way enclosed forklift pockets for site telehandlers',
+    ],
+  },
+  {
+    id: 'prod-double-bay-cantilever-rack',
+    title: '2-Bay Compact Cantilever Bar & Tube Stillage (1800mm Long)',
+    slug: '2-bay-compact-cantilever-bar-tube-stillage',
+    sku: 'SSS-CANT-2B4A',
+    categorySlug: 'cantilever-bar-racks',
+    categoryName: 'Cantilever & Bar Storage Racks',
+    shortDescription:
+      'Twin-upright double-sided cantilever bar rack with forklift base pockets for workshop sawing stations and van loading.',
+    fullDescription:
+      'A compact 1800mm footprint variation of our popular 3-Bay Cantilever Rack, engineered specifically to sit beside horizontal band saws and CNC machining centres. Holds up to 1,200 kg of steel box section, round bar, or plastic extrusions across 4 arm levels.',
+    basePriceExVatPence: 29500,
+    swlKg: 1200,
+    externalLengthMm: 1800,
+    externalWidthMm: 1050,
+    externalHeightMm: 1400,
+    unitWeightKg: 86,
+    stackableHeight: 'Base Skid Framed',
+    steelSpecification: '80x80x4mm Upright / 50x50x3mm Arms',
+    standardFinish: 'RAL 5010 Stillage Blue',
+    ukcaCertified: true,
+    inStock: true,
+    leadTimeText: 'In Stock — Dispatch in 2–3 Working Days',
+    featured: false,
+    primaryImage: makeAssetLink('/images/products/cantilever-rack-sand.png'),
+    secondaryImage: makeAssetLink('/images/products/cantilever-rack-cutout.png'),
+    backdropStyle: 'sand',
+    highlights: [
+      'Compact 1800mm length fits workshop saw bays and flatbed transits',
+      'Double-sided load arms keep multiple bar profiles segregated',
+      'Integrated forklift base skids with end retaining lugs',
+      '1,200 kg certified Safe Working Load',
+    ],
+  },
+];
+
 export const SEED_BLOG_ENTRIES = [
   {
     id: 'blog-swl-puwer-ukca-stillage-stacking-safety',
@@ -103,7 +463,7 @@ export const SEED_BLOG_ENTRIES = [
     publishedAt: '2026-10-28',
     readingTimeMinutes: 6,
     featured: true,
-    heroImage: '/images/products/stacked-hopper-stillage.png',
+    heroImage: makeAssetLink('/images/products/stacked-hopper-stillage.png'),
     backdropStyle: 'sand',
     tags: ['SWL Certification', 'PUWER 1998', 'UKCA', '4-High Stacking', 'Warehouse Safety'],
     keyTakeaways: [
@@ -148,7 +508,7 @@ Before stacking any solid sheet steel or mesh stillage above ground level, train
     publishedAt: '2026-10-21',
     readingTimeMinutes: 5,
     featured: true,
-    heroImage: '/images/products/cantilever-rack-cutout.png',
+    heroImage: makeAssetLink('/images/products/cantilever-rack-cutout.png'),
     backdropStyle: 'white',
     tags: ['RAL 5010', 'Hot-Dip Galvanised', 'BS EN ISO 1461', 'Raw Steel', 'Corrosion Protection'],
     keyTakeaways: [
@@ -199,7 +559,7 @@ Lean 5S manufacturing facilities frequently use colour-coded stillages to elimin
     publishedAt: '2026-10-14',
     readingTimeMinutes: 5,
     featured: true,
-    heroImage: '/images/products/cantilever-rack-sand.png',
+    heroImage: makeAssetLink('/images/products/cantilever-rack-sand.png'),
     backdropStyle: 'sand',
     tags: ['Cantilever Racks', 'Bar Storage', 'Saw Station Workflow', '1500kg SWL', 'Forklift Skids'],
     keyTakeaways: [
@@ -241,7 +601,7 @@ Unlike fixed warehouse racking that requires floor bolting and SEMA rack inspect
     publishedAt: '2026-10-06',
     readingTimeMinutes: 4,
     featured: false,
-    heroImage: '/images/products/cantilever-rack-cutout.png',
+    heroImage: makeAssetLink('/images/products/cantilever-rack-cutout.png'),
     backdropStyle: 'white',
     tags: ['Post Pallets', 'Demountable Posts', 'Return Logistics', 'Mesh Stillages', '5-High Stacking'],
     keyTakeaways: [
@@ -281,7 +641,7 @@ If you are storing loose metal stampings, automotive castings, rubber mouldings,
     publishedAt: '2026-09-29',
     readingTimeMinutes: 4,
     featured: false,
-    heroImage: '/images/products/stacked-hopper-stillage.png',
+    heroImage: makeAssetLink('/images/products/stacked-hopper-stillage.png'),
     backdropStyle: 'sand',
     tags: ['HGV Pallet Delivery', 'Tail-Lift Offload', 'Bulk Discounts', 'UK VAT Proforma', 'Procurement'],
     keyTakeaways: [
@@ -318,7 +678,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 export function toContentfulFields(entry, locale = 'en-US') {
   const fields = {};
   for (const [key, value] of Object.entries(entry)) {
-    if (key === 'id') continue;
+    if (key === 'id' || value === undefined) continue;
     fields[key] = { [locale]: value };
   }
   return { fields };
@@ -349,6 +709,83 @@ async function cmaFetch(endpoint, options = {}) {
   }
 }
 
+async function uploadAndPublishAsset(spaceId, envPath, assetDef, locale = 'en-US') {
+  const filePath = path.resolve(process.cwd(), 'public', assetDef.localPath.replace(/^\//, ''));
+  const fileBuffer = fs.readFileSync(filePath);
+
+  console.log(`Uploading binary for ${assetDef.fileName} (${fileBuffer.length} bytes)...`);
+  const uploadRes = await cmaFetch(`${UPLOAD_BASE_URL}/spaces/${spaceId}/uploads`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/octet-stream',
+    },
+    body: fileBuffer,
+  });
+
+  const uploadId = uploadRes.sys.id;
+  const assetPath = `${envPath}/assets/${assetDef.id}`;
+  let existing = null;
+  try {
+    existing = await cmaFetch(assetPath);
+  } catch {
+    existing = null;
+  }
+
+  const assetPayload = {
+    fields: {
+      title: { [locale]: assetDef.title },
+      description: { [locale]: assetDef.description },
+      file: {
+        [locale]: {
+          contentType: assetDef.contentType,
+          fileName: assetDef.fileName,
+          uploadFrom: {
+            sys: {
+              type: 'Link',
+              linkType: 'Upload',
+              id: uploadId,
+            },
+          },
+        },
+      },
+    },
+  };
+
+  const savedAsset = await cmaFetch(assetPath, {
+    method: 'PUT',
+    headers: existing ? { 'X-Contentful-Version': String(existing.sys.version) } : {},
+    body: JSON.stringify(assetPayload),
+  });
+
+  await cmaFetch(`${assetPath}/files/${locale}/process`, {
+    method: 'PUT',
+    headers: { 'X-Contentful-Version': String(savedAsset.sys.version) },
+  });
+
+  let processedAsset = null;
+  for (let i = 0; i < 20; i++) {
+    await sleep(1000);
+    const check = await cmaFetch(assetPath);
+    if (check?.fields?.file?.[locale]?.url) {
+      processedAsset = check;
+      break;
+    }
+  }
+
+  if (!processedAsset) {
+    throw new Error(`Timed out waiting for Contentful asset ${assetDef.id} to finish processing`);
+  }
+
+  await cmaFetch(`${assetPath}/published`, {
+    method: 'PUT',
+    headers: { 'X-Contentful-Version': String(processedAsset.sys.version) },
+  });
+
+  console.log(
+    `Published Contentful Asset: ${assetDef.id} -> https:${processedAsset.fields.file[locale].url}`
+  );
+}
+
 async function upsertAndPublishContentType(envPath, contentTypeDef) {
   const { id, ...body } = contentTypeDef;
   const ctPath = `${envPath}/content_types/${id}`;
@@ -357,6 +794,61 @@ async function upsertAndPublishContentType(envPath, contentTypeDef) {
     existing = await cmaFetch(ctPath);
   } catch {
     existing = null;
+  }
+
+  // If any field changed type (e.g. Symbol -> Link for primaryImage / secondaryImage),
+  // perform Contentful's two-step omit -> delete migration before adding the new field definition.
+  if (existing && Array.isArray(existing.fields)) {
+    const fieldsChangingType = [];
+    for (const desiredField of body.fields) {
+      const currentField = existing.fields.find((f) => f.id === desiredField.id);
+      if (currentField && currentField.type !== desiredField.type) {
+        fieldsChangingType.push(desiredField.id);
+      }
+    }
+
+    if (fieldsChangingType.length > 0) {
+      console.log(
+        `Migrating field types on "${id}" (${fieldsChangingType.join(', ')}) from Symbol to Media Asset Link...`
+      );
+      // Step 1: Mark old fields as omitted & disabled
+      const step1Fields = existing.fields.map((f) =>
+        fieldsChangingType.includes(f.id)
+          ? { ...f, required: false, omitted: true, disabled: true }
+          : f
+      );
+      const step1Saved = await cmaFetch(ctPath, {
+        method: 'PUT',
+        headers: { 'X-Contentful-Version': String(existing.sys.version) },
+        body: JSON.stringify({
+          name: existing.name,
+          description: existing.description,
+          displayField: existing.displayField,
+          fields: step1Fields,
+        }),
+      });
+      const step1Pub = await cmaFetch(`${ctPath}/published`, {
+        method: 'PUT',
+        headers: { 'X-Contentful-Version': String(step1Saved.sys.version) },
+      });
+
+      // Step 2: Delete omitted fields from content type
+      const step2Fields = step1Fields.filter((f) => !fieldsChangingType.includes(f.id));
+      const step2Saved = await cmaFetch(ctPath, {
+        method: 'PUT',
+        headers: { 'X-Contentful-Version': String(step1Pub.sys.version) },
+        body: JSON.stringify({
+          name: existing.name,
+          description: existing.description,
+          displayField: existing.displayField,
+          fields: step2Fields,
+        }),
+      });
+      existing = await cmaFetch(`${ctPath}/published`, {
+        method: 'PUT',
+        headers: { 'X-Contentful-Version': String(step2Saved.sys.version) },
+      });
+    }
   }
 
   const headers = existing ? { 'X-Contentful-Version': String(existing.sys.version) } : {};
@@ -402,7 +894,7 @@ async function upsertAndPublishEntry(envPath, contentTypeId, entryData, locale =
 
 async function main() {
   if (!CMA_TOKEN) {
-    console.error('Error: Please set CONTENTFUL_MANAGEMENT_TOKEN in your environment.');
+    console.error('Error: Please set CONTENTFUL_MANAGEMENT_TOKEN in your environment or .env.local.');
     process.exit(1);
   }
 
@@ -417,13 +909,30 @@ async function main() {
   const defaultLocale =
     (localesRes.items || []).find((l) => l.default)?.code || 'en-US';
 
+  // 1. Upload, process & publish all required product media assets
+  for (const assetDef of PRODUCT_MEDIA_ASSETS) {
+    await uploadAndPublishAsset(space.sys.id, envPath, assetDef, defaultLocale);
+  }
+
+  // 2. Update & publish Stillage Product content type (primaryImage & secondaryImage as Media Asset Links)
+  await upsertAndPublishContentType(envPath, PRODUCT_CONTENT_TYPE);
+
+  // 3. Update & publish all 6 Stillage Product entries with linked Media Assets
+  for (const prod of SEED_PRODUCT_ENTRIES) {
+    await upsertAndPublishEntry(envPath, PRODUCT_CONTENT_TYPE.id, prod, defaultLocale);
+  }
+
+  // 4. Create/update & publish Blog Post content type
   await upsertAndPublishContentType(envPath, BLOG_POST_CONTENT_TYPE);
 
+  // 5. Upsert & publish all 5 test blog posts
   for (const post of SEED_BLOG_ENTRIES) {
     await upsertAndPublishEntry(envPath, BLOG_POST_CONTENT_TYPE.id, post, defaultLocale);
   }
 
-  console.log(`Successfully synced ${SEED_BLOG_ENTRIES.length} blogPost entries to Contentful.`);
+  console.log(
+    `Successfully uploaded ${PRODUCT_MEDIA_ASSETS.length} media assets, updated ${SEED_PRODUCT_ENTRIES.length} Stillage Products with media links, and synced ${SEED_BLOG_ENTRIES.length} blogPost entries to Contentful.`
+  );
 }
 
 const isMainModule =

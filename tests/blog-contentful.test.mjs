@@ -4,9 +4,41 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {
   BLOG_POST_CONTENT_TYPE,
+  PRODUCT_CONTENT_TYPE,
+  PRODUCT_MEDIA_ASSETS,
   SEED_BLOG_ENTRIES,
+  SEED_PRODUCT_ENTRIES,
   toContentfulFields,
 } from '../scripts/contentful-sync.mjs';
+
+test('Stillage Product Contentful model defines primaryImage and secondaryImage as Media Asset Links', () => {
+  assert.equal(PRODUCT_CONTENT_TYPE.id, 'product');
+  const primaryImageField = PRODUCT_CONTENT_TYPE.fields.find((f) => f.id === 'primaryImage');
+  const secondaryImageField = PRODUCT_CONTENT_TYPE.fields.find((f) => f.id === 'secondaryImage');
+
+  assert.ok(primaryImageField, 'Missing primaryImage field on product Contentful model');
+  assert.equal(primaryImageField.type, 'Link');
+  assert.equal(primaryImageField.linkType, 'Asset');
+  assert.equal(primaryImageField.required, true);
+
+  assert.ok(secondaryImageField, 'Missing secondaryImage field on product Contentful model');
+  assert.equal(secondaryImageField.type, 'Link');
+  assert.equal(secondaryImageField.linkType, 'Asset');
+  assert.equal(secondaryImageField.required, false);
+
+  for (const asset of PRODUCT_MEDIA_ASSETS) {
+    const absPath = path.resolve(process.cwd(), 'public', asset.localPath.replace(/^\//, ''));
+    assert.ok(fs.existsSync(absPath), `Expected media asset file to exist at ${absPath}`);
+  }
+
+  for (const prod of SEED_PRODUCT_ENTRIES) {
+    assert.equal(prod.primaryImage.sys.type, 'Link');
+    assert.equal(prod.primaryImage.sys.linkType, 'Asset');
+    assert.ok(prod.primaryImage.sys.id.startsWith('asset-'));
+    assert.equal(prod.secondaryImage.sys.type, 'Link');
+    assert.equal(prod.secondaryImage.sys.linkType, 'Asset');
+  }
+});
 
 test('Contentful blogPost content type model defines all required and array fields', () => {
   assert.equal(BLOG_POST_CONTENT_TYPE.id, 'blogPost');
@@ -34,6 +66,10 @@ test('Contentful blogPost content type model defines all required and array fiel
   for (const field of expectedFields) {
     assert.ok(fieldIds.includes(field), `Missing field "${field}" on blogPost Contentful model`);
   }
+
+  const heroField = BLOG_POST_CONTENT_TYPE.fields.find((f) => f.id === 'heroImage');
+  assert.equal(heroField.type, 'Link');
+  assert.equal(heroField.linkType, 'Asset');
 });
 
 test('Test blog pages in SEED_BLOG_ENTRIES have valid slugs, takeaways, and CMA payload formatting', () => {
@@ -51,6 +87,8 @@ test('Test blog pages in SEED_BLOG_ENTRIES have valid slugs, takeaways, and CMA 
     assert.ok(post.body.includes('## '), `Expected markdown headings in body of ${post.slug}`);
     assert.ok(Array.isArray(post.keyTakeaways) && post.keyTakeaways.length >= 3);
     assert.ok(Array.isArray(post.relatedProductSkus) && post.relatedProductSkus.length >= 1);
+    assert.equal(post.heroImage.sys.type, 'Link');
+    assert.equal(post.heroImage.sys.linkType, 'Asset');
 
     const cmaPayload = toContentfulFields(post, 'en-US');
     assert.equal(cmaPayload.fields.id, undefined);

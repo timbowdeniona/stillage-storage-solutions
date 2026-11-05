@@ -196,8 +196,7 @@ export function Header() {
           <form
             ref={searchContainerRef}
             onSubmit={handleSearch}
-            action="/products"
-            method="GET"
+            autoComplete="off"
             className="hidden md:flex flex-1 max-w-xl relative"
           >
             <div className="relative flex w-full">
@@ -206,8 +205,8 @@ export function Header() {
               </label>
               <input
                 id="header-algolia-search"
-                name="q"
                 type="search"
+                role="combobox"
                 value={searchQuery}
                 onFocus={() => setAutocompleteOpen(true)}
                 onChange={(e) => {
@@ -215,9 +214,12 @@ export function Header() {
                   setAutocompleteOpen(true);
                 }}
                 onKeyDown={handleSearchKeyDown}
+                autoComplete="off"
                 autoCorrect="off"
                 autoCapitalize="off"
                 spellCheck={false}
+                data-form-type="other"
+                aria-autocomplete="list"
                 aria-expanded={showDropdown}
                 aria-controls="header-algolia-autocomplete"
                 placeholder="Search by stillage type, SKU (e.g. SSS-CANT), dimensions or SWL..."
@@ -422,19 +424,20 @@ export function Header() {
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
         <div className="md:hidden bg-brand-navyDark border-t border-white/15 px-4 pt-3 pb-5 space-y-3">
-          <form onSubmit={handleSearch} className="flex">
+          <form onSubmit={handleSearch} autoComplete="off" className="flex">
             <label htmlFor="mobile-algolia-search" className="sr-only">
               Search stillages, SKUs, SWL
             </label>
             <input
               id="mobile-algolia-search"
-              name="q"
               type="search"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              autoComplete="off"
               autoCorrect="off"
               autoCapitalize="off"
               spellCheck={false}
+              data-form-type="other"
               placeholder="Search stillages, SKUs, SWL..."
               className="w-full bg-brand-navy text-white text-sm px-3 py-2 rounded-l border border-white/20"
             />

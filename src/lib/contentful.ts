@@ -10,6 +10,25 @@ const CONTENTFUL_SPACE_ID = getEnv('NEXT_PUBLIC_CONTENTFUL_SPACE_ID', 'q9ktabz6d
 const CONTENTFUL_ENVIRONMENT = getEnv('NEXT_PUBLIC_CONTENTFUL_ENVIRONMENT', 'master');
 const CONTENTFUL_CDA_TOKEN = getEnv('CONTENTFUL_ACCESS_TOKEN', '');
 
+interface ContentfulAssetLink {
+  sys: {
+    type: 'Link';
+    linkType: 'Asset';
+    id: string;
+  };
+}
+
+interface ContentfulAsset {
+  sys: { id: string };
+  fields?: {
+    title?: string;
+    file?: {
+      url?: string;
+      contentType?: string;
+    };
+  };
+}
+
 interface ContentfulEntry<T> {
   sys: { id: string };
   fields: T;
@@ -17,15 +36,42 @@ interface ContentfulEntry<T> {
 
 interface ContentfulCollection<T> {
   items: ContentfulEntry<T>[];
+  includes?: {
+    Asset?: ContentfulAsset[];
+  };
 }
 
-async function fetchContentfulEntries<T>(contentType: string): Promise<ContentfulEntry<T>[] | null> {
+const STATIC_ASSET_FALLBACK_MAP: Record<string, string> = {
+  'asset-cantilever-rack-cutout': '/images/products/cantilever-rack-cutout.png',
+  'asset-cantilever-rack-sand': '/images/products/cantilever-rack-sand.png',
+  'asset-stacked-hopper-stillage': '/images/products/stacked-hopper-stillage.png',
+};
+
+export function resolveContentfulImage(
+  value: string | ContentfulAssetLink | undefined | null,
+  assetMap: Record<string, string>,
+  fallback?: string
+): string | undefined {
+  if (!value) return fallback;
+  if (typeof value === 'string') {
+    return value.startsWith('//') ? `https:${value}` : value;
+  }
+  if (typeof value === 'object' && value.sys?.id) {
+    const resolved = assetMap[value.sys.id] || STATIC_ASSET_FALLBACK_MAP[value.sys.id];
+    if (resolved) return resolved;
+  }
+  return fallback;
+}
+
+async function fetchContentfulCollection<T>(
+  contentType: string
+): Promise<{ items: ContentfulEntry<T>[]; assetMap: Record<string, string> } | null> {
   if (!CONTENTFUL_SPACE_ID || !CONTENTFUL_CDA_TOKEN) {
     return null;
   }
 
   try {
-    const url = `https://cdn.contentful.com/spaces/${CONTENTFUL_SPACE_ID}/environments/${CONTENTFUL_ENVIRONMENT}/entries?content_type=${contentType}&limit=100`;
+    const url = `https://cdn.contentful.com/spaces/${CONTENTFUL_SPACE_ID}/environments/${CONTENTFUL_ENVIRONMENT}/entries?content_type=${contentType}&include=2&limit=100`;
     const res = await fetch(url, {
       headers: {
         Authorization: `Bearer ${CONTENTFUL_CDA_TOKEN}`,
@@ -38,18 +84,32 @@ async function fetchContentfulEntries<T>(contentType: string): Promise<Contentfu
     }
 
     const data: ContentfulCollection<T> = await res.json();
-    return data.items || null;
+    const assetMap: Record<string, string> = {};
+    for (const asset of data.includes?.Asset || []) {
+      const rawUrl = asset.fields?.file?.url;
+      if (asset.sys?.id && rawUrl) {
+        assetMap[asset.sys.id] = rawUrl.startsWith('//') ? `https:${rawUrl}` : rawUrl;
+      }
+    }
+
+    return {
+      items: data.items || [],
+      assetMap,
+    };
   } catch {
     return null;
   }
 }
 
 export async function getCategories(): Promise<Category[]> {
-  const items = await fetchContentfulEntries<Omit<Category, 'id'>>('category');
-  if (!items || items.length === 0) {
+  const result = await fetchContentfulCollection<
+    Omit<Category, 'id' | 'imageUrl'> & { imageUrl?: string | ContentfulAssetLink }
+  >('category');
+  if (!result || result.items.length === 0) {
     return SEED_CATEGORIES;
   }
 
+  const { items, assetMap } = result;
   return items
     .map((item) => ({
       id: item.sys.id,
@@ -57,18 +117,24 @@ export async function getCategories(): Promise<Category[]> {
       slug: item.fields.slug,
       description: item.fields.description,
       badgeText: item.fields.badgeText,
-      imageUrl: item.fields.imageUrl,
+      imageUrl: resolveContentfulImage(item.fields.imageUrl, assetMap),
       displayOrder: item.fields.displayOrder ?? 99,
     }))
     .sort((a, b) => a.displayOrder - b.displayOrder);
 }
 
 export async function getProducts(): Promise<Product[]> {
-  const items = await fetchContentfulEntries<Omit<Product, 'id'>>('product');
-  if (!items || items.length === 0) {
+  const result = await fetchContentfulCollection<
+    Omit<Product, 'id' | 'primaryImage' | 'secondaryImage'> & {
+      primaryImage?: string | ContentfulAssetLink;
+      secondaryImage?: string | ContentfulAssetLink;
+    }
+  >('product');
+  if (!result || result.items.length === 0) {
     return SEED_PRODUCTS;
   }
 
+  const { items, assetMap } = result;
   return items.map((item) => ({
     id: item.sys.id,
     title: item.fields.title,
@@ -91,8 +157,13 @@ export async function getProducts(): Promise<Product[]> {
     inStock: Boolean(item.fields.inStock),
     leadTimeText: item.fields.leadTimeText,
     featured: Boolean(item.fields.featured),
-    primaryImage: item.fields.primaryImage || '/images/products/cantilever-rack-cutout.png',
-    secondaryImage: item.fields.secondaryImage,
+    primaryImage:
+      resolveContentfulImage(
+        item.fields.primaryImage,
+        assetMap,
+        '/images/products/cantilever-rack-cutout.png'
+      ) || '/images/products/cantilever-rack-cutout.png',
+    secondaryImage: resolveContentfulImage(item.fields.secondaryImage, assetMap),
     backdropStyle: item.fields.backdropStyle === 'white' ? 'white' : 'sand',
     highlights: item.fields.highlights || [],
   }));
@@ -103,7 +174,14 @@ export async function getProductBySlug(slug: string): Promise<Product | undefine
   return products.find((p) => p.slug === slug);
 }
 
-export function mapContentfulBlogPost(item: ContentfulEntry<Partial<Omit<BlogPost, 'id'>>>): BlogPost {
+export function mapContentfulBlogPost(
+  item: ContentfulEntry<
+    Partial<Omit<BlogPost, 'id' | 'heroImage'>> & {
+      heroImage?: string | ContentfulAssetLink;
+    }
+  >,
+  assetMap: Record<string, string> = {}
+): BlogPost {
   return {
     id: item.sys.id,
     title: item.fields.title || 'Untitled Technical Guide',
@@ -115,7 +193,12 @@ export function mapContentfulBlogPost(item: ContentfulEntry<Partial<Omit<BlogPos
     publishedAt: item.fields.publishedAt || '2026-10-01',
     readingTimeMinutes: item.fields.readingTimeMinutes ?? 5,
     featured: Boolean(item.fields.featured),
-    heroImage: item.fields.heroImage || '/images/products/cantilever-rack-cutout.png',
+    heroImage:
+      resolveContentfulImage(
+        item.fields.heroImage,
+        assetMap,
+        '/images/products/cantilever-rack-cutout.png'
+      ) || '/images/products/cantilever-rack-cutout.png',
     backdropStyle: item.fields.backdropStyle === 'white' ? 'white' : 'sand',
     tags: item.fields.tags || [],
     keyTakeaways: item.fields.keyTakeaways || [],
@@ -125,9 +208,15 @@ export function mapContentfulBlogPost(item: ContentfulEntry<Partial<Omit<BlogPos
 }
 
 export async function getBlogPosts(): Promise<BlogPost[]> {
-  const items = await fetchContentfulEntries<Partial<Omit<BlogPost, 'id'>>>('blogPost');
+  const result = await fetchContentfulCollection<
+    Partial<Omit<BlogPost, 'id' | 'heroImage'>> & {
+      heroImage?: string | ContentfulAssetLink;
+    }
+  >('blogPost');
   const posts =
-    !items || items.length === 0 ? [...SEED_BLOG_POSTS] : items.map((item) => mapContentfulBlogPost(item));
+    !result || result.items.length === 0
+      ? [...SEED_BLOG_POSTS]
+      : result.items.map((item) => mapContentfulBlogPost(item, result.assetMap));
 
   return posts.sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
 }
