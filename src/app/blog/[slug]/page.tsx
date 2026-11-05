@@ -14,6 +14,13 @@ import {
   User,
 } from 'lucide-react';
 import { getBlogPostBySlug, getBlogPosts, getProducts } from '@/lib/contentful';
+import {
+  buildBlogPostMetadata,
+  buildBlogPostSchema,
+  buildBreadcrumbSchema,
+  buildFaqSchema,
+  getBlogPostFaqs,
+} from '@/lib/seo';
 import { ProductCard } from '@/components/ProductCard';
 import { BlogCard } from '@/components/BlogCard';
 
@@ -27,10 +34,7 @@ export async function generateMetadata({ params }: BlogPostDetailPageProps): Pro
   if (!post) {
     return { title: 'Technical Guide Not Found' };
   }
-  return {
-    title: post.title,
-    description: post.excerpt,
-  };
+  return buildBlogPostMetadata(post);
 }
 
 export async function generateStaticParams() {
@@ -120,9 +124,30 @@ export default async function BlogPostDetailPage({ params }: BlogPostDetailPageP
 
   const relatedProducts = allProducts.filter((p) => post.relatedProductSkus.includes(p.sku));
   const otherPosts = allPosts.filter((p) => p.slug !== post.slug).slice(0, 3);
+  const articleJsonLd = buildBlogPostSchema(post);
+  const breadcrumbJsonLd = buildBreadcrumbSchema([
+    { name: 'Home', path: '/' },
+    { name: 'Technical Blog & Guides', path: '/blog' },
+    { name: post.title, path: `/blog/${post.slug}` },
+  ]);
+  const faqJsonLd = buildFaqSchema(getBlogPostFaqs(post));
 
   return (
     <div>
+      {/* Schema.org JSON-LD for Google Rich Results & AI Answer Engines */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
+
       {/* Breadcrumb Bar */}
       <div className="bg-surface-sandLight border-b border-steel-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">

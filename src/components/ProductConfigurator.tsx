@@ -20,6 +20,7 @@ import { FINISH_OPTIONS, MOBILITY_OPTIONS } from '@/data/seedCatalog';
 import { Product, QuoteResponse } from '@/types/catalog';
 import { calculateQuote } from '@/lib/pricing';
 import { trackAlgoliaEvent } from '@/lib/algolia';
+import { trackB2BEvent } from '@/lib/analytics';
 import { formatGBP, useVat } from '@/context/VatContext';
 
 interface ProductConfiguratorProps {
@@ -175,11 +176,29 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
   const handleCheckout = (paymentMode: 'card' | 'b2b_proforma') => {
     setSubmitting(true);
     setOrderStatusMessage(null);
+    trackB2BEvent({
+      event: 'quote_or_proforma_submitted',
+      sku: product.sku,
+      productTitle: product.title,
+      quantity: quote.quantity,
+      discountPercentage: quote.discountPercentage,
+      totalExVatPence: quote.totalExVatPence,
+      paymentMethod: paymentMode === 'b2b_proforma' ? 'proforma_invoice' : 'stripe_card',
+    });
     syncCurrentConfigToBasket();
     router.push(`/checkout?mode=${paymentMode}`);
   };
 
   const handleAddToBasketOnly = () => {
+    trackB2BEvent({
+      event: 'quote_or_proforma_submitted',
+      sku: product.sku,
+      productTitle: product.title,
+      quantity: quote.quantity,
+      discountPercentage: quote.discountPercentage,
+      totalExVatPence: quote.lineSubtotalExVatPence,
+      paymentMethod: 'basket_add',
+    });
     syncCurrentConfigToBasket();
     setOrderStatusMessage(
       `Added ${quote.quantity}× ${product.title} (${selectedFinish.code}, ${selectedMobility.name}) to your order basket.`
@@ -443,7 +462,16 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
                   <button
                     key={opt.id}
                     type="button"
-                    onClick={() => setFinishOption(opt.id)}
+                    onClick={() => {
+                      setFinishOption(opt.id);
+                      trackB2BEvent({
+                        event: 'configurator_option_select',
+                        sku: product.sku,
+                        productTitle: product.title,
+                        optionType: 'finish',
+                        optionValue: opt.id,
+                      });
+                    }}
                     className={`p-3 border text-left rounded-sm transition-all flex flex-col justify-between ${
                       isSelected
                         ? 'border-2 border-stillage-blue bg-surface-sand/40'
@@ -536,7 +564,18 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
                   <button
                     key={tier.label}
                     type="button"
-                    onClick={() => setQuantity(tier.minQty)}
+                    onClick={() => {
+                      setQuantity(tier.minQty);
+                      if (tier.minQty >= 5) {
+                        trackB2BEvent({
+                          event: 'bulk_tier_unlocked',
+                          sku: product.sku,
+                          productTitle: product.title,
+                          quantity: tier.minQty,
+                          discountPercentage: tier.minQty >= 10 ? 10 : 5,
+                        });
+                      }
+                    }}
                     className={`p-2 border rounded-sm text-center transition-colors ${
                       active
                         ? 'bg-brand-navy text-surface-sand border-brand-navy font-bold'

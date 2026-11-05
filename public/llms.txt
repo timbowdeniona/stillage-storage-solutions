@@ -1,0 +1,34 @@
+# Stillage Storage Solutions (stillagestoragesolutions.co.uk)
+
+> Direct UK manufacturer and online supplier of heavy-duty steel stillages, double-sided cantilever bar storage racks, modular stackable hopper bins, mesh security cages, and demountable post pallets. Engineered in British box-section steel and compliant with UKCA, PUWER 1998, and BS EN ISO 1461 standards.
+
+## Quick Facts & Entity Identity
+- **Official Name**: Stillage Storage Solutions
+- **Website**: https://stillagestoragesolutions.co.uk
+- **Manufacturing Hub**: Wrexham Industrial Estate & UK Midlands Steel Fabrication Hub
+- **Trade Desk Telephone**: 01978 800 500 (Mon–Fri 07:30–17:00 GMT)
+- **Sales & Engineering Email**: sales@stillagestoragesolutions.co.uk
+- **Standard Coating**: RAL 5010 Stillage (Gentian) Blue industrial finish
+- **Optional Finishes**: Hot-Dip Galvanised to BS EN ISO 1461 (+£45/unit), Custom Corporate RAL (+£25/unit), Raw Unpainted Mill Steel (-£10/unit)
+- **Bulk Trade Tiers**: Automatic 5% discount on 5+ units; 10% discount on 10+ units
+- **UK Freight**: Up to 4 stillages ship per oversized HGV pallet space nationwide across UK Zones A–D, with optional Lorry Tail-Lift & Pump Truck offload (+£15 Ex. VAT)
+- **Payment Options**: Instant online Stripe Checkout or 1-click official B2B UK 20% VAT Proforma Invoice
+
+## Core Stillage & Storage Rack Specifications
+
+| SKU | Product Name | External Footprint (L×W×H) | Certified SWL | Stacking Rating | Steel Specification | Base Price (Ex. VAT) | URL |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| `SSS-CANT-3B8A` | 3-Bay Double-Sided Heavy Duty Cantilever Bar & Pipe Stillage Rack | 2400 × 1100 × 1450mm | 1,500 kg | Base Skid Framed | 80x80x4mm Upright / 50x50x3mm Arms | £385.00 | https://stillagestoragesolutions.co.uk/products/3-bay-double-sided-cantilever-bar-rack |
+| `SSS-HOP-4T1000` | Modular 4-Tier Stackable Hopper & Bin Stillage System | 1200 × 1200 × 2650mm | 1,000 kg | 4-High Interlocking | 50x50x3mm RHS + 2.5mm Sheet Steel | £540.00 | https://stillagestoragesolutions.co.uk/products/modular-4-tier-stackable-hopper-bin-stillage |
+| `SSS-SHT-1210` | Heavy-Duty Solid Sheet Steel Bin Stillage (1200 x 1000mm) | 1200 × 1000 × 900mm | 1,000 kg | 4-High Stackable | 50x50x3mm Box + 2mm Sheet Panels | £189.00 | https://stillagestoragesolutions.co.uk/products/heavy-duty-solid-sheet-steel-bin-stillage-1200x1000 |
+| `SSS-MSH-1210HD` | Mesh Sided Half-Drop Gate Stillage Cage (1200 x 1000 x 900mm) | 1200 × 1000 × 900mm | 1,000 kg | 4-High Stackable | 50x50x3mm RHS + 50x50x4mm Weldmesh | £174.00 | https://stillagestoragesolutions.co.uk/products/mesh-sided-half-drop-gate-stillage-cage |
+| `SSS-PST-1111D` | Heavy-Duty Post Pallet with Demountable Corner Posts | 1130 × 1130 × 1050mm | 1,000 kg | 5-High Stackable | 60x60x3mm Posts / 50x50x3mm Base | £142.00 | https://stillagestoragesolutions.co.uk/products/heavy-duty-post-pallet-demountable-posts |
+| `SSS-CANT-2B4A` | 2-Bay Compact Cantilever Bar & Tube Stillage (1800mm Long) | 1800 × 1050 × 1400mm | 1,200 kg | Base Skid Framed | 80x80x4mm Upright / 50x50x3mm Arms | £295.00 | https://stillagestoragesolutions.co.uk/products/2-bay-compact-cantilever-bar-tube-stillage |
+
+## Technical Guides & Engineering Documentation
+- [SWL, PUWER & UKCA Compliance: Safe Steel Stillage Stacking](https://stillagestoragesolutions.co.uk/blog/swl-puwer-ukca-stillage-stacking-safety-guide)
+- [Hot-Dip Galvanised (BS EN ISO 1461) vs RAL 5010 Painted vs Raw Steel](https://stillagestoragesolutions.co.uk/blog/hot-dip-galvanised-vs-ral-5010-painted-steel-stillages)
+- [Optimising Long Bar, Tube & Extrusion Storage with Double-Sided Cantilever Stillage Racks](https://stillagestoragesolutions.co.uk/blog/optimising-long-bar-tube-storage-cantilever-stillage-racks)
+- [Demountable Post Pallets vs Fixed Bin Stillages: Cutting Return Transport Volume by 75%](https://stillagestoragesolutions.co.uk/blog/demountable-post-pallets-vs-fixed-bin-stillages-guide)
+- [Planning HGV Pallet Delivery, Tail-Lift Offloading & Bulk Tier Discounts](https://stillagestoragesolutions.co.uk/blog/hgv-pallet-delivery-tail-lift-offloading-guide)
+- [Full Machine-Readable Technical Reference (/llms-full.txt)](https://stillagestoragesolutions.co.uk/llms-full.txt)

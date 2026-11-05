@@ -119,6 +119,8 @@ export async function getCategories(): Promise<Category[]> {
       badgeText: item.fields.badgeText,
       imageUrl: resolveContentfulImage(item.fields.imageUrl, assetMap),
       displayOrder: item.fields.displayOrder ?? 99,
+      seoTitle: item.fields.seoTitle,
+      seoDescription: item.fields.seoDescription,
     }))
     .sort((a, b) => a.displayOrder - b.displayOrder);
 }
@@ -166,6 +168,9 @@ export async function getProducts(): Promise<Product[]> {
     secondaryImage: resolveContentfulImage(item.fields.secondaryImage, assetMap),
     backdropStyle: item.fields.backdropStyle === 'white' ? 'white' : 'sand',
     highlights: item.fields.highlights || [],
+    seoTitle: item.fields.seoTitle,
+    seoDescription: item.fields.seoDescription,
+    faqItems: item.fields.faqItems || [],
   }));
 }
 
@@ -204,6 +209,9 @@ export function mapContentfulBlogPost(
     keyTakeaways: item.fields.keyTakeaways || [],
     body: item.fields.body || '',
     relatedProductSkus: item.fields.relatedProductSkus || [],
+    seoTitle: item.fields.seoTitle,
+    seoDescription: item.fields.seoDescription,
+    faqItems: item.fields.faqItems || [],
   };
 }
 

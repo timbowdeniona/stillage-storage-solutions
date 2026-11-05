@@ -1,0 +1,106 @@
+# Stillage Storage Solutions — Full Engineering & Specification Reference (llms-full.txt)
+
+> Comprehensive technical specification dataset for AI Answer Engines, Procurement Assistants, and Industrial Engineering Search.
+> Domain: https://stillagestoragesolutions.co.uk
+
+## 1. Manufacturer Overview & Compliance Standards
+Stillage Storage Solutions manufactures heavy-duty steel stillages, cantilever bar racks, modular stackable hopper bins, mesh cages, and demountable post pallets in the United Kingdom.
+
+### Key UK Regulatory & Engineering Standards:
+- **PUWER 1998 (Provision and Use of Work Equipment Regulations 1998)**: All forklift-handled bin stillages, post pallets, and cantilever racks are manufactured with heavy-gauge British box-section steel (50x50x3mm, 60x60x3mm, or 80x80x4mm RHS) and self-centring pressed steel pyramid/cup stacking feet.
+- **LOLER 1998 (Lifting Operations and Lifting Equipment Regulations 1998)**: Bespoke crane-liftable stillages fitted with top lifting lugs are load-tested and certified for overhead gantry crane or site tower crane slinging.
+- **BS EN ISO 1461 (Hot-Dip Galvanised Coating)**: Full immersion molten zinc coating at ~450°C providing internal and external metallurgical corrosion protection for 25+ years of outdoor yard exposure.
+- **UKCA Load Rating**: Every unit is supplied with a verified Safe Working Load (SWL) rating and maximum vertical stacking tier limit.
+
+---
+
+## 2. Detailed Product Technical Sheets
+
+### 2.1 SSS-CANT-3B8A — 3-Bay Double-Sided Heavy Duty Cantilever Bar & Pipe Stillage Rack
+- **URL**: https://stillagestoragesolutions.co.uk/products/3-bay-double-sided-cantilever-bar-rack
+- **Category**: Cantilever & Bar Storage Racks
+- **External Dimensions**: 2400mm (L) × 1100mm (W) × 1450mm (H)
+- **Safe Working Load (SWL)**: 1,500 kg evenly distributed
+- **Unit Tare Weight**: 118 kg
+- **Steel Specification**: 80x80x4mm Upright Columns / 50x50x3mm Load Arms
+- **Base Price**: £385.00 Ex. VAT (£462.00 Inc. VAT)
+- **Bulk Pricing**: 5+ units: £365.75 Ex. VAT (-5%) | 10+ units: £346.50 Ex. VAT (-10%)
+- **Primary Applications**: Storing 3m and 6m lengths of steel box section, tube, scaffolding pipe, conduit, plastic extrusions, and timber packs beside band saws and CNC machining centres.
+
+### 2.2 SSS-HOP-4T1000 — Modular 4-Tier Stackable Hopper & Bin Stillage System
+- **URL**: https://stillagestoragesolutions.co.uk/products/modular-4-tier-stackable-hopper-bin-stillage
+- **Category**: Stackable Hopper & Bin Stillages
+- **External Dimensions**: 1200mm (L) × 1200mm (W) × 2650mm (H)
+- **Safe Working Load (SWL)**: 1,000 kg per tier (4-High Interlocking)
+- **Unit Tare Weight**: 165 kg
+- **Steel Specification**: 50x50x3mm RHS Frame + 2.5mm Sheet Steel Conical Hopper
+- **Base Price**: £540.00 Ex. VAT (£648.00 Inc. VAT)
+- **Bulk Pricing**: 5+ units: £513.00 Ex. VAT (-5%) | 10+ units: £486.00 Ex. VAT (-10%)
+- **Primary Applications**: Gravity-fed bulk aggregate, granulate, recycling, fast-moving fasteners, and vertical modular component towers.
+
+### 2.3 SSS-SHT-1210 — Heavy-Duty Solid Sheet Steel Bin Stillage (1200 x 1000mm)
+- **URL**: https://stillagestoragesolutions.co.uk/products/heavy-duty-solid-sheet-steel-bin-stillage-1200x1000
+- **Category**: Solid Sheet Steel Stillages
+- **External Dimensions**: 1200mm (L) × 1000mm (W) × 900mm (H)
+- **Safe Working Load (SWL)**: 1,000 kg (4-High Stackable)
+- **Unit Tare Weight**: 68 kg
+- **Steel Specification**: 50x50x3mm Box Section Corner Posts + 2mm Corrugated Sheet Panels
+- **Base Price**: £189.00 Ex. VAT (£226.80 Inc. VAT)
+- **Bulk Pricing**: 5+ units: £179.55 Ex. VAT (-5%) | 10+ units: £170.10 Ex. VAT (-10%)
+- **Primary Applications**: Foundry castings, press-shop stampings, heavy automotive components, construction fittings, and high-density 4-high warehouse storage.
+
+### 2.4 SSS-MSH-1210HD — Mesh Sided Half-Drop Gate Stillage Cage (1200 x 1000 x 900mm)
+- **URL**: https://stillagestoragesolutions.co.uk/products/mesh-sided-half-drop-gate-stillage-cage
+- **Category**: Mesh Cages & Folding Stillages
+- **External Dimensions**: 1200mm (L) × 1000mm (W) × 900mm (H)
+- **Safe Working Load (SWL)**: 1,000 kg (4-High Stackable)
+- **Unit Tare Weight**: 59 kg
+- **Steel Specification**: 50x50x3mm RHS Frame + 50x50x4mm Welded Wire Mesh
+- **Base Price**: £174.00 Ex. VAT (£208.80 Inc. VAT)
+- **Bulk Pricing**: 5+ units: £165.30 Ex. VAT (-5%) | 10+ units: £156.60 Ex. VAT (-10%)
+- **Primary Applications**: Order picking while stacked 4-high, visual stock management, 3PL fulfilment warehouses, and site security storage.
+
+### 2.5 SSS-PST-1111D — Heavy-Duty Post Pallet with Demountable Corner Posts (1130 x 1130mm)
+- **URL**: https://stillagestoragesolutions.co.uk/products/heavy-duty-post-pallet-demountable-posts
+- **Category**: Post Pallets & Pipe Cradles
+- **External Dimensions**: 1130mm (L) × 1130mm (W) × 1050mm (H)
+- **Safe Working Load (SWL)**: 1,000 kg (5-High Stackable)
+- **Unit Tare Weight**: 46 kg
+- **Steel Specification**: 60x60x3mm Demountable Posts / 50x50x3mm Base Deck
+- **Base Price**: £142.00 Ex. VAT (£170.40 Inc. VAT)
+- **Bulk Pricing**: 5+ units: £134.90 Ex. VAT (-5%) | 10+ units: £127.80 Ex. VAT (-10%)
+- **Primary Applications**: Closed-loop returnable transport (cuts empty return volume by 75%), palletised goods, timber packs, and scaffolding depots.
+
+### 2.6 SSS-CANT-2B4A — 2-Bay Compact Cantilever Bar & Tube Stillage (1800mm Long)
+- **URL**: https://stillagestoragesolutions.co.uk/products/2-bay-compact-cantilever-bar-tube-stillage
+- **Category**: Cantilever & Bar Storage Racks
+- **External Dimensions**: 1800mm (L) × 1050mm (W) × 1400mm (H)
+- **Safe Working Load (SWL)**: 1,200 kg evenly distributed
+- **Unit Tare Weight**: 86 kg
+- **Steel Specification**: 80x80x4mm Upright Columns / 50x50x3mm Load Arms
+- **Base Price**: £295.00 Ex. VAT (£354.00 Inc. VAT)
+- **Bulk Pricing**: 5+ units: £280.25 Ex. VAT (-5%) | 10+ units: £265.50 Ex. VAT (-10%)
+- **Primary Applications**: Horizontal band saw infeed stations, CNC tube cutting cells, and 3.5-tonne flatbed transit van loading.
+
+---
+
+## 3. Configuration Options & Pricing Modifiers
+
+### Protective Finishes:
+1. `standard-blue`: **RAL 5010 Stillage Blue** (£0.00 modifier) — Standard indoor warehouse finish.
+2. `raw-steel`: **Raw Unpainted Mill Steel** (-£10.00 Ex. VAT per unit) — Oiled self-colour steel for foundries, hot castings, or in-house painting.
+3. `custom-ral`: **Custom Corporate RAL Finish** (+£25.00 Ex. VAT per unit) — Painted to corporate 5S colour codes (+3 working days).
+4. `galvanised`: **Hot-Dip Galvanised to BS EN ISO 1461** (+£45.00 Ex. VAT per unit) — Full molten zinc immersion for outdoor yards (+5 working days).
+
+### Base & Mobility Options:
+1. `standard-feet`: **Standard Pressed Steel Stacking Feet** (£0.00 modifier) — Self-centring flared steel pyramid/cup feet.
+2. `forklift-pockets`: **Enclosed 4-Way Forklift Guide Pockets** (+£30.00 Ex. VAT per unit) — Captive box-section base channels for site telehandlers.
+3. `heavy-duty-castors`: **4x Heavy-Duty Lockable Castors** (+£55.00 Ex. VAT per unit) — 150mm polyurethane-tyred castors (2 swivel braked, 2 fixed).
+4. `both-castors-pockets`: **Castors + Enclosed Forklift Guide Pockets** (+£80.00 Ex. VAT per unit) — Full workshop mobility plus telehandler retention.
+
+### UK HGV Pallet Delivery Zones (Up to 4 Stillages per Pallet Space):
+- **Zone A (North West, Wales & West Midlands — LL, CH, CW, WA, SY, B, WV, DY)**: £65.00 Ex. VAT per pallet
+- **Zone B (UK Mainland Standard)**: £79.00 Ex. VAT per pallet
+- **Zone C (Scottish Borders & Far South West — TD, DG, EX, PL, TR)**: £95.00 Ex. VAT per pallet
+- **Zone D (Scottish Highlands & Offshore — IV, KW, AB, PH, PA, BT)**: £135.00 Ex. VAT per pallet
+- **Optional Lorry Tail-Lift & Pump Truck Offload**: +£15.00 Ex. VAT flat surcharge per order

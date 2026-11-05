@@ -19,6 +19,7 @@ import {
 import { useVat } from '@/context/VatContext';
 import { SEED_PRODUCTS } from '@/data/seedCatalog';
 import { searchProductsWithAlgolia } from '@/lib/algolia';
+import { trackB2BEvent } from '@/lib/analytics';
 import { ParsedSearchIntent, Product } from '@/types/catalog';
 
 export function Header() {
@@ -116,7 +117,13 @@ export function Header() {
 
           <div className="flex items-center gap-4 ml-auto">
             <a
-              href="tel:08001123456"
+              href="tel:01978800500"
+              onClick={() =>
+                trackB2BEvent({
+                  event: 'trade_contact_click',
+                  contactMethod: 'phone',
+                })
+              }
               className="hidden sm:inline-flex items-center gap-1.5 text-steel-200 hover:text-surface-sand transition-colors font-mono"
             >
               <PhoneCall className="w-3.5 h-3.5 text-accent-amber" />

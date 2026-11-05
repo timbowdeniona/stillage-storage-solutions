@@ -161,6 +161,9 @@ export function Footer() {
         <span>
           &copy; {new Date().getFullYear()} Stillage Storage Solutions (stillagestoragesolutions.co.uk). All prices subject to UK VAT at 20%.
         </span>
+        <Link href="/analytics-report" className="text-accent-teal hover:underline font-bold">
+          Client SEO, GEO &amp; Monthly Analytics Dashboard &rarr;
+        </Link>
         <Link href="/design-system" className="text-surface-sand hover:underline">
           View Design System &amp; Colour/Font Swatches &rarr;
         </Link>

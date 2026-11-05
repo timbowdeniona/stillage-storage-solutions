@@ -1,3 +1,8 @@
+export interface FaqItem {
+  question: string;
+  answer: string;
+}
+
 export interface Category {
   id: string;
   title: string;
@@ -6,6 +11,14 @@ export interface Category {
   badgeText?: string;
   imageUrl?: string;
   displayOrder: number;
+  seoTitle?: string;
+  seoDescription?: string;
+}
+
+export interface AlgoliaHighlightField {
+  value: string;
+  matchLevel?: 'none' | 'partial' | 'full';
+  matchedWords?: string[];
 }
 
 export interface Product {
@@ -34,6 +47,10 @@ export interface Product {
   secondaryImage?: string;
   backdropStyle: 'sand' | 'white';
   highlights: string[];
+  seoTitle?: string;
+  seoDescription?: string;
+  faqItems?: string[];
+  _highlightResult?: Record<string, AlgoliaHighlightField | AlgoliaHighlightField[]>;
 }
 
 export interface AlgoliaProductRecord extends Product {
@@ -45,6 +62,43 @@ export interface AlgoliaProductRecord extends Product {
   environmentTags: string[];
   recommendedFinishIds: string[];
   recommendedMobilityIds: string[];
+  bulkPrice5PlusExVatPence?: number;
+  bulkPrice10PlusExVatPence?: number;
+  availableFinishes?: string[];
+  availableMobility?: string[];
+  palletsPer4Units?: number;
+}
+
+export interface AlgoliaArticleRecord {
+  objectID: string;
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  category: string;
+  author: string;
+  readingTimeMinutes: number;
+  publishedAt: string;
+  tags: string[];
+  keyTakeaways: string[];
+  relatedProductSkus: string[];
+  _highlightResult?: Record<string, AlgoliaHighlightField>;
+}
+
+export interface AlgoliaRuleBanner {
+  bannerType:
+    | 'hdg-iso-1461'
+    | 'loler-bespoke-cad'
+    | 'bulk-pallet-fleet'
+    | 'cantilever-saw-station';
+  badge: string;
+  title: string;
+  description: string;
+  ctaText: string;
+  ctaHref?: string;
+  ctaAction?: 'open-ai-advisor';
+  autoConfigFinish?: string;
+  guideSlug?: string;
 }
 
 export interface ProductRecommendation {
@@ -130,6 +184,9 @@ export interface BlogPost {
   keyTakeaways: string[];
   body: string;
   relatedProductSkus: string[];
+  seoTitle?: string;
+  seoDescription?: string;
+  faqItems?: string[];
 }
 
 export interface FinishOption {
