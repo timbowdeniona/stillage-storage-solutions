@@ -45,6 +45,12 @@ const STATIC_ASSET_FALLBACK_MAP: Record<string, string> = {
   'asset-cantilever-rack-cutout': '/images/products/cantilever-rack-cutout.png',
   'asset-cantilever-rack-sand': '/images/products/cantilever-rack-sand.png',
   'asset-stacked-hopper-stillage': '/images/products/stacked-hopper-stillage.png',
+  'asset-sss-cant-3b8a-blueprint': '/images/products/sss-cant-3b8a-blueprint.jpg',
+  'asset-sss-msh-1210hd-blueprint': '/images/products/sss-msh-1210hd-blueprint.jpg',
+  'asset-bbfh2-1-blueprint': '/images/products/bbfh2-1-blueprint.jpg',
+  'asset-base-render-bbfh2-1': '/images/products/base-render-bbfh2-1.jpg',
+  'asset-base-render-sss-cant-3b8a': '/images/products/base-render-sss-cant-3b8a.jpg',
+  'asset-base-render-sss-msh-1210hd': '/images/products/base-render-sss-msh-1210hd.jpg',
 };
 
 export function resolveContentfulImage(
@@ -127,9 +133,11 @@ export async function getCategories(): Promise<Category[]> {
 
 export async function getProducts(): Promise<Product[]> {
   const result = await fetchContentfulCollection<
-    Omit<Product, 'id' | 'primaryImage' | 'secondaryImage'> & {
+    Omit<Product, 'id' | 'primaryImage' | 'secondaryImage' | 'technicalDrawing' | 'gallery'> & {
       primaryImage?: string | ContentfulAssetLink;
       secondaryImage?: string | ContentfulAssetLink;
+      technicalDrawing?: string | ContentfulAssetLink;
+      gallery?: (string | ContentfulAssetLink)[];
     }
   >('product');
   if (!result || result.items.length === 0) {
@@ -137,41 +145,54 @@ export async function getProducts(): Promise<Product[]> {
   }
 
   const { items, assetMap } = result;
-  return items.map((item) => ({
-    id: item.sys.id,
-    title: item.fields.title,
-    slug: item.fields.slug,
-    sku: item.fields.sku,
-    categorySlug: item.fields.categorySlug,
-    categoryName: item.fields.categoryName,
-    shortDescription: item.fields.shortDescription,
-    fullDescription: item.fields.fullDescription,
-    basePriceExVatPence: item.fields.basePriceExVatPence,
-    swlKg: item.fields.swlKg,
-    externalLengthMm: item.fields.externalLengthMm,
-    externalWidthMm: item.fields.externalWidthMm,
-    externalHeightMm: item.fields.externalHeightMm,
-    unitWeightKg: item.fields.unitWeightKg,
-    stackableHeight: item.fields.stackableHeight,
-    steelSpecification: item.fields.steelSpecification,
-    standardFinish: item.fields.standardFinish,
-    ukcaCertified: Boolean(item.fields.ukcaCertified),
-    inStock: Boolean(item.fields.inStock),
-    leadTimeText: item.fields.leadTimeText,
-    featured: Boolean(item.fields.featured),
-    primaryImage:
-      resolveContentfulImage(
-        item.fields.primaryImage,
-        assetMap,
-        '/images/products/cantilever-rack-cutout.png'
-      ) || '/images/products/cantilever-rack-cutout.png',
-    secondaryImage: resolveContentfulImage(item.fields.secondaryImage, assetMap),
-    backdropStyle: item.fields.backdropStyle === 'white' ? 'white' : 'sand',
-    highlights: item.fields.highlights || [],
-    seoTitle: item.fields.seoTitle,
-    seoDescription: item.fields.seoDescription,
-    faqItems: item.fields.faqItems || [],
-  }));
+  return items.map((item) => {
+    const rawGallery = Array.isArray(item.fields.gallery)
+      ? item.fields.gallery
+          .map((img) => resolveContentfulImage(img, assetMap))
+          .filter((url): url is string => Boolean(url))
+      : [];
+    const legacySecondary = resolveContentfulImage(item.fields.secondaryImage, assetMap);
+    const gallery =
+      rawGallery.length > 0 ? rawGallery : legacySecondary ? [legacySecondary] : [];
+
+    return {
+      id: item.sys.id,
+      title: item.fields.title,
+      slug: item.fields.slug,
+      sku: item.fields.sku,
+      categorySlug: item.fields.categorySlug,
+      categoryName: item.fields.categoryName,
+      shortDescription: item.fields.shortDescription,
+      fullDescription: item.fields.fullDescription,
+      basePriceExVatPence: item.fields.basePriceExVatPence,
+      swlKg: item.fields.swlKg,
+      externalLengthMm: item.fields.externalLengthMm,
+      externalWidthMm: item.fields.externalWidthMm,
+      externalHeightMm: item.fields.externalHeightMm,
+      unitWeightKg: item.fields.unitWeightKg,
+      stackableHeight: item.fields.stackableHeight,
+      steelSpecification: item.fields.steelSpecification,
+      standardFinish: item.fields.standardFinish,
+      ukcaCertified: Boolean(item.fields.ukcaCertified),
+      inStock: Boolean(item.fields.inStock),
+      leadTimeText: item.fields.leadTimeText,
+      featured: Boolean(item.fields.featured),
+      primaryImage:
+        resolveContentfulImage(
+          item.fields.primaryImage,
+          assetMap,
+          '/images/products/cantilever-rack-cutout.png'
+        ) || '/images/products/cantilever-rack-cutout.png',
+      secondaryImage: legacySecondary,
+      technicalDrawing: resolveContentfulImage(item.fields.technicalDrawing, assetMap),
+      gallery,
+      backdropStyle: item.fields.backdropStyle === 'white' ? 'white' : 'sand',
+      highlights: item.fields.highlights || [],
+      seoTitle: item.fields.seoTitle,
+      seoDescription: item.fields.seoDescription,
+      faqItems: item.fields.faqItems || [],
+    };
+  });
 }
 
 export async function getProductBySlug(slug: string): Promise<Product | undefined> {

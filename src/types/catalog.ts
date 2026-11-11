@@ -45,12 +45,65 @@ export interface Product {
   featured: boolean;
   primaryImage: string;
   secondaryImage?: string;
+  technicalDrawing?: string;
+  gallery?: string[];
+  editableBlueprintSvg?: string;
   backdropStyle: 'sand' | 'white';
   highlights: string[];
   seoTitle?: string;
   seoDescription?: string;
   faqItems?: string[];
   _highlightResult?: Record<string, AlgoliaHighlightField | AlgoliaHighlightField[]>;
+}
+
+export interface BlueprintDimensionLine {
+  id: string;
+  label: string;
+  subLabel?: string;
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+  extX1?: number;
+  extY1?: number;
+  extX2?: number;
+  extY2?: number;
+  textOffsetX?: number;
+  textOffsetY?: number;
+  color?: 'primary' | 'amber' | 'teal';
+  labelSide?: 'above' | 'below';
+}
+
+export interface BlueprintCalloutLeader {
+  id: string;
+  title: string;
+  detail?: string;
+  targetX: number;
+  targetY: number;
+  elbowX: number;
+  elbowY: number;
+  boxX: number;
+  boxY: number;
+  boxWidth?: number;
+  color?: 'primary' | 'amber' | 'teal';
+}
+
+export interface BlueprintTitleBlock {
+  companyName: string;
+  drawingTitle: string;
+  sku: string;
+  dimensionsSummary: string;
+  swlSummary: string;
+  certificationText: string;
+}
+
+export interface BlueprintAnnotationSpec {
+  sku: string;
+  productTitle: string;
+  baseRenderUrl: string;
+  dimensions: BlueprintDimensionLine[];
+  callouts: BlueprintCalloutLeader[];
+  titleBlock: BlueprintTitleBlock;
 }
 
 export interface AlgoliaProductRecord extends Product {
@@ -282,3 +335,80 @@ export interface BasketOrderSummary {
   vatAmountPence: number;
   totalIncVatPence: number;
 }
+
+export type FootprintFamilyId =
+  | 'euro-uk-1210'
+  | 'bulk-hopper-1111'
+  | 'modular-tower-1212'
+  | 'post-pallet-1111'
+  | 'cantilever-bay';
+
+export interface WorkshopModuleDef {
+  id: string;
+  sku: string;
+  name: string;
+  footprintFamily: FootprintFamilyId;
+  moduleRole:
+    | 'base-stand'
+    | 'intermediate-tier'
+    | 'top-hopper'
+    | 'standard-cage'
+    | 'post-pallet'
+    | 'cantilever';
+  lengthMm: number;
+  widthMm: number;
+  externalHeightMm: number;
+  effectiveStackedHeightMm: number;
+  unitWeightKg: number;
+  swlKg: number;
+  maxStackTiers: number;
+  cupEngagementMm: number;
+  basePriceExVatPence: number;
+  primaryImage: string;
+  description: string;
+  highlights: string[];
+  allowMobilityOptions: boolean;
+  availableFinishes: ('standard-blue' | 'raw-steel' | 'galvanised' | 'custom-ral')[];
+}
+
+export interface WorkshopStackTier {
+  tierId: string;
+  moduleId: string;
+  tierIndex: number;
+  finishOption: 'standard-blue' | 'raw-steel' | 'galvanised' | 'custom-ral';
+  mobilityOption:
+    | 'standard-feet'
+    | 'forklift-pockets'
+    | 'heavy-duty-castors'
+    | 'both-castors-pockets';
+  customLabel?: string;
+}
+
+export interface StackEngineeringSummary {
+  totalTiers: number;
+  totalAssembledHeightMm: number;
+  totalTareWeightKg: number;
+  totalSwlCapacityKg: number;
+  bottomUnitCompressionLoadKg: number;
+  maxCertifiedTiers: number;
+  isStackHeightCompliant: boolean;
+  isClearanceCompliant: boolean;
+  clearanceMarginMm: number;
+  footprintConsistent: boolean;
+  centerOfGravityRatio: number;
+  stabilityRating: 'optimal' | 'moderate' | 'exceeds-recommended';
+  safetyWarnings: string[];
+  safetyCertifications: string[];
+}
+
+export interface WorkshopPreset {
+  id: string;
+  title: string;
+  subtitle: string;
+  footprintFamily: FootprintFamilyId;
+  description: string;
+  recommendedIndustry: string;
+  defaultClearanceMm: number;
+  tiers: Omit<WorkshopStackTier, 'tierId'>[];
+}
+

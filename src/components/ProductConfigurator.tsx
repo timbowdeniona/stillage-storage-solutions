@@ -15,6 +15,8 @@ import {
   PlusCircle,
   ArrowRight,
   Sparkles,
+  Compass,
+  Wrench,
 } from 'lucide-react';
 import { FINISH_OPTIONS, MOBILITY_OPTIONS } from '@/data/seedCatalog';
 import { Product, QuoteResponse } from '@/types/catalog';
@@ -22,6 +24,7 @@ import { calculateQuote } from '@/lib/pricing';
 import { trackAlgoliaEvent } from '@/lib/algolia';
 import { trackB2BEvent } from '@/lib/analytics';
 import { formatGBP, useVat } from '@/context/VatContext';
+import { ProductTechnicalDiagram } from '@/components/ProductTechnicalDiagram';
 
 interface ProductConfiguratorProps {
   product: Product;
@@ -44,7 +47,7 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
   const [backdropMode, setBackdropMode] = useState<'sand' | 'white' | 'blueprint'>(
     product.backdropStyle === 'white' ? 'white' : 'sand'
   );
-  const [activeImageIndex, setActiveImageIndex] = useState<0 | 1>(0);
+  const [activeImageIndex, setActiveImageIndex] = useState<number>(0);
 
   // Configurator state (supports deep-linking from Algolia Recommendations & AI Spec Advisor)
   const [finishOption, setFinishOption] = useState<string>(() => {
@@ -205,10 +208,44 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
     );
   };
 
-  const galleryImages = [
-    product.primaryImage,
-    product.secondaryImage || '/images/products/cantilever-rack-sand.png',
+  const mediaItems = [
+    {
+      src: product.primaryImage,
+      label: `${product.title} - Primary Elevation`,
+      badge: 'Primary',
+      type: 'primary' as const,
+    },
+    ...(product.technicalDrawing
+      ? [
+          {
+            src: product.technicalDrawing,
+            label: `${product.title} - Technical Blueprint Drawing`,
+            badge: 'CAD Drawing',
+            type: 'drawing' as const,
+          },
+        ]
+      : []),
+    ...(Array.isArray(product.gallery) && product.gallery.length > 0
+      ? product.gallery.map((imgSrc, i) => ({
+          src: imgSrc,
+          label: `${product.title} - Supplemental View ${i + 1}`,
+          badge: `View ${i + 1}`,
+          type: 'gallery' as const,
+        }))
+      : product.secondaryImage
+      ? [
+          {
+            src: product.secondaryImage,
+            label: `${product.title} - Detail View`,
+            badge: 'Detail',
+            type: 'gallery' as const,
+          },
+        ]
+      : []),
   ];
+
+  const safeActiveIndex = Math.min(activeImageIndex, Math.max(0, mediaItems.length - 1));
+  const currentMedia = mediaItems[safeActiveIndex] || mediaItems[0];
 
   const backdropClass =
     backdropMode === 'sand'
@@ -237,6 +274,7 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
               <span className="text-steel-600 mr-1">Stage Surface:</span>
               <button
                 type="button"
+                aria-pressed={backdropMode === 'sand'}
                 onClick={() => setBackdropMode('sand')}
                 className={`px-2.5 py-1 rounded-sm border ${
                   backdropMode === 'sand'
@@ -248,6 +286,7 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
               </button>
               <button
                 type="button"
+                aria-pressed={backdropMode === 'white'}
                 onClick={() => setBackdropMode('white')}
                 className={`px-2.5 py-1 rounded-sm border ${
                   backdropMode === 'white'
@@ -259,6 +298,7 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
               </button>
               <button
                 type="button"
+                aria-pressed={backdropMode === 'blueprint'}
                 onClick={() => setBackdropMode('blueprint')}
                 className={`px-2.5 py-1 rounded-sm border ${
                   backdropMode === 'blueprint'
@@ -272,60 +312,151 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
           </div>
 
           {/* Main Image Stage (LCP candidate uses fetchpriority="high") */}
-          <div className={`relative h-[420px] sm:h-[480px] p-8 transition-colors duration-300 ${backdropClass}`}>
-            <img
-              src={galleryImages[activeImageIndex]}
-              alt={product.title}
-              fetchPriority="high"
-              width={760}
-              height={540}
-              className="w-full h-full object-contain"
-            />
-
-            {/* Dimension Overlay Pill */}
-            <div className="absolute bottom-4 left-4 bg-brand-navy/95 text-surface-white px-3.5 py-2 rounded-sm font-mono text-xs border border-white/15">
-              External: {product.externalLengthMm}(L) × {product.externalWidthMm}(W) ×{' '}
-              {product.externalHeightMm}(H) mm
-            </div>
-
-            <div className="absolute bottom-4 right-4 bg-white/95 text-steel-900 px-3 py-1.5 rounded-sm font-mono text-xs border border-steel-200 shadow-sm flex items-center gap-2">
-              <span
-                className="w-3 h-3 rounded-full border border-black/20"
-                style={{ backgroundColor: selectedFinish.swatchHex }}
+          {backdropMode === 'blueprint' ? (
+            <div className="p-3 bg-brand-navyDark">
+              <ProductTechnicalDiagram
+                product={product}
+                finishCode={selectedFinish.code}
+                finishName={selectedFinish.name}
+                finishSwatchHex={selectedFinish.swatchHex}
+                mobilityName={selectedMobility.name}
+                compact
               />
-              <span>{selectedFinish.code}</span>
             </div>
-          </div>
+          ) : (
+            <div className={`relative h-[420px] sm:h-[480px] p-8 transition-colors duration-300 ${backdropClass}`}>
+              <img
+                src={currentMedia.src}
+                alt={currentMedia.label}
+                fetchPriority={safeActiveIndex === 0 ? 'high' : 'auto'}
+                width={760}
+                height={540}
+                className="w-full h-full object-contain"
+              />
 
-          {/* Thumbnail Switcher (Secondary images use fetchPriority="low") */}
-          <div className="p-4 border-t border-steel-200 bg-surface-sandLight flex items-center gap-4">
-            {galleryImages.map((imgSrc, idx) => (
+              {/* View Type Badge in Top Left */}
+              <div className="absolute top-4 left-4 bg-brand-navy/95 text-surface-sand px-2.5 py-1 rounded-sm font-mono text-[11px] uppercase tracking-wider flex items-center gap-1.5 shadow-sm border border-white/10">
+                {currentMedia.type === 'drawing' ? (
+                  <>
+                    <span className="w-2 h-2 rounded-full bg-accent-teal animate-pulse" />
+                    <span className="font-bold text-accent-teal">CAD Dimensional Blueprint</span>
+                  </>
+                ) : currentMedia.type === 'primary' ? (
+                  <span>Primary Product Elevation</span>
+                ) : (
+                  <span>{currentMedia.badge} (Supplemental Image)</span>
+                )}
+              </div>
+
+              {/* Dimension Overlay Pill */}
+              <div className="absolute bottom-4 left-4 bg-brand-navy/95 text-surface-white px-3.5 py-2 rounded-sm font-mono text-xs border border-white/15">
+                External: {product.externalLengthMm}(L) × {product.externalWidthMm}(W) ×{' '}
+                {product.externalHeightMm}(H) mm
+              </div>
+
+              <div className="absolute bottom-4 right-4 bg-white/95 text-steel-900 px-3 py-1.5 rounded-sm font-mono text-xs border border-steel-200 shadow-sm flex items-center gap-2">
+                <span
+                  className="w-3 h-3 rounded-full border border-black/20"
+                  style={{ backgroundColor: selectedFinish.swatchHex }}
+                />
+                <span>{selectedFinish.code}</span>
+              </div>
+            </div>
+          )}
+
+          {/* Thumbnail Switcher (Handles Primary, Technical Drawing, and up to 5 Gallery Images) */}
+          <div className="p-4 border-t border-steel-200 bg-surface-sandLight flex flex-wrap items-center gap-3">
+            {mediaItems.map((item, idx) => (
               <button
                 key={idx}
                 type="button"
-                onClick={() => setActiveImageIndex(idx as 0 | 1)}
-                className={`w-24 h-20 p-2 rounded-sm border-2 transition-all ${
-                  activeImageIndex === idx
-                    ? 'border-stillage-blue bg-surface-sand'
-                    : 'border-steel-200 bg-white opacity-75 hover:opacity-100'
+                onClick={() => {
+                  setActiveImageIndex(idx);
+                  if (backdropMode === 'blueprint' && item.type !== 'drawing') {
+                    setBackdropMode(product.backdropStyle === 'white' ? 'white' : 'sand');
+                  }
+                }}
+                className={`relative w-24 h-22 p-1.5 rounded-sm border-2 transition-all flex flex-col justify-between ${
+                  backdropMode !== 'blueprint' && safeActiveIndex === idx
+                    ? 'border-stillage-blue bg-surface-sand shadow-sm ring-1 ring-stillage-blue'
+                    : 'border-steel-200 bg-white opacity-80 hover:opacity-100 hover:border-steel-400'
                 }`}
               >
-                <img
-                  src={imgSrc}
-                  alt={`${product.title} view ${idx + 1}`}
-                  fetchPriority="low"
-                  loading="lazy"
-                  width={96}
-                  height={80}
-                  className="w-full h-full object-contain"
-                />
+                <div className="w-full h-12 overflow-hidden flex items-center justify-center">
+                  <img
+                    src={item.src}
+                    alt={item.label}
+                    fetchPriority="low"
+                    loading="lazy"
+                    width={96}
+                    height={48}
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+                <span
+                  className={`text-[9px] font-mono uppercase px-1 py-0.5 rounded-xs text-center truncate w-full ${
+                    item.type === 'drawing'
+                      ? 'bg-brand-navy text-accent-teal font-bold'
+                      : item.type === 'primary'
+                      ? 'bg-stillage-blue text-white font-bold'
+                      : 'bg-steel-200 text-steel-800 font-medium'
+                  }`}
+                >
+                  {item.badge}
+                </span>
               </button>
             ))}
+            <button
+              type="button"
+              aria-pressed={backdropMode === 'blueprint'}
+              onClick={() => setBackdropMode('blueprint')}
+              className={`h-22 px-3.5 rounded-sm border-2 transition-all flex flex-col items-center justify-center gap-1 font-mono text-[11px] ${
+                backdropMode === 'blueprint'
+                  ? 'border-stillage-blue bg-brand-navy text-surface-sand font-bold'
+                  : 'border-steel-200 bg-brand-navy/90 text-surface-white hover:border-stillage-blue'
+              }`}
+            >
+              <Compass className="w-5 h-5 text-accent-teal" aria-hidden="true" />
+              <span>Interactive CAD</span>
+              <span className="text-[9px] text-surface-sand">
+                {product.externalLengthMm}×{product.externalWidthMm}mm
+              </span>
+            </button>
             <div className="ml-auto text-xs text-steel-600 hidden sm:block">
-              <strong className="text-steel-900"> British Steel Construction:</strong>{' '}
+              <strong className="text-steel-900">British Steel Construction:</strong>{' '}
               {product.steelSpecification}
             </div>
           </div>
+        </div>
+
+        {/* Dynamic Technical CAD Blueprint Diagram (Generated from Primary Image & Dimensions) */}
+        <div className="space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="font-display font-bold text-xl uppercase tracking-wider text-brand-navy">
+                Technical Dimensional Diagram &amp; Orthographic Footprint
+              </h2>
+              <span className="font-mono text-xs text-steel-600 block mt-0.5">
+                Live Synced with Configurator ({selectedFinish.code})
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Link
+                href={`/workshop?sku=${product.sku}`}
+                className="px-3 py-1.5 rounded-sm bg-accent-teal hover:bg-teal-600 text-brand-navy font-mono text-xs font-bold inline-flex items-center gap-1.5 transition-colors shadow-xs"
+              >
+                <Wrench className="w-3.5 h-3.5" />
+                <span>Open in Workshop Stack Builder</span>
+              </Link>
+            </div>
+          </div>
+          <ProductTechnicalDiagram
+            product={product}
+            finishCode={selectedFinish.code}
+            finishName={selectedFinish.name}
+            finishSwatchHex={selectedFinish.swatchHex}
+            mobilityName={selectedMobility.name}
+          />
         </div>
 
         {/* Engineering Highlights & Description */}

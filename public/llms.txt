@@ -24,6 +24,7 @@
 | `SSS-MSH-1210HD` | Mesh Sided Half-Drop Gate Stillage Cage (1200 x 1000 x 900mm) | 1200 × 1000 × 900mm | 1,000 kg | 4-High Stackable | 50x50x3mm RHS + 50x50x4mm Weldmesh | £174.00 | https://stillagestoragesolutions.co.uk/products/mesh-sided-half-drop-gate-stillage-cage |
 | `SSS-PST-1111D` | Heavy-Duty Post Pallet with Demountable Corner Posts | 1130 × 1130 × 1050mm | 1,000 kg | 5-High Stackable | 60x60x3mm Posts / 50x50x3mm Base | £142.00 | https://stillagestoragesolutions.co.uk/products/heavy-duty-post-pallet-demountable-posts |
 | `SSS-CANT-2B4A` | 2-Bay Compact Cantilever Bar & Tube Stillage (1800mm Long) | 1800 × 1050 × 1400mm | 1,200 kg | Base Skid Framed | 80x80x4mm Upright / 50x50x3mm Arms | £295.00 | https://stillagestoragesolutions.co.uk/products/2-bay-compact-cantilever-bar-tube-stillage |
+| `BBFH2-1` | Free Standing Bulk Bag Filling Hopper with Stand | 1120 × 1120 × 1850mm | 1,000 kg | 2-Part Interlocking | 50x50mm Stand & Frame / 30x30mm Hopper Legs | £465.00 | https://stillagestoragesolutions.co.uk/products/free-standing-bulk-bag-filling-hopper-with-stand |
 
 ## Technical Guides & Engineering Documentation
 - [SWL, PUWER & UKCA Compliance: Safe Steel Stillage Stacking](https://stillagestoragesolutions.co.uk/blog/swl-puwer-ukca-stillage-stacking-safety-guide)

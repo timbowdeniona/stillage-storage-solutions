@@ -1,0 +1,93 @@
+{
+  "canvas": { "width": 1200, "height": 896 },
+  "presets": {
+    "BBFH2-1": {
+      "sku": "BBFH2-1",
+      "fileName": "bbfh2-1-editable.svg",
+      "productTitle": "Free Standing Bulk Bag Filling Hopper with Stand",
+      "baseRenderUrl": "/images/products/base-render-bbfh2-1.jpg",
+      "dimensions": [
+        { "id": "dim-top-rim-left", "label": "1120 mm", "x1": 345, "y1": 190, "x2": 588, "y2": 62, "extX1": 368, "extY1": 210, "extX2": 598, "extY2": 78, "color": "primary" },
+        { "id": "dim-top-rim-right", "label": "1120 mm", "x1": 610, "y1": 58, "x2": 856, "y2": 190, "extX1": 600, "extY1": 76, "extX2": 830, "extY2": 210, "color": "primary" },
+        { "id": "dim-hopper-total-h", "label": "600 mm", "x1": 285, "y1": 212, "x2": 285, "y2": 380, "extX1": 366, "extY1": 212, "extX2": 360, "extY2": 380, "color": "primary" },
+        { "id": "dim-hopper-funnel-h", "label": "450 mm", "x1": 330, "y1": 212, "x2": 330, "y2": 322, "extX1": 366, "extY1": 212, "extX2": 372, "extY2": 322, "color": "primary" },
+        { "id": "dim-hopper-collar-h", "label": "150 mm", "x1": 330, "y1": 322, "x2": 330, "y2": 380, "extX1": 372, "extY1": 322, "extX2": 360, "extY2": 380, "color": "primary" },
+        { "id": "dim-stand-height", "label": "1250 mm", "x1": 873, "y1": 340, "x2": 873, "y2": 655, "extX1": 835, "extY1": 340, "extX2": 845, "extY2": 655, "color": "primary" },
+        { "id": "dim-overall-height", "label": "1850 mm", "x1": 908, "y1": 210, "x2": 908, "y2": 655, "extX1": 832, "extY1": 210, "extX2": 880, "extY2": 655, "color": "primary" },
+        { "id": "dim-pocket-centres", "label": "665 mm (Pocket Centres)", "x1": 402, "y1": 690, "x2": 532, "y2": 765, "extX1": 425, "extY1": 668, "extX2": 553, "extY2": 742, "color": "amber", "labelSide": "below" },
+        { "id": "dim-base-left", "label": "1120 mm", "x1": 300, "y1": 700, "x2": 548, "y2": 843, "extX1": 358, "extY1": 652, "extX2": 598, "extY2": 782, "color": "primary", "labelSide": "below" },
+        { "id": "dim-foot-centres", "label": "1080 mm (Foot Centres)", "x1": 625, "y1": 800, "x2": 855, "y2": 665, "extX1": 600, "extY1": 782, "extX2": 830, "extY2": 655, "color": "teal" }
+      ],
+      "callouts": [
+        { "id": "callout-bottom-opening", "title": "Bottom Opening:", "detail": "200 x 200 mm", "targetX": 575, "targetY": 392, "elbowX": 340, "elbowY": 465, "boxX": 120, "boxY": 445, "color": "primary" },
+        { "id": "callout-fork-pockets", "title": "Fork Pockets:", "detail": "165 x 75 mm", "targetX": 405, "targetY": 658, "elbowX": 310, "elbowY": 612, "boxX": 120, "boxY": 588, "color": "primary" },
+        { "id": "callout-hopper-legs", "title": "Hopper Support Legs:", "detail": "30 x 30 mm Box Section", "targetX": 822, "targetY": 285, "elbowX": 925, "elbowY": 312, "boxX": 935, "boxY": 290, "color": "primary" },
+        { "id": "callout-stand-frame", "title": "Stand & Main Frame:", "detail": "50 x 50 mm Box Section", "targetX": 832, "targetY": 585, "elbowX": 925, "elbowY": 560, "boxX": 935, "boxY": 538, "color": "primary" },
+        { "id": "callout-mobility-options", "title": "Option of Castors or Forklift", "detail": "Pockets (Either or Both)", "targetX": 845, "targetY": 662, "elbowX": 910, "elbowY": 682, "boxX": 920, "boxY": 660, "color": "primary" }
+      ],
+      "titleBlock": {
+        "companyName": "STILLAGE STORAGE SOLUTIONS",
+        "drawingTitle": "FREE STANDING BULK BAG FILLING HOPPER",
+        "sku": "SKU: BBFH2-1",
+        "dimensionsSummary": "FOOTPRINT: 1120 x 1120 x 1850 MM",
+        "swlSummary": "1080 MM FOOT CENTRES",
+        "certificationText": "MADE IN BRITAIN | UKCA CERTIFIED"
+      }
+    },
+    "SSS-CANT-3B8A": {
+      "sku": "SSS-CANT-3B8A",
+      "fileName": "sss-cant-3b8a-editable.svg",
+      "productTitle": "3-Bay Double-Sided Heavy Duty Cantilever Bar & Pipe Stillage Rack",
+      "baseRenderUrl": "/images/products/base-render-sss-cant-3b8a.jpg",
+      "dimensions": [
+        { "id": "dim-cant-length", "label": "2400 mm", "x1": 165, "y1": 570, "x2": 728, "y2": 715, "extX1": 296, "extY1": 520, "extX2": 826, "extY2": 645, "color": "primary" },
+        { "id": "dim-cant-bay1", "label": "1100 mm", "x1": 295, "y1": 572, "x2": 497, "y2": 617, "extX1": 298, "extY1": 528, "extX2": 500, "extY2": 570, "color": "primary" },
+        { "id": "dim-cant-bay2", "label": "1100 mm", "x1": 500, "y1": 617, "x2": 775, "y2": 683, "extX1": 502, "extY1": 572, "extX2": 815, "extY2": 645, "color": "primary" },
+        { "id": "dim-cant-width", "label": "1100 mm", "x1": 845, "y1": 662, "x2": 1000, "y2": 595, "extX1": 828, "extY1": 642, "extX2": 922, "extY2": 575, "color": "primary" },
+        { "id": "dim-cant-height", "label": "1450 mm", "x1": 1000, "y1": 148, "x2": 1000, "y2": 585, "extX1": 908, "extY1": 148, "extX2": 925, "extY2": 585, "color": "primary" },
+        { "id": "dim-cant-pitch1", "label": "300 mm", "x1": 252, "y1": 310, "x2": 252, "y2": 373, "extX1": 282, "extY1": 310, "extX2": 288, "extY2": 373, "color": "primary" },
+        { "id": "dim-cant-pitch2", "label": "300 mm", "x1": 252, "y1": 373, "x2": 252, "y2": 448, "extX1": 288, "extY1": 373, "extX2": 290, "extY2": 448, "color": "primary" }
+      ],
+      "callouts": [
+        { "id": "callout-cant-upright", "title": "80 x 80 x 4 mm RHS", "detail": "Upright stanchions", "targetX": 586, "targetY": 196, "elbowX": 625, "elbowY": 140, "boxX": 640, "boxY": 118, "color": "primary" },
+        { "id": "callout-cant-arms", "title": "50 x 50 x 3 mm RHS", "detail": "Cantilever arms", "targetX": 830, "targetY": 318, "elbowX": 798, "elbowY": 348, "boxX": 620, "boxY": 328, "color": "primary" }
+      ],
+      "titleBlock": {
+        "companyName": "STILLAGE STORAGE SOLUTIONS",
+        "drawingTitle": "3-BAY DOUBLE-SIDED CANTILEVER BAR RACK",
+        "sku": "SKU: SSS-CANT-3B8A",
+        "dimensionsSummary": "FOOTPRINT: 2400 x 1100 x 1450 MM",
+        "swlSummary": "SWL: 1,500 KG | TARE: 118 KG",
+        "certificationText": "MADE IN BRITAIN | UKCA CERTIFIED"
+      }
+    },
+    "SSS-MSH-1210HD": {
+      "sku": "SSS-MSH-1210HD",
+      "fileName": "sss-msh-1210hd-editable.svg",
+      "productTitle": "Mesh Sided Half-Drop Gate Stillage Cage (1200 x 1000 x 900mm)",
+      "baseRenderUrl": "/images/products/base-render-sss-msh-1210hd.jpg",
+      "dimensions": [
+        { "id": "dim-mesh-top-len", "label": "1200 mm", "x1": 245, "y1": 240, "x2": 600, "y2": 60, "extX1": 270, "extY1": 260, "extX2": 618, "extY2": 78, "color": "primary" },
+        { "id": "dim-mesh-top-wid", "label": "1000 mm", "x1": 640, "y1": 58, "x2": 962, "y2": 222, "extX1": 625, "extY1": 76, "extX2": 925, "extY2": 240, "color": "primary" },
+        { "id": "dim-mesh-height", "label": "900 mm", "x1": 228, "y1": 255, "x2": 228, "y2": 590, "extX1": 268, "extY1": 255, "extX2": 262, "extY2": 590, "color": "primary" },
+        { "id": "dim-mesh-gate-drop", "label": "375 mm", "x1": 985, "y1": 405, "x2": 985, "y2": 530, "extX1": 915, "extY1": 405, "extX2": 915, "extY2": 530, "color": "primary" },
+        { "id": "dim-mesh-clearance", "label": "150 mm", "x1": 985, "y1": 530, "x2": 985, "y2": 582, "extX1": 915, "extY1": 530, "extX2": 938, "extY2": 582, "color": "primary" },
+        { "id": "dim-mesh-base-wid", "label": "1000 mm", "x1": 230, "y1": 628, "x2": 545, "y2": 805, "extX1": 280, "extY1": 615, "extX2": 572, "extY2": 782, "color": "primary" },
+        { "id": "dim-mesh-base-len", "label": "1200 mm", "x1": 605, "y1": 805, "x2": 975, "y2": 600, "extX1": 578, "extY1": 782, "extX2": 940, "extY2": 590, "color": "primary" }
+      ],
+      "callouts": [
+        { "id": "callout-mesh-posts", "title": "50 x 50 x 3 mm RHS", "detail": "Corner stanchions", "targetX": 272, "targetY": 322, "elbowX": 240, "elbowY": 300, "boxX": 34, "boxY": 278, "color": "primary" },
+        { "id": "callout-mesh-panel", "title": "50 x 50 x 4 mm Mesh", "detail": "Welded wire side panels", "targetX": 930, "targetY": 330, "elbowX": 960, "elbowY": 310, "boxX": 990, "boxY": 290, "color": "primary" },
+        { "id": "callout-mesh-fork", "title": "4-way forklift entry", "detail": "Captive base channels", "targetX": 740, "targetY": 665, "elbowX": 960, "elbowY": 665, "boxX": 990, "boxY": 644, "color": "primary" }
+      ],
+      "titleBlock": {
+        "companyName": "STILLAGE STORAGE SOLUTIONS",
+        "drawingTitle": "MESH SIDED HALF-DROP GATE STILLAGE",
+        "sku": "SKU: SSS-MSH-1210HD",
+        "dimensionsSummary": "FOOTPRINT: 1200 x 1000 x 900 MM",
+        "swlSummary": "SWL: 1,000 KG | 4-HIGH STACKABLE",
+        "certificationText": "MADE IN BRITAIN | UKCA CERTIFIED"
+      }
+    }
+  }
+}

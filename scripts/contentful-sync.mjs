@@ -73,6 +73,60 @@ export const PRODUCT_MEDIA_ASSETS = [
     description:
       '4-high interlocking steel bin and top-feed conical hopper stillage tower with pressed steel stacking feet.',
   },
+  {
+    id: 'asset-sss-cant-3b8a-blueprint',
+    localPath: '/images/products/sss-cant-3b8a-blueprint.jpg',
+    fileName: 'sss-cant-3b8a-blueprint.jpg',
+    contentType: 'image/jpeg',
+    title: '3-Bay Double-Sided Heavy Duty Cantilever Bar & Pipe Stillage Rack — Technical Blueprint (SSS-CANT-3B8A)',
+    description:
+      'CAD technical dimensional blueprint drawing for SSS-CANT-3B8A showing 2400x1100x1450mm external dimensions, 80x80x4mm upright and 50x50x3mm arm steel section callouts, and 1,500 kg SWL rating.',
+  },
+  {
+    id: 'asset-sss-msh-1210hd-blueprint',
+    localPath: '/images/products/sss-msh-1210hd-blueprint.jpg',
+    fileName: 'sss-msh-1210hd-blueprint.jpg',
+    contentType: 'image/jpeg',
+    title: 'Mesh Sided Half-Drop Gate Stillage Cage — Technical Blueprint (SSS-MSH-1210HD)',
+    description:
+      'CAD technical dimensional blueprint drawing for SSS-MSH-1210HD showing 1200x1000x900mm external dimensions, 50x50x3mm RHS and 50x50x4mm weldmesh callouts, 150mm forklift clearance, and 1,000 kg SWL 4-high stackable rating.',
+  },
+  {
+    id: 'asset-bbfh2-1-blueprint',
+    localPath: '/images/products/bbfh2-1-blueprint.jpg',
+    fileName: 'bbfh2-1-blueprint.jpg',
+    contentType: 'image/jpeg',
+    title: 'Free Standing Bulk Bag Filling Hopper with Stand — Technical Blueprint (BBFH2-1)',
+    description:
+      'CAD technical dimensional blueprint drawing for BBFH2-1 showing 1120x1120x1850mm assembled dimensions, 1080mm foot centres, 600mm upper hopper (450mm funnel + 150mm collar), 200x200mm flush bottom opening, and 165x75mm forklift pockets at 665mm centres.',
+  },
+  {
+    id: 'asset-base-render-bbfh2-1',
+    localPath: '/images/products/base-render-bbfh2-1.jpg',
+    fileName: 'base-render-bbfh2-1.jpg',
+    contentType: 'image/jpeg',
+    title: 'Free Standing Bulk Bag Filling Hopper with Stand — Clean 3D CAD Render (BBFH2-1)',
+    description:
+      'Clean isometric 3D CAD render of BBFH2-1 Free Standing Bulk Bag Filling Hopper with Stand in RAL 5010 Stillage Blue.',
+  },
+  {
+    id: 'asset-base-render-sss-cant-3b8a',
+    localPath: '/images/products/base-render-sss-cant-3b8a.jpg',
+    fileName: 'base-render-sss-cant-3b8a.jpg',
+    contentType: 'image/jpeg',
+    title: '3-Bay Cantilever Bar Rack — Clean 3D CAD Render (SSS-CANT-3B8A)',
+    description:
+      'Clean isometric 3D CAD render of 3-Bay Cantilever Bar Rack in RAL 5010 Stillage Blue.',
+  },
+  {
+    id: 'asset-base-render-sss-msh-1210hd',
+    localPath: '/images/products/base-render-sss-msh-1210hd.jpg',
+    fileName: 'base-render-sss-msh-1210hd.jpg',
+    contentType: 'image/jpeg',
+    title: 'Mesh Sided Half-Drop Gate Stillage Cage — Clean 3D CAD Render (SSS-MSH-1210HD)',
+    description:
+      'Clean isometric 3D CAD render of Mesh Sided Half-Drop Gate Stillage Cage in RAL 5010 Stillage Blue.',
+  },
 ];
 
 const LOCAL_PATH_TO_ASSET_ID = Object.fromEntries(
@@ -163,8 +217,30 @@ export const PRODUCT_CONTENT_TYPE = {
       validations: [{ linkMimetypeGroup: ['image'] }],
     },
     {
+      id: 'technicalDrawing',
+      name: 'Technical Drawing',
+      type: 'Link',
+      linkType: 'Asset',
+      required: false,
+      localized: false,
+      validations: [{ linkMimetypeGroup: ['image'] }],
+    },
+    {
+      id: 'gallery',
+      name: 'Extra Gallery Images (Up to 5)',
+      type: 'Array',
+      required: false,
+      localized: false,
+      items: {
+        type: 'Link',
+        linkType: 'Asset',
+        validations: [{ linkMimetypeGroup: ['image'] }],
+      },
+      validations: [{ size: { max: 5 } }],
+    },
+    {
       id: 'secondaryImage',
-      name: 'Secondary Image',
+      name: 'Secondary Image (Legacy)',
       type: 'Link',
       linkType: 'Asset',
       required: false,
@@ -317,6 +393,12 @@ export const SEED_PRODUCT_ENTRIES = [
     leadTimeText: 'In Stock — Dispatch in 2–3 Working Days',
     featured: true,
     primaryImage: makeAssetLink('/images/products/cantilever-rack-cutout.png'),
+    technicalDrawing: makeAssetLink('/images/products/sss-cant-3b8a-blueprint.jpg'),
+    gallery: [
+      makeAssetLink('/images/products/cantilever-rack-sand.png'),
+      makeAssetLink('/images/products/base-render-sss-cant-3b8a.jpg'),
+      makeAssetLink('/images/products/stacked-hopper-stillage.png'),
+    ],
     secondaryImage: makeAssetLink('/images/products/cantilever-rack-sand.png'),
     backdropStyle: 'sand',
     highlights: [
@@ -351,6 +433,12 @@ export const SEED_PRODUCT_ENTRIES = [
     leadTimeText: 'In Stock — Dispatch in 2–3 Working Days',
     featured: true,
     primaryImage: makeAssetLink('/images/products/stacked-hopper-stillage.png'),
+    technicalDrawing: makeAssetLink('/images/products/bbfh2-1-blueprint.jpg'),
+    gallery: [
+      makeAssetLink('/images/products/cantilever-rack-cutout.png'),
+      makeAssetLink('/images/products/cantilever-rack-sand.png'),
+      makeAssetLink('/images/products/base-render-bbfh2-1.jpg'),
+    ],
     secondaryImage: makeAssetLink('/images/products/cantilever-rack-cutout.png'),
     backdropStyle: 'white',
     highlights: [
@@ -385,6 +473,12 @@ export const SEED_PRODUCT_ENTRIES = [
     leadTimeText: 'In Stock — Next Day / 48hr Pallet Dispatch',
     featured: true,
     primaryImage: makeAssetLink('/images/products/stacked-hopper-stillage.png'),
+    technicalDrawing: makeAssetLink('/images/products/sss-msh-1210hd-blueprint.jpg'),
+    gallery: [
+      makeAssetLink('/images/products/cantilever-rack-sand.png'),
+      makeAssetLink('/images/products/cantilever-rack-cutout.png'),
+      makeAssetLink('/images/products/base-render-sss-msh-1210hd.jpg'),
+    ],
     secondaryImage: makeAssetLink('/images/products/cantilever-rack-sand.png'),
     backdropStyle: 'sand',
     highlights: [
@@ -419,6 +513,12 @@ export const SEED_PRODUCT_ENTRIES = [
     leadTimeText: 'In Stock — Dispatch in 2–3 Working Days',
     featured: true,
     primaryImage: makeAssetLink('/images/products/cantilever-rack-sand.png'),
+    technicalDrawing: makeAssetLink('/images/products/sss-msh-1210hd-blueprint.jpg'),
+    gallery: [
+      makeAssetLink('/images/products/base-render-sss-msh-1210hd.jpg'),
+      makeAssetLink('/images/products/cantilever-rack-cutout.png'),
+      makeAssetLink('/images/products/stacked-hopper-stillage.png'),
+    ],
     secondaryImage: makeAssetLink('/images/products/cantilever-rack-cutout.png'),
     backdropStyle: 'white',
     highlights: [
@@ -453,6 +553,11 @@ export const SEED_PRODUCT_ENTRIES = [
     leadTimeText: 'In Stock — Dispatch in 1–2 Working Days',
     featured: false,
     primaryImage: makeAssetLink('/images/products/cantilever-rack-cutout.png'),
+    technicalDrawing: makeAssetLink('/images/products/sss-cant-3b8a-blueprint.jpg'),
+    gallery: [
+      makeAssetLink('/images/products/cantilever-rack-sand.png'),
+      makeAssetLink('/images/products/stacked-hopper-stillage.png'),
+    ],
     secondaryImage: makeAssetLink('/images/products/stacked-hopper-stillage.png'),
     backdropStyle: 'sand',
     highlights: [
@@ -487,6 +592,11 @@ export const SEED_PRODUCT_ENTRIES = [
     leadTimeText: 'In Stock — Dispatch in 2–3 Working Days',
     featured: false,
     primaryImage: makeAssetLink('/images/products/cantilever-rack-sand.png'),
+    technicalDrawing: makeAssetLink('/images/products/sss-cant-3b8a-blueprint.jpg'),
+    gallery: [
+      makeAssetLink('/images/products/cantilever-rack-cutout.png'),
+      makeAssetLink('/images/products/base-render-sss-cant-3b8a.jpg'),
+    ],
     secondaryImage: makeAssetLink('/images/products/cantilever-rack-cutout.png'),
     backdropStyle: 'sand',
     highlights: [
@@ -494,6 +604,46 @@ export const SEED_PRODUCT_ENTRIES = [
       'Double-sided load arms keep multiple bar profiles segregated',
       'Integrated forklift base skids with end retaining lugs',
       '1,200 kg certified Safe Working Load',
+    ],
+  },
+  {
+    id: 'prod-bulk-bag-filling-hopper',
+    title: 'Free Standing Bulk Bag Filling Hopper with Stand (BBFH2-1)',
+    slug: 'free-standing-bulk-bag-filling-hopper-with-stand',
+    sku: 'BBFH2-1',
+    categorySlug: 'hopper-bin-stillages',
+    categoryName: 'Stackable Hopper & Bin Stillages',
+    shortDescription:
+      'Two-part modular bulk bag filling hopper and 1250mm support stand with 200x200mm flush bottom opening, bag loop hooks, and 665mm-centre forklift pockets.',
+    fullDescription:
+      'Engineered from heavy-duty 50x50mm British box section steel with 30x30mm hopper support legs, the BBFH2-1 Free Standing Bulk Bag Filling Hopper with Stand provides a 1120 × 1120 × 1850mm assembled footprint (1080mm foot centres) for rapid FIBC bulk bag filling. The upper 600mm hopper unit (450mm funnel + 150mm stacking collar) tapers to a flush 200 × 200mm bottom opening and locks onto the 1250mm lower stand via self-centring pressed steel pyramid cups. Available with castors, captive 165 × 75mm forklift pockets (665mm centres), or both.',
+    basePriceExVatPence: 46500,
+    swlKg: 1000,
+    externalLengthMm: 1120,
+    externalWidthMm: 1120,
+    externalHeightMm: 1850,
+    unitWeightKg: 132,
+    stackableHeight: '2-Part Interlocking',
+    steelSpecification: '50x50mm Stand & Frame / 30x30mm Hopper Legs',
+    standardFinish: 'RAL 5010 Stillage Blue',
+    ukcaCertified: true,
+    inStock: true,
+    leadTimeText: 'In Stock — Dispatch in 2–3 Working Days',
+    featured: true,
+    primaryImage: makeAssetLink('/images/products/base-render-bbfh2-1.jpg'),
+    technicalDrawing: makeAssetLink('/images/products/bbfh2-1-blueprint.jpg'),
+    gallery: [
+      makeAssetLink('/images/products/stacked-hopper-stillage.png'),
+      makeAssetLink('/images/products/cantilever-rack-sand.png'),
+      makeAssetLink('/images/products/cantilever-rack-cutout.png'),
+    ],
+    secondaryImage: makeAssetLink('/images/products/stacked-hopper-stillage.png'),
+    backdropStyle: 'white',
+    highlights: [
+      'Flush 200 x 200mm bottom opening on 600mm modular top hopper (450mm cone + 150mm collar)',
+      '1250mm tall 50x50mm box-section stand with 1080mm foot centres and FIBC bag loop hooks',
+      'Captive 165 x 75mm forklift pockets set at 665mm centres',
+      'Option of heavy-duty castors or forklift pockets (either or both)',
     ],
   },
 ];
