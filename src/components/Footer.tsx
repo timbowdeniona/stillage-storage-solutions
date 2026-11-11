@@ -107,9 +107,19 @@ export function Footer() {
 
         <div>
           <h4 className="font-display font-bold uppercase tracking-wider text-surface-sand mb-3">
-            Technical Guides &amp; Delivery
+            Technical Guides &amp; Tools
           </h4>
           <ul className="space-y-2 text-xs text-steel-200">
+            <li>
+              <Link href="/workshop" className="text-accent-teal font-bold hover:underline">
+                Workshop: Modular Stack Configurator &rarr;
+              </Link>
+            </li>
+            <li>
+              <Link href="/blueprint-studio" className="text-surface-sand font-bold hover:underline">
+                CAD Blueprint Vector Studio &rarr;
+              </Link>
+            </li>
             <li>
               <Link href="/blog" className="text-surface-sand font-bold hover:underline">
                 Technical Blog &amp; Engineering Guides &rarr;

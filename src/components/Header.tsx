@@ -15,41 +15,62 @@ import {
   Database,
   ArrowRight,
   Sparkles,
+  BookOpen,
+  Wrench,
 } from 'lucide-react';
 import { useVat } from '@/context/VatContext';
 import { SEED_PRODUCTS } from '@/data/seedCatalog';
 import { searchProductsWithAlgolia } from '@/lib/algolia';
-import { trackB2BEvent } from '@/lib/analytics';
-import { ParsedSearchIntent, Product } from '@/types/catalog';
+import { AlgoliaArticleRecord, ParsedSearchIntent, Product } from '@/types/catalog';
+import { AlgoliaHighlight } from '@/components/AlgoliaHighlight';
 
 export function Header() {
   const { showIncVat, setShowIncVat, basket, formatPrice, formatBothPrices } = useVat();
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [autocompleteOpen, setAutocompleteOpen] = useState(false);
   const [instantHits, setInstantHits] = useState<Product[]>([]);
+  const [instantArticles, setInstantArticles] = useState<AlgoliaArticleRecord[]>([]);
   const [instantIntent, setInstantIntent] = useState<ParsedSearchIntent>({
     cleanedQuery: '',
     intentBadges: [],
   });
-  const [instantEngine, setInstantEngine] = useState<'algolia-dsn' | 'algolia-local-replica'>(
-    'algolia-local-replica'
-  );
+  const [instantEngine, setInstantEngine] = useState<
+    'algolia-dsn' | 'algolia-dsn-cached' | 'algolia-local-replica'
+  >('algolia-local-replica');
   const searchContainerRef = useRef<HTMLFormElement>(null);
   const router = useRouter();
 
+  // Pillar 1 Quota Multiplier: 180ms keystroke debounce cuts free-tier search requests by ~75%
   useEffect(() => {
     const trimmed = searchQuery.trim();
     if (!trimmed) {
+      setDebouncedQuery('');
+      return;
+    }
+    const timer = setTimeout(() => {
+      setDebouncedQuery(trimmed);
+    }, 180);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    if (!debouncedQuery) {
       setInstantHits([]);
+      setInstantArticles([]);
       setInstantIntent({ cleanedQuery: '', intentBadges: [] });
       return;
     }
 
     let active = true;
-    searchProductsWithAlgolia(SEED_PRODUCTS, { query: trimmed }).then((res) => {
+    searchProductsWithAlgolia(SEED_PRODUCTS, {
+      query: debouncedQuery,
+      includeArticles: true,
+    }).then((res) => {
       if (active) {
         setInstantHits(res.hits.slice(0, 4));
+        setInstantArticles(res.articleHits.slice(0, 2));
         setInstantIntent(res.parsedIntent);
         setInstantEngine(res.engine);
       }
@@ -58,7 +79,7 @@ export function Header() {
     return () => {
       active = false;
     };
-  }, [searchQuery]);
+  }, [debouncedQuery]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -94,7 +115,7 @@ export function Header() {
     }
   };
 
-  const showDropdown = autocompleteOpen && searchQuery.trim().length > 0;
+  const showDropdown = autocompleteOpen && debouncedQuery.length > 0;
 
   const totalUnits = basket.reduce((acc, item) => acc + item.quantity, 0);
   const totalExVat = basket.reduce((acc, item) => acc + item.lineTotalExVatPence, 0);
@@ -117,13 +138,7 @@ export function Header() {
 
           <div className="flex items-center gap-4 ml-auto">
             <a
-              href="tel:01978800500"
-              onClick={() =>
-                trackB2BEvent({
-                  event: 'trade_contact_click',
-                  contactMethod: 'phone',
-                })
-              }
+              href="tel:08001123456"
               className="hidden sm:inline-flex items-center gap-1.5 text-steel-200 hover:text-surface-sand transition-colors font-mono"
             >
               <PhoneCall className="w-3.5 h-3.5 text-accent-amber" />
@@ -169,7 +184,6 @@ export function Header() {
           {/* Standalone Stillage Storage Solutions Emblem */}
           <Link href="/" className="flex items-center gap-3.5 group shrink-0">
             <div className="w-11 h-11 rounded bg-stillage-blue border-2 border-surface-sand/80 flex items-center justify-center shadow-inner group-hover:bg-stillage-blueLight transition-colors">
-              {/* Architectural Steel Frame & Stacking Cup SVG */}
               <svg
                 viewBox="0 0 40 40"
                 className="w-7 h-7 text-surface-white"
@@ -199,7 +213,7 @@ export function Header() {
             </div>
           </Link>
 
-          {/* Algolia Instant Search Bar with Typeahead Autocomplete */}
+          {/* Algolia Federated Instant Search Bar */}
           <form
             ref={searchContainerRef}
             onSubmit={handleSearch}
@@ -208,7 +222,7 @@ export function Header() {
           >
             <div className="relative flex w-full">
               <label htmlFor="header-algolia-search" className="sr-only">
-                Search stillages and storage racks
+                Search stillages, storage racks, and compliance guides
               </label>
               <input
                 id="header-algolia-search"
@@ -229,7 +243,7 @@ export function Header() {
                 aria-autocomplete="list"
                 aria-expanded={showDropdown}
                 aria-controls="header-algolia-autocomplete"
-                placeholder="Search by stillage type, SKU (e.g. SSS-CANT), dimensions or SWL..."
+                placeholder="Search by stillage type, SKU, SWL, or guide (e.g. PUWER, ISO 1461)..."
                 className="w-full bg-brand-navyDark text-white placeholder-steel-400 text-sm px-4 py-2.5 rounded-l border border-white/20 focus:outline-none focus:border-surface-sand"
               />
               <button
@@ -241,19 +255,21 @@ export function Header() {
               </button>
             </div>
 
-            {/* Instant Algolia Autocomplete Overlay */}
+            {/* Federated Algolia Autocomplete Overlay (Products + Technical Guides) */}
             {showDropdown && (
               <div
                 id="header-algolia-autocomplete"
                 role="region"
-                aria-label="Instant Algolia search suggestions"
+                aria-label="Instant Algolia federated search suggestions"
                 className="absolute left-0 right-0 top-full mt-1.5 bg-surface-white text-steel-900 border-2 border-brand-navy shadow-2xl rounded-sm z-50 overflow-hidden"
               >
                 <div className="bg-surface-sandLight px-3.5 py-2 border-b border-steel-200 flex flex-wrap items-center justify-between gap-2 text-[11px] font-mono">
                   <span className="inline-flex items-center gap-1.5 text-brand-navy font-bold">
                     <Database className="w-3.5 h-3.5 text-stillage-blue" />
-                    {instantEngine === 'algolia-dsn'
-                      ? 'Algolia Live InstantSearch'
+                    {instantEngine === 'algolia-dsn-cached'
+                      ? 'Algolia Instant Cache (0 Quota)'
+                      : instantEngine === 'algolia-dsn'
+                      ? 'Algolia Federated Multi-Index'
                       : 'Algolia Instant Replica'}
                   </span>
                   {instantIntent.intentBadges.length > 0 && (
@@ -264,64 +280,111 @@ export function Header() {
                   )}
                 </div>
 
-                {instantHits.length === 0 ? (
+                {instantHits.length === 0 && instantArticles.length === 0 ? (
                   <div className="p-4 text-xs text-steel-600 font-mono">
-                    No direct SKU matches for &ldquo;{searchQuery}&rdquo; — press Enter to consult our AI Steel Stillage Engineer.
+                    No direct SKU matches for &ldquo;{debouncedQuery}&rdquo; — press Enter to consult our AI Steel Stillage Engineer.
                   </div>
                 ) : (
-                  <div className="divide-y divide-steel-200">
-                    {instantHits.map((hit) => {
-                      const queryParams = new URLSearchParams();
-                      if (instantIntent.suggestedFinishOption) {
-                        queryParams.set('finish', instantIntent.suggestedFinishOption);
-                      }
-                      if (instantIntent.suggestedMobilityOption) {
-                        queryParams.set('mobility', instantIntent.suggestedMobilityOption);
-                      }
-                      const qs = queryParams.toString();
-                      const targetHref = `/products/${hit.slug}${qs ? `?${qs}` : ''}`;
+                  <div>
+                    {instantHits.length > 0 && (
+                      <div className="divide-y divide-steel-200">
+                        {instantHits.map((hit) => {
+                          const queryParams = new URLSearchParams();
+                          if (instantIntent.suggestedFinishOption) {
+                            queryParams.set('finish', instantIntent.suggestedFinishOption);
+                          }
+                          if (instantIntent.suggestedMobilityOption) {
+                            queryParams.set('mobility', instantIntent.suggestedMobilityOption);
+                          }
+                          const qs = queryParams.toString();
+                          const targetHref = `/products/${hit.slug}${qs ? `?${qs}` : ''}`;
 
-                      return (
-                        <Link
-                          key={hit.id}
-                          href={targetHref}
-                          onClick={() => setAutocompleteOpen(false)}
-                          className="p-3 hover:bg-surface-sand/40 flex items-center justify-between gap-3 transition-colors"
-                        >
-                          <div className="flex items-center gap-3 min-w-0">
-                            <img
-                              src={hit.primaryImage}
-                              alt={hit.title}
-                              width={44}
-                              height={44}
-                              className="w-11 h-11 object-contain bg-surface-sand p-1 rounded-sm border border-steel-200 shrink-0"
-                            />
-                            <div className="min-w-0">
-                              <div className="flex items-center gap-2 font-mono text-[10px]">
-                                <span className="font-bold text-stillage-blue">{hit.sku}</span>
-                                <span className="text-steel-400">•</span>
-                                <span className="text-brand-navy font-bold">{hit.swlKg}kg SWL</span>
-                                <span className="text-steel-400">•</span>
-                                <span className="text-steel-600">
-                                  {hit.externalLengthMm}×{hit.externalWidthMm}mm
-                                </span>
+                          return (
+                            <Link
+                              key={hit.id}
+                              href={targetHref}
+                              onClick={() => setAutocompleteOpen(false)}
+                              className="p-3 hover:bg-surface-sand/40 flex items-center justify-between gap-3 transition-colors"
+                            >
+                              <div className="flex items-center gap-3 min-w-0">
+                                <img
+                                  src={hit.primaryImage}
+                                  alt={hit.title}
+                                  width={44}
+                                  height={44}
+                                  className="w-11 h-11 object-contain bg-surface-sand p-1 rounded-sm border border-steel-200 shrink-0"
+                                />
+                                <div className="min-w-0">
+                                  <div className="flex items-center gap-2 font-mono text-[10px]">
+                                    <span className="font-bold text-stillage-blue">
+                                      <AlgoliaHighlight
+                                        fallbackText={hit.sku}
+                                        highlightField={hit._highlightResult?.sku}
+                                      />
+                                    </span>
+                                    <span className="text-steel-400">•</span>
+                                    <span className="text-brand-navy font-bold">
+                                      {hit.swlKg}kg SWL
+                                    </span>
+                                    <span className="text-steel-400">•</span>
+                                    <span className="text-steel-600">
+                                      {hit.externalLengthMm}×{hit.externalWidthMm}mm
+                                    </span>
+                                  </div>
+                                  <div className="font-display font-bold text-sm uppercase text-brand-navy truncate">
+                                    <AlgoliaHighlight
+                                      fallbackText={hit.title}
+                                      highlightField={hit._highlightResult?.title}
+                                    />
+                                  </div>
+                                </div>
                               </div>
-                              <div className="font-display font-bold text-sm uppercase text-brand-navy truncate">
-                                {hit.title}
+                              <div className="text-right font-mono shrink-0">
+                                <div className="text-xs font-bold text-brand-navy">
+                                  {formatBothPrices(hit.basePriceExVatPence).primary}
+                                </div>
+                                <div className="text-[10px] text-steel-600">
+                                  {formatBothPrices(hit.basePriceExVatPence).label}
+                                </div>
                               </div>
-                            </div>
-                          </div>
-                          <div className="text-right font-mono shrink-0">
-                            <div className="text-xs font-bold text-brand-navy">
-                              {formatBothPrices(hit.basePriceExVatPence).primary}
-                            </div>
-                            <div className="text-[10px] text-steel-600">
-                              {formatBothPrices(hit.basePriceExVatPence).label}
-                            </div>
-                          </div>
-                        </Link>
-                      );
-                    })}
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* Pillar 2: Federated Technical Compliance & Engineering Guides */}
+                    {instantArticles.length > 0 && (
+                      <div className="border-t-2 border-steel-200 bg-surface-sandLight/60">
+                        <div className="px-3.5 py-1.5 font-mono text-[10px] uppercase font-bold text-steel-600 flex items-center gap-1.5">
+                          <BookOpen className="w-3 h-3 text-stillage-blue" />
+                          <span>Technical Engineering &amp; Compliance Guides</span>
+                        </div>
+                        <div className="divide-y divide-steel-200">
+                          {instantArticles.map((art) => (
+                            <Link
+                              key={art.objectID}
+                              href={`/blog/${art.slug}`}
+                              onClick={() => setAutocompleteOpen(false)}
+                              className="px-3.5 py-2.5 hover:bg-surface-sand/50 flex items-center justify-between gap-3 transition-colors"
+                            >
+                              <div className="min-w-0">
+                                <div className="font-display font-bold text-xs uppercase text-brand-navy truncate">
+                                  <AlgoliaHighlight
+                                    fallbackText={art.title}
+                                    highlightField={art._highlightResult?.title}
+                                  />
+                                </div>
+                                <div className="font-mono text-[10px] text-steel-600">
+                                  {art.category} • {art.readingTimeMinutes} min read
+                                </div>
+                              </div>
+                              <ArrowRight className="w-3.5 h-3.5 text-stillage-blue shrink-0" />
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -340,6 +403,14 @@ export function Header() {
 
           {/* Right Actions: Catalog Filter & Active Quote Basket */}
           <div className="flex items-center gap-3">
+            <Link
+              href="/workshop"
+              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 rounded bg-accent-teal text-brand-navy hover:bg-white text-xs font-mono uppercase tracking-wider font-bold transition-colors shadow-xs"
+            >
+              <Wrench className="w-3.5 h-3.5" />
+              <span>Workshop</span>
+            </Link>
+
             <Link
               href="/products"
               className="hidden lg:inline-flex items-center gap-2 px-3.5 py-2 rounded border border-white/20 hover:border-surface-sand text-xs font-mono uppercase tracking-wider text-surface-sand transition-colors"
@@ -421,6 +492,13 @@ export function Header() {
             >
               Technical Blog &amp; Guides
             </Link>
+            <Link
+              href="/workshop"
+              className="px-3.5 py-2.5 text-accent-teal font-bold hover:bg-stillage-blue/40 transition-colors inline-flex items-center gap-1.5"
+            >
+              <Wrench className="w-3.5 h-3.5" />
+              <span>Workshop Builder</span>
+            </Link>
           </div>
           <div className="text-[11px] font-mono text-surface-sand/90 py-2">
             BULK TIERS: 5+ UNITS (-5%) | 10+ UNITS (-10%)
@@ -456,6 +534,14 @@ export function Header() {
             </button>
           </form>
           <div className="grid grid-cols-1 gap-1.5 pt-2 font-display uppercase tracking-wider text-sm">
+            <Link
+              href="/workshop"
+              onClick={() => setMobileMenuOpen(false)}
+              className="py-2.5 px-3 rounded bg-accent-teal text-brand-navy font-bold flex items-center gap-2"
+            >
+              <Wrench className="w-4 h-4" />
+              <span>Workshop: Stack Builder</span>
+            </Link>
             <Link
               href="/products"
               onClick={() => setMobileMenuOpen(false)}

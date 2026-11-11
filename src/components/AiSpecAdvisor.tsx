@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
   Sparkles,
@@ -44,7 +44,12 @@ const PRESET_SCENARIOS = [
   },
 ];
 
-export function AiSpecAdvisor() {
+interface AiSpecAdvisorProps {
+  externalOpenSignal?: number;
+  initialPrompt?: string;
+}
+
+export function AiSpecAdvisor({ externalOpenSignal = 0, initialPrompt }: AiSpecAdvisorProps = {}) {
   const { formatBothPrices } = useVat();
   const [isOpen, setIsOpen] = useState(false);
   const [prompt, setPrompt] = useState('');
@@ -53,6 +58,16 @@ export function AiSpecAdvisor() {
   const [loading, setLoading] = useState(false);
   const [response, setResponse] = useState<AiSpecAdvisorResponse | null>(null);
   const [showCadBrief, setShowCadBrief] = useState(false);
+
+  useEffect(() => {
+    if (externalOpenSignal > 0) {
+      setIsOpen(true);
+      setShowCadBrief(true);
+      if (initialPrompt) {
+        setPrompt(initialPrompt);
+      }
+    }
+  }, [externalOpenSignal, initialPrompt]);
 
   const submitAdvisorQuery = async (override?: Partial<AiSpecAdvisorRequest>) => {
     const activePrompt = override?.prompt !== undefined ? override.prompt : prompt;

@@ -140,3 +140,15 @@ body {
   text-wrap: balance;
   line-height: 1.2;
 }
+
+/* Technical Blueprint SVG Stage */
+.cad-diagram-svg {
+  shape-rendering: geometricPrecision;
+}
+
+/* Modern Web Guidance (highlight-text-ranges): CSS Custom Highlight API for Algolia Search Matches */
+::highlight(algolia-search-match) {
+  background-color: #f2e3ce;
+  color: #0f2342;
+  text-decoration: underline 2px solid #145da0;
+}

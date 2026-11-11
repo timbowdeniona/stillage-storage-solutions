@@ -16,6 +16,7 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
   const priceDisplay = formatBothPrices(product.basePriceExVatPence);
   const bulkTenPlusPence = Math.round(product.basePriceExVatPence * 0.9);
   const bulkDisplay = formatBothPrices(bulkTenPlusPence);
+  const hasDrawing = Boolean(product.technicalDrawing);
 
   return (
     <article className="group bg-surface-white border border-steel-200 hover:border-stillage-blue transition-all duration-200 flex flex-col justify-between relative shadow-sm hover:shadow-md">
@@ -44,6 +45,7 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
           <span className="absolute bottom-2.5 left-2.5 w-3 h-3 border-b-2 border-l-2 border-brand-navy/25 pointer-events-none" />
           <span className="absolute bottom-2.5 right-2.5 w-3 h-3 border-b-2 border-r-2 border-brand-navy/25 pointer-events-none" />
 
+          {/* Primary Image */}
           {priority ? (
             <img
               src={product.primaryImage}
@@ -51,7 +53,11 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
               fetchPriority="high"
               width={480}
               height={360}
-              className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+              className={`w-full h-full object-contain transition-all duration-200 ${
+                hasDrawing
+                  ? 'group-hover:opacity-0 group-hover:scale-105'
+                  : 'group-hover:scale-105'
+              }`}
             />
           ) : (
             <img
@@ -60,9 +66,33 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
               loading="lazy"
               width={480}
               height={360}
-              className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+              className={`w-full h-full object-contain transition-all duration-200 ${
+                hasDrawing
+                  ? 'group-hover:opacity-0 group-hover:scale-105'
+                  : 'group-hover:scale-105'
+              }`}
             />
           )}
+
+          {/* Technical Drawing (Flicks on Mouseover/Hover) */}
+          {hasDrawing && product.technicalDrawing ? (
+            <img
+              src={product.technicalDrawing}
+              alt={`${product.title} Technical Drawing Blueprint`}
+              loading="lazy"
+              width={480}
+              height={360}
+              className="absolute inset-0 w-full h-full p-6 object-contain opacity-0 group-hover:opacity-100 group-hover:scale-105 transition-all duration-200 pointer-events-none"
+            />
+          ) : null}
+
+          {/* CAD Blueprint Badge on Hover */}
+          {hasDrawing ? (
+            <span className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-brand-navy/95 text-surface-sand border border-white/20 text-[10px] font-mono uppercase px-2 py-0.5 rounded-sm flex items-center gap-1 shadow-sm pointer-events-none">
+              <span className="w-1.5 h-1.5 rounded-full bg-accent-teal animate-pulse" />
+              CAD Drawing
+            </span>
+          ) : null}
 
           {product.ukcaCertified && (
             <span className="absolute bottom-3 left-3 bg-brand-navy/90 text-white text-[10px] font-mono uppercase px-2 py-0.5 rounded-sm">

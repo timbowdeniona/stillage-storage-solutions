@@ -1,20 +1,79 @@
 import {
+  AlgoliaArticleRecord,
   AlgoliaProductRecord,
+  AlgoliaRuleBanner,
   ParsedSearchIntent,
   Product,
   ProductRecommendation,
   ProductRecommendationsResult,
 } from '@/types/catalog';
-import { SEED_PRODUCTS } from '@/data/seedCatalog';
+import { SEED_BLOG_POSTS, SEED_PRODUCTS } from '@/data/seedCatalog';
 
-function getEnv(name: string, fallback = ''): string {
-  if (typeof process === 'undefined' || !process.env) return fallback;
-  return process.env[name] || fallback;
+const ALGOLIA_APP_ID = process.env.NEXT_PUBLIC_ALGOLIA_APP_ID || '';
+const ALGOLIA_SEARCH_KEY = process.env.NEXT_PUBLIC_ALGOLIA_SEARCH_KEY || '';
+const ALGOLIA_INDEX = process.env.NEXT_PUBLIC_ALGOLIA_INDEX_NAME || 'stillage_products';
+const ALGOLIA_ARTICLES_INDEX =
+  process.env.NEXT_PUBLIC_ALGOLIA_ARTICLES_INDEX_NAME || 'stillage_articles';
+
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5-minute TTL stretches 10k/mo free tier by 5-10x
+const MAX_CACHE_ENTRIES = 60;
+const SESSION_CACHE_PREFIX = 'sss_alg_v2:';
+
+interface CacheEntry<T> {
+  timestamp: number;
+  value: T;
 }
 
-const ALGOLIA_APP_ID = getEnv('NEXT_PUBLIC_ALGOLIA_APP_ID');
-const ALGOLIA_SEARCH_KEY = getEnv('NEXT_PUBLIC_ALGOLIA_SEARCH_KEY');
-const ALGOLIA_INDEX = getEnv('NEXT_PUBLIC_ALGOLIA_INDEX_NAME', 'stillage_products');
+const memoryCache = new Map<string, CacheEntry<unknown>>();
+
+export function getCachedAlgoliaResult<T>(key: string): T | null {
+  const now = Date.now();
+  const mem = memoryCache.get(key);
+  if (mem) {
+    if (now - mem.timestamp < CACHE_TTL_MS) {
+      return mem.value as T;
+    }
+    memoryCache.delete(key);
+  }
+
+  if (typeof window !== 'undefined') {
+    try {
+      const raw = window.sessionStorage.getItem(SESSION_CACHE_PREFIX + key);
+      if (raw) {
+        const parsed = JSON.parse(raw) as CacheEntry<T>;
+        if (now - parsed.timestamp < CACHE_TTL_MS) {
+          memoryCache.set(key, parsed);
+          return parsed.value;
+        }
+        window.sessionStorage.removeItem(SESSION_CACHE_PREFIX + key);
+      }
+    } catch {
+      // Ignore storage quota or SSR errors
+    }
+  }
+  return null;
+}
+
+export function setCachedAlgoliaResult<T>(key: string, value: T): void {
+  const entry: CacheEntry<T> = { timestamp: Date.now(), value };
+  if (memoryCache.size >= MAX_CACHE_ENTRIES) {
+    const oldestKey = memoryCache.keys().next().value;
+    if (oldestKey) memoryCache.delete(oldestKey);
+  }
+  memoryCache.set(key, entry);
+
+  if (typeof window !== 'undefined') {
+    try {
+      window.sessionStorage.setItem(SESSION_CACHE_PREFIX + key, JSON.stringify(entry));
+    } catch {
+      // Ignore sessionStorage quota errors
+    }
+  }
+}
+
+export function clearAlgoliaCache(): void {
+  memoryCache.clear();
+}
 
 export interface SearchFilterOptions {
   query?: string;
@@ -23,13 +82,17 @@ export interface SearchFilterOptions {
   footprintMm?: string;
   inStockOnly?: boolean;
   sortBy?: 'featured' | 'price-asc' | 'price-desc' | 'swl-desc';
+  includeArticles?: boolean;
+  skipNetworkOnDefault?: boolean;
 }
 
 export interface AlgoliaSearchResponse {
   hits: Product[];
+  articleHits: AlgoliaArticleRecord[];
+  ruleBanners: AlgoliaRuleBanner[];
   facets?: Record<string, Record<string, number>>;
   parsedIntent: ParsedSearchIntent;
-  engine: 'algolia-dsn' | 'algolia-local-replica';
+  engine: 'algolia-dsn' | 'algolia-dsn-cached' | 'algolia-local-replica';
 }
 
 const COMPATIBILITY_MAP: Record<
@@ -52,7 +115,12 @@ const COMPATIBILITY_MAP: Record<
       'scaffold tube storage',
       'double sided cantilever rack',
     ],
-    environmentTags: ['indoor fabrication shop', 'outdoor yard galvanised', 'forklift skid base', '1500kg heavy duty'],
+    environmentTags: [
+      'indoor fabrication shop',
+      'outdoor yard galvanised',
+      'forklift skid base',
+      '1500kg heavy duty',
+    ],
     recommendedFinishIds: ['standard-blue', 'galvanised'],
     recommendedMobilityIds: ['forklift-pockets', 'standard-feet'],
   },
@@ -65,7 +133,12 @@ const COMPATIBILITY_MAP: Record<
       'transit van loading rack',
       'compact cantilever stillage',
     ],
-    environmentTags: ['machine shop', 'saw station workflow', 'forklift base pockets', '1200kg swl'],
+    environmentTags: [
+      'machine shop',
+      'saw station workflow',
+      'forklift base pockets',
+      '1200kg swl',
+    ],
     recommendedFinishIds: ['standard-blue', 'custom-ral'],
     recommendedMobilityIds: ['forklift-pockets', 'heavy-duty-castors'],
   },
@@ -78,7 +151,12 @@ const COMPATIBILITY_MAP: Record<
       'fastener and casting hopper',
       'interlocking bin stillage',
     ],
-    environmentTags: ['high density warehouse', '4-high stacking', 'forklift guide hoops', 'ukca certified'],
+    environmentTags: [
+      'high density warehouse',
+      '4-high stacking',
+      'forklift guide hoops',
+      'ukca certified',
+    ],
     recommendedFinishIds: ['standard-blue', 'galvanised', 'raw-steel'],
     recommendedMobilityIds: ['forklift-pockets', 'standard-feet'],
   },
@@ -92,7 +170,12 @@ const COMPATIBILITY_MAP: Record<
       'automotive WIP bin',
       '1200x1000 euro footprint stillage',
     ],
-    environmentTags: ['foundry raw steel', 'outdoor yard galvanised', 'indoor warehouse', '4-high stackable'],
+    environmentTags: [
+      'foundry raw steel',
+      'outdoor yard galvanised',
+      'indoor warehouse',
+      '4-high stackable',
+    ],
     recommendedFinishIds: ['standard-blue', 'raw-steel', 'galvanised'],
     recommendedMobilityIds: ['standard-feet', 'forklift-pockets', 'heavy-duty-castors'],
   },
@@ -106,7 +189,12 @@ const COMPATIBILITY_MAP: Record<
       'boxed component cage',
       '1200x1000 inter-stacking cage',
     ],
-    environmentTags: ['3PL logistics warehouse', 'order picking', 'high visibility mesh', '4-high stackable'],
+    environmentTags: [
+      '3PL logistics warehouse',
+      'order picking',
+      'high visibility mesh',
+      '4-high stackable',
+    ],
     recommendedFinishIds: ['standard-blue', 'custom-ral', 'galvanised'],
     recommendedMobilityIds: ['heavy-duty-castors', 'standard-feet', 'both-castors-pockets'],
   },
@@ -120,7 +208,12 @@ const COMPATIBILITY_MAP: Record<
       'timber and extrusion pallet',
       '5-high stackable pallet',
     ],
-    environmentTags: ['outdoor construction site', 'return HGV fleet', 'telehandler handling', 'space saving'],
+    environmentTags: [
+      'outdoor construction site',
+      'return HGV fleet',
+      'telehandler handling',
+      'space saving',
+    ],
     recommendedFinishIds: ['galvanised', 'standard-blue'],
     recommendedMobilityIds: ['forklift-pockets', 'standard-feet'],
   },
@@ -130,8 +223,14 @@ export function enrichProductForAlgolia(product: Product): AlgoliaProductRecord 
   const footprintMm = `${product.externalLengthMm}x${product.externalWidthMm}`;
   const dimensionsText = `${product.externalLengthMm}x${product.externalWidthMm}x${product.externalHeightMm}mm`;
   const meta = COMPATIBILITY_MAP[product.sku] || {
-    compatibleSkus: ['SSS-SHT-1210', 'SSS-MSH-1210HD', 'SSS-CANT-3B8A'].filter((s) => s !== product.sku),
-    useCases: [product.categoryName.toLowerCase(), 'industrial steel stillage', 'uk warehouse storage'],
+    compatibleSkus: ['SSS-SHT-1210', 'SSS-MSH-1210HD', 'SSS-CANT-3B8A'].filter(
+      (s) => s !== product.sku
+    ),
+    useCases: [
+      product.categoryName.toLowerCase(),
+      'industrial steel stillage',
+      'uk warehouse storage',
+    ],
     environmentTags: ['indoor warehouse', 'outdoor galvanised', 'ukca certified'],
     recommendedFinishIds: ['standard-blue', 'galvanised'],
     recommendedMobilityIds: ['standard-feet', 'forklift-pockets'],
@@ -147,6 +246,21 @@ export function enrichProductForAlgolia(product: Product): AlgoliaProductRecord 
     environmentTags: meta.environmentTags,
     recommendedFinishIds: meta.recommendedFinishIds,
     recommendedMobilityIds: meta.recommendedMobilityIds,
+    bulkPrice5PlusExVatPence: Math.round(product.basePriceExVatPence * 0.95),
+    bulkPrice10PlusExVatPence: Math.round(product.basePriceExVatPence * 0.9),
+    availableFinishes: [
+      'RAL 5010 Stillage Blue (Standard)',
+      'Raw Unpainted Mill Steel',
+      'Custom Corporate RAL Finish',
+      'Hot-Dip Galvanised (BS EN ISO 1461)',
+    ],
+    availableMobility: [
+      'Standard Pressed Steel Stacking Feet',
+      'Enclosed 4-Way Forklift Guide Pockets',
+      '4x Heavy-Duty Lockable Castors',
+      'Castors + Enclosed Forklift Guide Pockets',
+    ],
+    palletsPer4Units: 1,
   };
 }
 
@@ -166,26 +280,9 @@ function unwrapField<T>(val: unknown, fallback: T): T {
   return val as T;
 }
 
-function unwrapImageField(val: unknown, fallback?: string): string | undefined {
-  const unwrapped = unwrapField<unknown>(val, fallback);
-  if (typeof unwrapped === 'string') {
-    return unwrapped.startsWith('//') ? `https:${unwrapped}` : unwrapped;
-  }
-  if (unwrapped && typeof unwrapped === 'object') {
-    const assetId = (unwrapped as { sys?: { id?: string } }).sys?.id;
-    const assetFallbackMap: Record<string, string> = {
-      'asset-cantilever-rack-cutout': '/images/products/cantilever-rack-cutout.png',
-      'asset-cantilever-rack-sand': '/images/products/cantilever-rack-sand.png',
-      'asset-stacked-hopper-stillage': '/images/products/stacked-hopper-stillage.png',
-    };
-    if (assetId && assetFallbackMap[assetId]) {
-      return assetFallbackMap[assetId];
-    }
-  }
-  return fallback;
-}
-
-export function normalizeWebhookOrProductPayload(payload: Record<string, unknown>): AlgoliaProductRecord | null {
+export function normalizeWebhookOrProductPayload(
+  payload: Record<string, unknown>
+): AlgoliaProductRecord | null {
   if (!payload || typeof payload !== 'object') return null;
 
   const sys = payload.sys as Record<string, unknown> | undefined;
@@ -193,7 +290,6 @@ export function normalizeWebhookOrProductPayload(payload: Record<string, unknown
     (sys?.contentType as { sys?: { id?: string } } | undefined)?.sys?.id ||
     (payload.contentTypeId as string | undefined);
 
-  // Ignore non-product Contentful entries (such as blogPost or category) if contentType is explicitly set
   if (contentTypeId && contentTypeId !== 'product') {
     return null;
   }
@@ -214,16 +310,34 @@ export function normalizeWebhookOrProductPayload(payload: Record<string, unknown
     title: title || seedFallback?.title || 'Industrial Steel Stillage',
     slug: unwrapField<string>(rawFields.slug, seedFallback?.slug || id),
     sku: sku || seedFallback?.sku || 'SSS-CUSTOM',
-    categorySlug: unwrapField<string>(rawFields.categorySlug, seedFallback?.categorySlug || 'sheet-stillages'),
-    categoryName: unwrapField<string>(rawFields.categoryName, seedFallback?.categoryName || 'Steel Stillages'),
-    shortDescription: unwrapField<string>(rawFields.shortDescription, seedFallback?.shortDescription || ''),
-    fullDescription: unwrapField<string>(rawFields.fullDescription, seedFallback?.fullDescription || ''),
+    categorySlug: unwrapField<string>(
+      rawFields.categorySlug,
+      seedFallback?.categorySlug || 'sheet-stillages'
+    ),
+    categoryName: unwrapField<string>(
+      rawFields.categoryName,
+      seedFallback?.categoryName || 'Steel Stillages'
+    ),
+    shortDescription: unwrapField<string>(
+      rawFields.shortDescription,
+      seedFallback?.shortDescription || ''
+    ),
+    fullDescription: unwrapField<string>(
+      rawFields.fullDescription,
+      seedFallback?.fullDescription || ''
+    ),
     basePriceExVatPence: Number(
-      unwrapField<number>(rawFields.basePriceExVatPence, seedFallback?.basePriceExVatPence || 18900)
+      unwrapField<number>(
+        rawFields.basePriceExVatPence,
+        seedFallback?.basePriceExVatPence || 18900
+      )
     ),
     swlKg: Number(unwrapField<number>(rawFields.swlKg, seedFallback?.swlKg || 1000)),
     externalLengthMm: Number(
-      unwrapField<number>(rawFields.externalLengthMm, seedFallback?.externalLengthMm || 1200)
+      unwrapField<number>(
+        rawFields.externalLengthMm,
+        seedFallback?.externalLengthMm || 1200
+      )
     ),
     externalWidthMm: Number(
       unwrapField<number>(rawFields.externalWidthMm, seedFallback?.externalWidthMm || 1000)
@@ -231,7 +345,9 @@ export function normalizeWebhookOrProductPayload(payload: Record<string, unknown
     externalHeightMm: Number(
       unwrapField<number>(rawFields.externalHeightMm, seedFallback?.externalHeightMm || 900)
     ),
-    unitWeightKg: Number(unwrapField<number>(rawFields.unitWeightKg, seedFallback?.unitWeightKg || 68)),
+    unitWeightKg: Number(
+      unwrapField<number>(rawFields.unitWeightKg, seedFallback?.unitWeightKg || 68)
+    ),
     stackableHeight: unwrapField<string>(
       rawFields.stackableHeight,
       seedFallback?.stackableHeight || '4-High Stackable'
@@ -244,21 +360,34 @@ export function normalizeWebhookOrProductPayload(payload: Record<string, unknown
       rawFields.standardFinish,
       seedFallback?.standardFinish || 'RAL 5010 Stillage Blue'
     ),
-    ukcaCertified: Boolean(unwrapField<boolean>(rawFields.ukcaCertified, seedFallback?.ukcaCertified ?? true)),
+    ukcaCertified: Boolean(
+      unwrapField<boolean>(rawFields.ukcaCertified, seedFallback?.ukcaCertified ?? true)
+    ),
     inStock: Boolean(unwrapField<boolean>(rawFields.inStock, seedFallback?.inStock ?? true)),
     leadTimeText: unwrapField<string>(
       rawFields.leadTimeText,
       seedFallback?.leadTimeText || 'In Stock — Dispatch in 2–3 Working Days'
     ),
     featured: Boolean(unwrapField<boolean>(rawFields.featured, seedFallback?.featured ?? false)),
-    primaryImage:
-      unwrapImageField(
-        rawFields.primaryImage,
-        seedFallback?.primaryImage || '/images/products/cantilever-rack-cutout.png'
-      ) || '/images/products/cantilever-rack-cutout.png',
-    secondaryImage: unwrapImageField(rawFields.secondaryImage, seedFallback?.secondaryImage),
+    primaryImage: unwrapField<string>(
+      rawFields.primaryImage,
+      seedFallback?.primaryImage || '/images/products/cantilever-rack-cutout.png'
+    ),
+    secondaryImage: unwrapField<string | undefined>(
+      rawFields.secondaryImage,
+      seedFallback?.secondaryImage
+    ),
+    technicalDrawing: unwrapField<string | undefined>(
+      rawFields.technicalDrawing,
+      seedFallback?.technicalDrawing
+    ),
+    gallery: unwrapField<string[] | undefined>(
+      rawFields.gallery,
+      seedFallback?.gallery
+    ),
     backdropStyle:
-      unwrapField<string>(rawFields.backdropStyle, seedFallback?.backdropStyle || 'sand') === 'white'
+      unwrapField<string>(rawFields.backdropStyle, seedFallback?.backdropStyle || 'sand') ===
+      'white'
         ? 'white'
         : 'sand',
     highlights: unwrapField<string[]>(rawFields.highlights, seedFallback?.highlights || []),
@@ -283,7 +412,9 @@ export function parseNaturalLanguageSearchIntent(rawQuery: string): ParsedSearch
   }
 
   let detectedFootprintMm: string | undefined;
-  const fpMatch = lower.match(/\b(1200|1130|2400|1800)\s*[x×*]\s*(1000|1200|1130|1100|1050)\b/i);
+  const fpMatch = lower.match(
+    /\b(1200|1130|2400|1800)\s*[x×*]\s*(1000|1200|1130|1100|1050)\b/i
+  );
   if (fpMatch) {
     detectedFootprintMm = `${fpMatch[1]}x${fpMatch[2]}`;
     intentBadges.push(`Footprint: ${fpMatch[1]}×${fpMatch[2]}mm`);
@@ -291,13 +422,17 @@ export function parseNaturalLanguageSearchIntent(rawQuery: string): ParsedSearch
   }
 
   let suggestedFinishOption: string | undefined;
-  if (/\b(galvanis\w*|galvaniz\w*|hdg|outdoor|weatherproof|rust\s*proof|iso\s*1461)\b/i.test(lower)) {
+  if (
+    /\b(galvanis\w*|galvaniz\w*|hdg|outdoor|weatherproof|rust\s*proof|iso\s*1461)\b/i.test(lower)
+  ) {
     suggestedFinishOption = 'galvanised';
     intentBadges.push('Suggested Finish: Hot-Dip Galvanised');
     working = working
       .replace(/\b(galvanis\w*|galvaniz\w*|hdg|outdoor|weatherproof|rust\s*proof)\b/gi, '')
       .trim();
-  } else if (/\b(raw\s*steel|unpainted|oiled|self\s*colour|foundry|hot\s*castings)\b/i.test(lower)) {
+  } else if (
+    /\b(raw\s*steel|unpainted|oiled|self\s*colour|foundry|hot\s*castings)\b/i.test(lower)
+  ) {
     suggestedFinishOption = 'raw-steel';
     intentBadges.push('Suggested Finish: Raw Mill Steel');
     working = working.replace(/\b(raw\s*steel|unpainted|oiled)\b/gi, '').trim();
@@ -343,6 +478,108 @@ export function parseNaturalLanguageSearchIntent(rawQuery: string): ParsedSearch
   };
 }
 
+function evaluateLocalRuleBanners(rawQuery: string): AlgoliaRuleBanner[] {
+  const lower = rawQuery.trim().toLowerCase();
+  if (!lower) return [];
+
+  const banners: AlgoliaRuleBanner[] = [];
+  if (/\b(outdoor|galvanis\w*|galvaniz\w*|hdg|iso\s*1461|weatherproof|rust|yard|corrosion)\b/.test(lower)) {
+    banners.push({
+      bannerType: 'hdg-iso-1461',
+      badge: 'BS EN ISO 1461 CORROSION ADVISORY',
+      title: 'Outdoor & Yard Specification: Hot-Dip Galvanised (+£45/unit)',
+      description:
+        'Full-immersion molten zinc coating protects internal and external box-section walls for 25+ years of outdoor yard service.',
+      ctaText: 'Read Galvanised vs RAL 5010 Guide',
+      ctaHref: '/blog/hot-dip-galvanised-vs-ral-5010-painted-steel-stillages',
+      autoConfigFinish: 'galvanised',
+    });
+  }
+  if (/\b(crane|loler|hoist|hiab|bespoke|custom)\b/.test(lower)) {
+    banners.push({
+      bannerType: 'loler-bespoke-cad',
+      badge: 'LOLER 1998 & BESPOKE CAD',
+      title: 'Overhead Crane-Lifting Lugs & Custom Footprint Fabrication',
+      description:
+        'Crane-slung stillages require certified top lifting eyes under LOLER 1998. Use our AI Steel Engineer above to generate an instant CAD specification sheet.',
+      ctaText: 'Open AI Bespoke CAD Engineer',
+      ctaAction: 'open-ai-advisor',
+    });
+  }
+  if (/\b(bulk|discount|trade|fleet|hgv)\b/.test(lower)) {
+    banners.push({
+      bannerType: 'bulk-pallet-fleet',
+      badge: 'TRADE FLEET ECONOMICS',
+      title: '4 Stillages per HGV Pallet Space + Up to 10% Automatic Trade Discount',
+      description:
+        'Up to 4 stillages stack on 1 oversized HGV pallet space. Unlock 5% Off on 5+ units and 10% Off on 10+ units automatically online.',
+      ctaText: 'View HGV Freight & Bulk Guide',
+      ctaHref: '/blog/hgv-pallet-delivery-tail-lift-offloading-guide',
+    });
+  }
+  if (/\b(cantilever|bar\s*rack|tube\s*rack|saw)\b/.test(lower)) {
+    banners.push({
+      bannerType: 'cantilever-saw-station',
+      badge: 'SAW STATION & BAR STORAGE',
+      title: 'Double-Sided Cantilever Bar & Tube Racks (1,200kg–1,500kg SWL)',
+      description:
+        'Segregate up to 8 bar or extrusion grades on a single forklift-portable footprint with upturned anti-roll safety lugs.',
+      ctaText: 'Read Bar Storage Guide',
+      ctaHref: '/blog/optimising-long-bar-tube-storage-cantilever-stillage-racks',
+    });
+  }
+  return banners;
+}
+
+function searchLocalArticles(rawQuery: string): AlgoliaArticleRecord[] {
+  const normalized = rawQuery.trim().toLowerCase();
+  if (!normalized) return [];
+  const tokens = normalized.split(/\s+/).filter(Boolean);
+
+  return SEED_BLOG_POSTS.filter((post) => {
+    const haystack = [
+      post.title,
+      post.excerpt,
+      post.category,
+      ...post.tags,
+      ...post.keyTakeaways,
+      ...post.relatedProductSkus,
+      post.body,
+    ]
+      .join(' ')
+      .toLowerCase();
+    return tokens.some((tok) => haystack.includes(tok));
+  })
+    .slice(0, 3)
+    .map((post) => ({
+      objectID: post.id,
+      id: post.id,
+      title: post.title,
+      slug: post.slug,
+      excerpt: post.excerpt,
+      category: post.category,
+      author: post.author,
+      readingTimeMinutes: post.readingTimeMinutes,
+      publishedAt: post.publishedAt,
+      tags: post.tags,
+      keyTakeaways: post.keyTakeaways,
+      relatedProductSkus: post.relatedProductSkus,
+    }));
+}
+
+function resolveTargetIndexName(sortBy: SearchFilterOptions['sortBy']): string {
+  switch (sortBy) {
+    case 'price-asc':
+      return `${ALGOLIA_INDEX}_price_asc`;
+    case 'price-desc':
+      return `${ALGOLIA_INDEX}_price_desc`;
+    case 'swl-desc':
+      return `${ALGOLIA_INDEX}_swl_desc`;
+    default:
+      return ALGOLIA_INDEX;
+  }
+}
+
 export async function searchProductsWithAlgolia(
   initialProducts: Product[],
   filters: SearchFilterOptions
@@ -354,13 +591,65 @@ export async function searchProductsWithAlgolia(
     footprintMm,
     inStockOnly,
     sortBy = 'featured',
+    includeArticles = false,
+    skipNetworkOnDefault = false,
   } = filters;
 
-  const parsedIntent = parseNaturalLanguageSearchIntent(query);
+  const trimmedQuery = query.trim();
+  const parsedIntent = parseNaturalLanguageSearchIntent(trimmedQuery);
+
+  const isDefaultUnfiltered =
+    !trimmedQuery &&
+    (!categorySlug || categorySlug === 'all') &&
+    (!minSwlKg || minSwlKg === 0) &&
+    (!footprintMm || footprintMm === 'all') &&
+    !inStockOnly &&
+    sortBy === 'featured';
+
+  // Pillar 1 Quota Saver: Zero-Cost Initial Mount uses SSR catalog directly (0 Algolia requests consumed)
+  if (skipNetworkOnDefault && isDefaultUnfiltered) {
+    const facets: Record<string, Record<string, number>> = {
+      categorySlug: {},
+      footprintMm: {},
+    };
+    for (const p of initialProducts) {
+      const fp = `${p.externalLengthMm}x${p.externalWidthMm}`;
+      facets.categorySlug[p.categorySlug] = (facets.categorySlug[p.categorySlug] || 0) + 1;
+      facets.footprintMm[fp] = (facets.footprintMm[fp] || 0) + 1;
+    }
+    return {
+      hits: sortProducts(initialProducts, 'featured'),
+      articleHits: [],
+      ruleBanners: [],
+      facets,
+      parsedIntent,
+      engine: 'algolia-local-replica',
+    };
+  }
+
   const effectiveMinSwl =
     minSwlKg && minSwlKg > 0 ? minSwlKg : parsedIntent.detectedMinSwlKg || 0;
   const effectiveFootprint =
     footprintMm && footprintMm !== 'all' ? footprintMm : parsedIntent.detectedFootprintMm;
+
+  const cacheKey = JSON.stringify({
+    q: trimmedQuery.toLowerCase(),
+    cat: categorySlug || 'all',
+    swl: effectiveMinSwl,
+    fp: effectiveFootprint || 'all',
+    stock: Boolean(inStockOnly),
+    sort: sortBy,
+    art: Boolean(includeArticles && trimmedQuery.length > 0),
+  });
+
+  // Pillar 1 Quota Saver: LRU Memory + sessionStorage Cache
+  const cached = getCachedAlgoliaResult<AlgoliaSearchResponse>(cacheKey);
+  if (cached) {
+    return {
+      ...cached,
+      engine: cached.engine === 'algolia-local-replica' ? 'algolia-local-replica' : 'algolia-dsn-cached',
+    };
+  }
 
   if (ALGOLIA_APP_ID && ALGOLIA_SEARCH_KEY) {
     try {
@@ -383,10 +672,38 @@ export async function searchProductsWithAlgolia(
       const effectiveQuery =
         effectiveFootprint && parsedIntent.detectedFootprintMm
           ? parsedIntent.cleanedQuery
-          : query;
+          : trimmedQuery;
+
+      const targetIndex = resolveTargetIndexName(sortBy);
+
+      // Pillar 2 & 6: Single-call Batched Multi-Index Federation (/1/indexes/*/queries)
+      const requests: Record<string, unknown>[] = [
+        {
+          indexName: targetIndex,
+          query: effectiveQuery,
+          facetFilters,
+          numericFilters,
+          facets: ['categorySlug', 'footprintMm', 'stackableHeight', 'inStock'],
+          enableRules: true,
+          hitsPerPage: 50,
+        },
+      ];
+
+      // Also pass raw query to trigger rules if cleanedQuery stripped "outdoor"/"galvanised"
+      if (trimmedQuery && effectiveQuery !== trimmedQuery) {
+        requests[0].ruleContexts = [];
+      }
+
+      if (includeArticles && trimmedQuery.length > 0) {
+        requests.push({
+          indexName: ALGOLIA_ARTICLES_INDEX,
+          query: trimmedQuery,
+          hitsPerPage: 3,
+        });
+      }
 
       const res = await fetch(
-        `https://${ALGOLIA_APP_ID}-dsn.algolia.net/1/indexes/${ALGOLIA_INDEX}/query`,
+        `https://${ALGOLIA_APP_ID}-dsn.algolia.net/1/indexes/*/queries`,
         {
           method: 'POST',
           headers: {
@@ -394,29 +711,55 @@ export async function searchProductsWithAlgolia(
             'X-Algolia-Application-Id': ALGOLIA_APP_ID,
             'X-Algolia-API-Key': ALGOLIA_SEARCH_KEY,
           },
-          body: JSON.stringify({
-            query: effectiveQuery,
-            facetFilters,
-            numericFilters,
-            facets: ['categorySlug', 'footprintMm', 'stackableHeight', 'inStock'],
-            hitsPerPage: 50,
-          }),
+          body: JSON.stringify({ requests }),
         }
       );
 
       if (res.ok) {
-        const data = await res.json();
-        if (Array.isArray(data.hits)) {
-          // Verify the index has been seeded (if an unfiltered empty query returns 0 hits, fall back to local replica)
+        const multiData = await res.json();
+        const prodResult = multiData?.results?.[0];
+        const artResult = multiData?.results?.[1];
+
+        if (prodResult && Array.isArray(prodResult.hits)) {
           const isUnfilteredEmptyQuery =
             !effectiveQuery && facetFilters.length === 0 && numericFilters.length === 0;
-          if (!isUnfilteredEmptyQuery || data.hits.length > 0) {
-            return {
-              hits: sortProducts(data.hits as Product[], sortBy),
-              facets: data.facets,
+
+          if (!isUnfilteredEmptyQuery || prodResult.hits.length > 0) {
+            const algoliaRuleBanners = Array.isArray(prodResult.userData)
+              ? (prodResult.userData as AlgoliaRuleBanner[])
+              : [];
+            const articleRuleBanners = Array.isArray(artResult?.userData)
+              ? (artResult.userData as AlgoliaRuleBanner[])
+              : [];
+            // Merge rule banners across federated indexes + any raw terms stripped by smart intent parser
+            const fallbackRuleBanners = evaluateLocalRuleBanners(trimmedQuery);
+            const mergedBannersMap = new Map<string, AlgoliaRuleBanner>();
+            for (const b of [
+              ...algoliaRuleBanners,
+              ...articleRuleBanners,
+              ...fallbackRuleBanners,
+            ]) {
+              if (b?.bannerType && !mergedBannersMap.has(b.bannerType)) {
+                mergedBannersMap.set(b.bannerType, b);
+              }
+            }
+
+            const responsePayload: AlgoliaSearchResponse = {
+              hits:
+                targetIndex === ALGOLIA_INDEX
+                  ? sortProducts(prodResult.hits as Product[], sortBy)
+                  : (prodResult.hits as Product[]),
+              articleHits: Array.isArray(artResult?.hits)
+                ? (artResult.hits as AlgoliaArticleRecord[])
+                : [],
+              ruleBanners: Array.from(mergedBannersMap.values()),
+              facets: prodResult.facets,
               parsedIntent,
               engine: 'algolia-dsn',
             };
+
+            setCachedAlgoliaResult(cacheKey, responsePayload);
+            return responsePayload;
           }
         }
       }
@@ -428,7 +771,7 @@ export async function searchProductsWithAlgolia(
   const normalizedQuery = (
     effectiveFootprint && parsedIntent.detectedFootprintMm
       ? parsedIntent.cleanedQuery
-      : query
+      : trimmedQuery
   )
     .trim()
     .toLowerCase();
@@ -439,7 +782,11 @@ export async function searchProductsWithAlgolia(
     if (categorySlug && categorySlug !== 'all' && product.categorySlug !== categorySlug) {
       return false;
     }
-    if (effectiveFootprint && effectiveFootprint !== 'all' && product.footprintMm !== effectiveFootprint) {
+    if (
+      effectiveFootprint &&
+      effectiveFootprint !== 'all' &&
+      product.footprintMm !== effectiveFootprint
+    ) {
       return false;
     }
     if (effectiveMinSwl && product.swlKg < effectiveMinSwl) {
@@ -463,6 +810,8 @@ export async function searchProductsWithAlgolia(
       ...product.highlights,
       ...product.useCases,
       ...product.environmentTags,
+      ...(product.availableFinishes ?? []),
+      ...(product.availableMobility ?? []),
     ]
       .join(' ')
       .toLowerCase();
@@ -471,7 +820,6 @@ export async function searchProductsWithAlgolia(
     return tokens.every((token) => searchableText.includes(token));
   });
 
-  // Compute local facet counts for parity
   const facets: Record<string, Record<string, number>> = {
     categorySlug: {},
     footprintMm: {},
@@ -483,6 +831,8 @@ export async function searchProductsWithAlgolia(
 
   return {
     hits: sortProducts(filtered, sortBy),
+    articleHits: includeArticles ? searchLocalArticles(trimmedQuery) : [],
+    ruleBanners: evaluateLocalRuleBanners(trimmedQuery),
     facets,
     parsedIntent,
     engine: 'algolia-local-replica',
@@ -576,11 +926,16 @@ export async function getProductRecommendations(
   allProducts: Product[] = SEED_PRODUCTS,
   limit = 3
 ): Promise<ProductRecommendationsResult> {
+  const recCacheKey = `rec:${targetProduct.id}:${limit}`;
+  const cachedRec = getCachedAlgoliaResult<ProductRecommendationsResult>(recCacheKey);
+  if (cachedRec) {
+    return cachedRec;
+  }
+
   const enrichedSource = enrichProductForAlgolia(targetProduct);
 
   if (ALGOLIA_APP_ID && ALGOLIA_SEARCH_KEY) {
     try {
-      // 1. Try Algolia Recommend API (/1/indexes/*/recommendations) first
       const recRes = await fetch(
         `https://${ALGOLIA_APP_ID}-dsn.algolia.net/1/indexes/*/recommendations`,
         {
@@ -617,7 +972,7 @@ export async function getProductRecommendations(
         const relHits = (recData?.results?.[1]?.hits || []) as Product[];
 
         if (btHits.length > 0 && relHits.length > 0) {
-          return {
+          const recPayload: ProductRecommendationsResult = {
             compatibleEquipment: btHits.slice(0, limit).map((hit, idx) => {
               const enrichedHit = enrichProductForAlgolia(hit);
               const { reason, suggestedConfig } = buildCompatibilityReason(
@@ -643,10 +998,11 @@ export async function getProductRecommendations(
             }),
             engine: 'algolia-recommend',
           };
+          setCachedAlgoliaResult(recCacheKey, recPayload);
+          return recPayload;
         }
       }
 
-      // 2. Live Algolia Multi-Query with Scored optionalFilters (works immediately on Day 1 without waiting for 1,000+ click events)
       const compatibleOptionalFilters = [
         ...enrichedSource.compatibleSkus.map((sku, idx) => `sku:${sku}<score=${12 - idx * 2}>`),
         `footprintMm:${enrichedSource.footprintMm}<score=8>`,
@@ -696,7 +1052,7 @@ export async function getProductRecommendations(
         const simHits = (dsnData?.results?.[1]?.hits || []) as Product[];
 
         if (compHits.length > 0 || simHits.length > 0) {
-          return {
+          const dsnPayload: ProductRecommendationsResult = {
             compatibleEquipment: compHits.slice(0, limit).map((hit, idx) => {
               const enrichedHit = enrichProductForAlgolia(hit);
               const { reason, suggestedConfig } = buildCompatibilityReason(
@@ -722,6 +1078,8 @@ export async function getProductRecommendations(
             }),
             engine: 'algolia-dsn-scored',
           };
+          setCachedAlgoliaResult(recCacheKey, dsnPayload);
+          return dsnPayload;
         }
       }
     } catch {
@@ -729,7 +1087,6 @@ export async function getProductRecommendations(
     }
   }
 
-  // Deterministic Local Replica Scoring Fallback
   const candidates = allProducts
     .filter((p) => p.id !== targetProduct.id && p.slug !== targetProduct.slug)
     .map((p) => enrichProductForAlgolia(p));
@@ -801,7 +1158,6 @@ export function trackAlgoliaEvent(event: {
   }
 
   try {
-    // Deprioritize background telemetry fetch so user-initiated search/quote calls never contend for bandwidth
     fetch('https://insights.algolia.io/1/events', {
       method: 'POST',
       headers: {
