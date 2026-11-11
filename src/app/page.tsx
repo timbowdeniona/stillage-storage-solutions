@@ -1,8 +1,8 @@
 import React from 'react';
 import { getProducts } from '@/lib/contentful';
-import { Approach1HomePage } from '@/components/redesign/Approach1HomePage';
+import { Approach2HomePage } from '@/components/redesign/Approach2HomePage';
 
 export default async function HomePage() {
   const products = await getProducts();
-  return <Approach1HomePage products={products} />;
+  return <Approach2HomePage products={products} />;
 }
