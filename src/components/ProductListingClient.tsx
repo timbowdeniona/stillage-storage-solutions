@@ -218,24 +218,24 @@ export function ProductListingClient({
         </div>
       )}
 
-      {/* Approach 1 Clean Category Filter Pills */}
+      {/* Approach 1 Rounded-Full Category Filter Pills */}
       <div
         role="tablist"
         aria-label="Stillage categories"
-        className="flex flex-wrap items-center gap-2 pb-4 border-b border-steel-200"
+        className="flex flex-wrap items-center gap-3"
       >
         <button
           type="button"
           role="tab"
           aria-selected={selectedCategory === 'all'}
           onClick={() => setSelectedCategory('all')}
-          className={`px-4 py-2 rounded-sm font-mono text-xs uppercase font-bold tracking-wider transition-all ${
+          className={`px-6 py-2 rounded-full font-display font-bold text-base transition-all ${
             selectedCategory === 'all'
-              ? 'bg-stillage-blue text-white shadow-xs'
-              : 'bg-steel-50 text-steel-800 hover:bg-steel-100 border border-steel-200'
+              ? 'bg-stillage-blue text-surface-white shadow-xs'
+              : 'bg-surface-white text-brand-navy border border-steel-200 hover:border-stillage-blue'
           }`}
         >
-          All Models ({initialProducts.length})
+          All ({initialProducts.length})
         </button>
         {categories.map((cat) => {
           const count =
@@ -248,10 +248,10 @@ export function ProductListingClient({
               role="tab"
               aria-selected={selectedCategory === cat.slug}
               onClick={() => setSelectedCategory(cat.slug)}
-              className={`px-4 py-2 rounded-sm font-mono text-xs uppercase font-bold tracking-wider transition-all ${
+              className={`px-6 py-2 rounded-full font-display font-bold text-base transition-all ${
                 selectedCategory === cat.slug
-                  ? 'bg-stillage-blue text-white shadow-xs'
-                  : 'bg-steel-50 text-steel-800 hover:bg-steel-100 border border-steel-200'
+                  ? 'bg-stillage-blue text-surface-white shadow-xs'
+                  : 'bg-surface-white text-brand-navy border border-steel-200 hover:border-stillage-blue'
               }`}
             >
               {cat.title} ({count})
@@ -457,10 +457,10 @@ export function ProductListingClient({
           ) : (
             <div
               ref={gridContainerRef}
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
             >
               {results.map((product, index) => (
-                <ProductCard key={product.id} product={product} priority={index < 3} />
+                <ProductCard key={product.id} product={product} priority={index < 4} />
               ))}
             </div>
           )}
