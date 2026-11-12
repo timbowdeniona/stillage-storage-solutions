@@ -115,28 +115,23 @@ export function AiSpecAdvisor({ externalOpenSignal = 0, initialPrompt }: AiSpecA
   return (
     <section
       aria-labelledby="ai-spec-advisor-heading"
-      className="mb-8 border-2 border-brand-navy bg-surface-white shadow-sm overflow-hidden"
+      className="border border-steel-200 bg-surface-white rounded-sm shadow-xs overflow-hidden"
     >
       {/* Top Banner */}
       <div className="bg-brand-navy text-surface-white px-5 py-3.5 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
-          <span className="inline-flex items-center justify-center w-7 h-7 rounded-sm bg-stillage-blue text-surface-sand">
+          <span className="inline-flex items-center justify-center w-7 h-7 rounded-sm bg-stillage-blue text-white">
             <Sparkles className="w-4 h-4" />
           </span>
           <div>
-            <div className="flex items-center gap-2">
-              <h2
-                id="ai-spec-advisor-heading"
-                className="font-display font-bold uppercase tracking-wider text-base text-surface-white"
-              >
-                AI Steel Stillage Engineer &amp; Load Advisor
-              </h2>
-              <span className="font-mono text-[10px] bg-stillage-blue/40 border border-stillage-blueLight text-surface-sand px-2 py-0.5 rounded-sm">
-                gemini-3.8-flash + Algolia RAG
-              </span>
-            </div>
+            <h2
+              id="ai-spec-advisor-heading"
+              className="font-display font-bold uppercase tracking-wider text-base text-surface-white"
+            >
+              AI Steel Stillage Engineer &amp; Load Advisor
+            </h2>
             <p className="text-xs text-steel-200">
-              Describe what you are storing, load weight, and handling method — our AI engineer recommends the exact stillage, finish, and pallet configuration.
+              Not sure which model fits your load? Describe your application for an instant recommendation.
             </p>
           </div>
         </div>
@@ -146,41 +141,41 @@ export function AiSpecAdvisor({ externalOpenSignal = 0, initialPrompt }: AiSpecA
           onClick={() => setIsOpen(!isOpen)}
           aria-expanded={isOpen}
           aria-controls="ai-advisor-panel"
-          className="font-mono text-xs bg-surface-sand text-brand-navy hover:bg-white px-3.5 py-1.5 rounded-sm font-bold inline-flex items-center gap-1.5 transition-colors"
+          className="font-mono text-xs bg-surface-white text-brand-navy hover:bg-steel-100 px-3.5 py-1.5 rounded-sm font-bold inline-flex items-center gap-1.5 transition-colors"
         >
-          <span>{isOpen ? 'Hide AI Engineer' : 'Ask AI Steel Engineer'}</span>
+          <span>{isOpen ? 'Hide Advisor' : 'Ask AI Steel Engineer'}</span>
           {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
         </button>
       </div>
 
-      {/* Quick Scenario Pills (Always visible for 1-click exploration) */}
-      <div className="bg-surface-sandLight px-5 py-3 border-b border-steel-200 flex flex-wrap items-center gap-2">
-        <span className="font-mono text-[11px] uppercase font-bold text-brand-navy mr-1">
-          Try Engineering Scenario:
-        </span>
-        {PRESET_SCENARIOS.map((preset) => (
-          <button
-            key={preset.label}
-            type="button"
-            onClick={() => {
-              setPrompt(preset.prompt);
-              setEnvironment(preset.environment);
-              setHandling(preset.handling);
-              submitAdvisorQuery({
-                prompt: preset.prompt,
-                environment: preset.environment,
-                handling: preset.handling,
-              });
-            }}
-            className="text-xs font-mono bg-white hover:bg-brand-navy hover:text-surface-sand text-steel-800 border border-steel-200 px-3 py-1 rounded-sm transition-colors"
-          >
-            {preset.label}
-          </button>
-        ))}
-      </div>
-
       {isOpen && (
         <div id="ai-advisor-panel" className="p-5 space-y-6">
+          {/* Quick Scenario Pills */}
+          <div className="bg-steel-50 px-4 py-3 border border-steel-200 rounded-sm flex flex-wrap items-center gap-2">
+            <span className="font-mono text-[11px] uppercase font-bold text-brand-navy mr-1">
+              Quick Scenarios:
+            </span>
+            {PRESET_SCENARIOS.map((preset) => (
+              <button
+                key={preset.label}
+                type="button"
+                onClick={() => {
+                  setPrompt(preset.prompt);
+                  setEnvironment(preset.environment);
+                  setHandling(preset.handling);
+                  submitAdvisorQuery({
+                    prompt: preset.prompt,
+                    environment: preset.environment,
+                    handling: preset.handling,
+                  });
+                }}
+                className="text-xs font-mono bg-surface-white hover:bg-stillage-blue hover:text-white text-steel-800 border border-steel-200 px-3 py-1 rounded-sm transition-colors"
+              >
+                {preset.label}
+              </button>
+            ))}
+          </div>
+
           <form onSubmit={handleFormSubmit} className="space-y-4">
             <div>
               <label
@@ -202,7 +197,6 @@ export function AiSpecAdvisor({ externalOpenSignal = 0, initialPrompt }: AiSpecA
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
-              {/* Operating Environment Radio Group (<6 options per Modern Web Guidance forms) */}
               <fieldset className="md:col-span-5">
                 <legend className="font-mono text-[11px] uppercase font-bold text-steel-600 mb-1.5">
                   Operating Environment
@@ -217,8 +211,8 @@ export function AiSpecAdvisor({ externalOpenSignal = 0, initialPrompt }: AiSpecA
                       key={env.id}
                       className={`cursor-pointer border px-2.5 py-2 rounded-sm text-center transition-colors ${
                         environment === env.id
-                          ? 'bg-brand-navy text-surface-sand border-brand-navy font-bold'
-                          : 'bg-surface-sandLight text-steel-800 border-steel-200'
+                          ? 'bg-brand-navy text-white border-brand-navy font-bold'
+                          : 'bg-steel-50 text-steel-800 border-steel-200'
                       }`}
                     >
                       <input
@@ -237,7 +231,6 @@ export function AiSpecAdvisor({ externalOpenSignal = 0, initialPrompt }: AiSpecA
                 </div>
               </fieldset>
 
-              {/* Site Handling Method Radio Group */}
               <fieldset className="md:col-span-5">
                 <legend className="font-mono text-[11px] uppercase font-bold text-steel-600 mb-1.5">
                   Site Handling Equipment
@@ -254,7 +247,7 @@ export function AiSpecAdvisor({ externalOpenSignal = 0, initialPrompt }: AiSpecA
                       className={`cursor-pointer border px-2 py-2 rounded-sm text-center transition-colors ${
                         handling === h.id
                           ? 'bg-stillage-blue text-white border-stillage-blue font-bold'
-                          : 'bg-surface-sandLight text-steel-800 border-steel-200'
+                          : 'bg-steel-50 text-steel-800 border-steel-200'
                       }`}
                     >
                       <input
@@ -293,14 +286,12 @@ export function AiSpecAdvisor({ externalOpenSignal = 0, initialPrompt }: AiSpecA
             </div>
           </form>
 
-          {/* AI Recommendation Output */}
           {response && (
             <div className="border-t border-steel-200 pt-5 space-y-5">
-              {/* Executive Summary */}
-              <div className="bg-surface-sand/60 border-l-4 border-stillage-blue p-4 rounded-sm">
+              <div className="bg-steel-50 border-l-4 border-stillage-blue p-4 rounded-sm">
                 <div className="flex flex-wrap items-center justify-between gap-2 font-mono text-[11px] text-brand-navy font-bold mb-1">
-                  <span>AI ENGINEERING RECOMMENDATION ({response.model})</span>
-                  <span className="bg-brand-navy text-surface-sand px-2 py-0.5 rounded-sm">
+                  <span>ENGINEERING RECOMMENDATION</span>
+                  <span className="bg-brand-navy text-white px-2 py-0.5 rounded-sm">
                     SKU: {response.primaryRecommendation.product.sku}
                   </span>
                 </div>
@@ -309,7 +300,6 @@ export function AiSpecAdvisor({ externalOpenSignal = 0, initialPrompt }: AiSpecA
                 </p>
               </div>
 
-              {/* Primary Recommended Spec Card */}
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 bg-surface-white border border-steel-200 p-5">
                 <div className="lg:col-span-8 space-y-3">
                   <div className="flex flex-wrap items-center gap-2 font-mono text-xs">
@@ -336,19 +326,19 @@ export function AiSpecAdvisor({ externalOpenSignal = 0, initialPrompt }: AiSpecA
                   </p>
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1 font-mono text-xs">
-                    <div className="bg-surface-sandLight p-2.5 border border-steel-200">
+                    <div className="bg-steel-50 p-2.5 border border-steel-200">
                       <div className="text-[10px] text-steel-600 uppercase">Recommended Finish</div>
                       <div className="font-bold text-brand-navy mt-0.5">
                         {response.primaryRecommendation.finishName}
                       </div>
                     </div>
-                    <div className="bg-surface-sandLight p-2.5 border border-steel-200">
+                    <div className="bg-steel-50 p-2.5 border border-steel-200">
                       <div className="text-[10px] text-steel-600 uppercase">Base &amp; Handling</div>
                       <div className="font-bold text-brand-navy mt-0.5">
                         {response.primaryRecommendation.mobilityName}
                       </div>
                     </div>
-                    <div className="bg-surface-sandLight p-2.5 border border-steel-200">
+                    <div className="bg-steel-50 p-2.5 border border-steel-200">
                       <div className="text-[10px] text-steel-600 uppercase">Optimal Fleet Batch</div>
                       <div className="font-bold text-stillage-blue mt-0.5">
                         {response.primaryRecommendation.recommendedQuantity} Units (5% Off Tier)
@@ -362,8 +352,7 @@ export function AiSpecAdvisor({ externalOpenSignal = 0, initialPrompt }: AiSpecA
                   </div>
                 </div>
 
-                {/* Right Action Column */}
-                <div className="lg:col-span-4 bg-surface-sandLight border border-steel-200 p-4 flex flex-col justify-between space-y-4">
+                <div className="lg:col-span-4 bg-steel-50 border border-steel-200 p-4 flex flex-col justify-between space-y-4">
                   <div>
                     <div className="font-mono text-[11px] uppercase text-steel-600">
                       Base Unit Price
@@ -401,7 +390,7 @@ export function AiSpecAdvisor({ externalOpenSignal = 0, initialPrompt }: AiSpecA
                     <button
                       type="button"
                       onClick={() => setShowCadBrief(!showCadBrief)}
-                      className="w-full bg-brand-navy hover:bg-brand-navyLight text-surface-sand font-mono text-[11px] font-bold py-2 px-3 rounded-sm flex items-center justify-center gap-1.5 transition-colors"
+                      className="w-full bg-brand-navy hover:bg-brand-navyLight text-white font-mono text-[11px] font-bold py-2 px-3 rounded-sm flex items-center justify-center gap-1.5 transition-colors"
                     >
                       <FileCode2 className="w-3.5 h-3.5 text-accent-amber" />
                       <span>
@@ -414,26 +403,25 @@ export function AiSpecAdvisor({ externalOpenSignal = 0, initialPrompt }: AiSpecA
                 </div>
               </div>
 
-              {/* Expandable AI Bespoke CAD Fabrication Brief */}
               {showCadBrief && (
-                <div className="bg-brand-navy text-surface-white p-5 border-l-4 border-accent-amber space-y-3 font-mono text-xs">
+                <div className="bg-brand-navy text-surface-white p-5 border-l-4 border-stillage-blue space-y-3 font-mono text-xs">
                   <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/15 pb-2">
-                    <span className="text-surface-sand font-bold flex items-center gap-2">
-                      <Wrench className="w-4 h-4 text-accent-amber" />
-                      AI BESPOKE CAD FABRICATION BRIEF • REF: {response.bespokeCadBrief.referenceCode}
+                    <span className="text-white font-bold flex items-center gap-2">
+                      <Wrench className="w-4 h-4 text-accent-teal" />
+                      BESPOKE CAD FABRICATION BRIEF • REF: {response.bespokeCadBrief.referenceCode}
                     </span>
-                    <span className="text-steel-200">Wrexham &amp; Midlands Steel Works</span>
+                    <span className="text-steel-200">UK Steel Works</span>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                     <div>
                       <div className="text-steel-400 text-[10px] uppercase">Target Footprint</div>
-                      <div className="text-surface-sand font-bold">
+                      <div className="text-stillage-sky font-bold">
                         {response.bespokeCadBrief.suggestedDimensionsMm}
                       </div>
                     </div>
                     <div>
                       <div className="text-steel-400 text-[10px] uppercase">Rated SWL</div>
-                      <div className="text-surface-sand font-bold">
+                      <div className="text-stillage-sky font-bold">
                         {response.bespokeCadBrief.targetSwlKg} kg UDL
                       </div>
                     </div>
@@ -460,7 +448,7 @@ export function AiSpecAdvisor({ externalOpenSignal = 0, initialPrompt }: AiSpecA
                       )}&body=${encodeURIComponent(
                         `Reference: ${response.bespokeCadBrief.referenceCode}\nTarget Dimensions: ${response.bespokeCadBrief.suggestedDimensionsMm}\nTarget SWL: ${response.bespokeCadBrief.targetSwlKg}kg\nSteel Gauge: ${response.bespokeCadBrief.recommendedSteelGauge}\nFinish: ${response.bespokeCadBrief.recommendedFinish}\nCompliance: ${response.bespokeCadBrief.complianceStandard}\n\nNotes: ${response.bespokeCadBrief.engineeringSummary}`
                       )}`}
-                      className="inline-flex items-center gap-2 bg-surface-sand text-brand-navy font-display font-bold uppercase px-4 py-2 rounded-sm text-xs hover:bg-white transition-colors"
+                      className="inline-flex items-center gap-2 bg-surface-white text-brand-navy font-display font-bold uppercase px-4 py-2 rounded-sm text-xs hover:bg-steel-100 transition-colors"
                     >
                       <span>Send Brief to CAD Engineering Desk</span>
                       <ArrowRight className="w-3.5 h-3.5" />
@@ -469,19 +457,18 @@ export function AiSpecAdvisor({ externalOpenSignal = 0, initialPrompt }: AiSpecA
                 </div>
               )}
 
-              {/* Algolia Complementary Fleet Strip */}
               {response.complementaryFleet.length > 0 && (
                 <div className="pt-2">
                   <div className="font-mono text-xs uppercase text-brand-navy font-bold mb-2.5 flex items-center gap-1.5">
                     <CheckCircle2 className="w-3.5 h-3.5 text-stillage-blue" />
-                    <span>Compatible Algolia Fleet Pairings</span>
+                    <span>Compatible Fleet Pairings</span>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     {response.complementaryFleet.map((comp) => (
                       <Link
                         key={comp.product.id}
                         href={`/products/${comp.product.slug}`}
-                        className="p-3 border border-steel-200 hover:border-stillage-blue bg-surface-sandLight/50 rounded-sm flex flex-col justify-between transition-colors"
+                        className="p-3 border border-steel-200 hover:border-stillage-blue bg-steel-50 rounded-sm flex flex-col justify-between transition-colors"
                       >
                         <div>
                           <div className="flex items-center justify-between font-mono text-[11px]">

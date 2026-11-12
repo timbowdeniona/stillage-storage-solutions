@@ -53,7 +53,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
   const faqJsonLd = buildFaqSchema(getProductFaqs(product));
 
   return (
-    <div>
+    <div className="bg-surface-white min-h-screen">
       {/* Schema.org JSON-LD for Google Rich Snippets & AI Search Engines */}
       <script
         type="application/ld+json"
@@ -68,8 +68,8 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
 
-      {/* Breadcrumb Bar */}
-      <div className="bg-surface-sandLight border-b border-steel-200">
+      {/* Clean Breadcrumb Bar */}
+      <div className="bg-steel-50 border-b border-steel-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
           <nav
             aria-label="Breadcrumb"
@@ -96,7 +96,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
       </div>
 
       {/* Main Configurator & Spec Stage */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <Suspense
           fallback={
             <div className="font-mono text-sm text-steel-600 py-8">
@@ -107,10 +107,10 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
           <ProductConfigurator product={product} />
         </Suspense>
 
-        {/* GEO Technical Specification Table, Direct-Answer Summary & Buyer FAQs */}
+        {/* Technical Specification Table, Direct-Answer Summary & Buyer FAQs */}
         <ProductGeoSection product={product} />
 
-        {/* Algolia-Powered Compatible Equipment & Similar Specifications */}
+        {/* Compatible Equipment & Similar Specifications */}
         <AlgoliaRecommendations
           sourceProductSku={product.sku}
           recommendations={recommendations}

@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import {
-  Database,
   Layers,
   SlidersHorizontal,
   ArrowRight,
@@ -30,73 +29,59 @@ export function AlgoliaRecommendations({
       ? recommendations.compatibleEquipment
       : recommendations.similarSpecifications;
 
-  const engineLabel =
-    recommendations.engine === 'algolia-recommend'
-      ? 'Algolia Recommend ML'
-      : recommendations.engine === 'algolia-dsn-scored'
-      ? 'Algolia Live DSN Scored'
-      : 'Algolia Instant Replica';
-
   return (
     <section className="mt-16 pt-12 border-t border-steel-200" aria-labelledby="algolia-rec-heading">
-      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 mb-6">
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 mb-8">
         <div>
           <div className="inline-flex items-center gap-2 font-mono text-xs uppercase text-stillage-blue font-bold">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>ALGOLIA INTELLIGENT MERCHANDISING • FOR {sourceProductSku}</span>
+            <span>COMPATIBLE EQUIPMENT • FOR {sourceProductSku}</span>
           </div>
           <h2
             id="algolia-rec-heading"
             className="font-display font-bold text-2xl sm:text-3xl uppercase text-brand-navy mt-1"
           >
-            Recommended Stillages &amp; Compatible Fleet Equipment
+            Recommended Stillages &amp; Fleet Equipment
           </h2>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="inline-flex items-center gap-1.5 text-[11px] font-mono text-steel-600 bg-surface-sandLight px-2.5 py-1.5 border border-steel-200 rounded-sm">
-            <Database className="w-3.5 h-3.5 text-stillage-blue" />
-            <span>Engine: {engineLabel}</span>
-          </div>
-
-          <div
-            role="tablist"
-            aria-label="Recommendation type"
-            className="inline-flex bg-surface-sandLight p-1 border border-steel-200 rounded-sm"
+        <div
+          role="tablist"
+          aria-label="Recommendation type"
+          className="inline-flex bg-steel-50 p-1 border border-steel-200 rounded-sm self-start lg:self-auto"
+        >
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === 'compatible'}
+            onClick={() => setActiveTab('compatible')}
+            className={`px-3.5 py-1.5 text-xs font-display font-bold uppercase tracking-wider rounded-sm transition-colors flex items-center gap-1.5 ${
+              activeTab === 'compatible'
+                ? 'bg-stillage-blue text-white'
+                : 'text-steel-800 hover:text-brand-navy'
+            }`}
           >
-            <button
-              type="button"
-              role="tab"
-              aria-selected={activeTab === 'compatible'}
-              onClick={() => setActiveTab('compatible')}
-              className={`px-3.5 py-1.5 text-xs font-display font-bold uppercase tracking-wider rounded-sm transition-colors flex items-center gap-1.5 ${
-                activeTab === 'compatible'
-                  ? 'bg-brand-navy text-surface-sand'
-                  : 'text-steel-800 hover:text-brand-navy'
-              }`}
-            >
-              <Layers className="w-3.5 h-3.5" />
-              <span>Compatible &amp; Inter-Stacking ({recommendations.compatibleEquipment.length})</span>
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={activeTab === 'similar'}
-              onClick={() => setActiveTab('similar')}
-              className={`px-3.5 py-1.5 text-xs font-display font-bold uppercase tracking-wider rounded-sm transition-colors flex items-center gap-1.5 ${
-                activeTab === 'similar'
-                  ? 'bg-brand-navy text-surface-sand'
-                  : 'text-steel-800 hover:text-brand-navy'
-              }`}
-            >
-              <SlidersHorizontal className="w-3.5 h-3.5" />
-              <span>Similar Specifications ({recommendations.similarSpecifications.length})</span>
-            </button>
-          </div>
+            <Layers className="w-3.5 h-3.5" />
+            <span>Compatible &amp; Inter-Stacking ({recommendations.compatibleEquipment.length})</span>
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === 'similar'}
+            onClick={() => setActiveTab('similar')}
+            className={`px-3.5 py-1.5 text-xs font-display font-bold uppercase tracking-wider rounded-sm transition-colors flex items-center gap-1.5 ${
+              activeTab === 'similar'
+                ? 'bg-stillage-blue text-white'
+                : 'text-steel-800 hover:text-brand-navy'
+            }`}
+          >
+            <SlidersHorizontal className="w-3.5 h-3.5" />
+            <span>Similar Specifications ({recommendations.similarSpecifications.length})</span>
+          </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {activeList.map((rec) => {
           const configLink = rec.suggestedConfig
             ? `/products/${rec.product.slug}?finish=${encodeURIComponent(
@@ -121,8 +106,8 @@ export function AlgoliaRecommendations({
                 })
               }
             >
-              {/* Algolia Match Reason Callout Strip */}
-              <div className="bg-surface-sandLight border border-steel-200 border-l-4 border-l-stillage-blue px-3 py-2 flex items-start gap-2 text-xs">
+              {/* Match Reason Callout Strip */}
+              <div className="bg-steel-50 border border-steel-200 border-l-4 border-l-stillage-blue px-3.5 py-2.5 flex items-start gap-2 text-xs rounded-sm">
                 <CheckCircle2 className="w-4 h-4 text-stillage-blue shrink-0 mt-0.5" />
                 <div className="flex-1 min-w-0">
                   <div className="font-mono text-[10px] uppercase text-steel-600 font-bold">
@@ -141,7 +126,7 @@ export function AlgoliaRecommendations({
               {rec.suggestedConfig && (
                 <Link
                   href={configLink}
-                  className="bg-brand-navy hover:bg-stillage-blue text-surface-sand hover:text-white px-3.5 py-2 rounded-sm font-mono text-[11px] font-bold flex items-center justify-between transition-colors"
+                  className="bg-brand-navy hover:bg-stillage-blue text-white px-3.5 py-2 rounded-sm font-mono text-[11px] font-bold flex items-center justify-between transition-colors"
                 >
                   <span>
                     1-Click Pre-Configured ({rec.suggestedConfig.quantity || 4}× Units)

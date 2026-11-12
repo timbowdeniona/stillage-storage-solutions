@@ -75,9 +75,9 @@ export function ProductTechnicalDiagram({
 
   // Palette based on theme
   const isDark = cadTheme === 'blueprint-dark';
-  const bgPrimary = isDark ? '#09172C' : '#FAF5EE';
+  const bgPrimary = isDark ? '#09172C' : '#F8FAFC';
   const bgStage = isDark ? '#0F2342' : '#FFFFFF';
-  const bgPanel = isDark ? '#0B1B34' : '#F2E3CE';
+  const bgPanel = isDark ? '#0B1B34' : '#F1F5F9';
   const gridMinor = isDark ? 'rgba(33, 118, 199, 0.16)' : 'rgba(20, 93, 160, 0.09)';
   const gridMajor = isDark ? 'rgba(33, 118, 199, 0.32)' : 'rgba(20, 93, 160, 0.2)';
   const borderStroke = isDark ? '#2176C7' : '#0F2342';
@@ -85,7 +85,7 @@ export function ProductTechnicalDiagram({
   const accentAmber = isDark ? '#FBBF24' : '#D97706';
   const accentTeal = isDark ? '#2DD4BF' : '#00897B';
   const textPrimary = isDark ? '#FFFFFF' : '#0F2342';
-  const textSecondary = isDark ? '#F2E3CE' : '#1C2026';
+  const textSecondary = isDark ? '#E2E8F0' : '#1C2026';
   const textMuted = isDark ? '#94A3B8' : '#4A525D';
   const pillBg = isDark ? '#09172C' : '#FFFFFF';
 

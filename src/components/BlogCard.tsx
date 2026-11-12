@@ -9,10 +9,10 @@ interface BlogCardProps {
 
 export function BlogCard({ post }: BlogCardProps) {
   return (
-    <article className="group border border-steel-200 hover:border-stillage-blue bg-surface-white flex flex-col justify-between transition-all shadow-sm hover:shadow-md">
+    <article className="group border border-steel-200 hover:border-stillage-blue bg-surface-white rounded-sm flex flex-col justify-between transition-all shadow-xs hover:shadow-lg overflow-hidden">
       <div>
         {/* Category & Reading Time Header Bar */}
-        <div className="px-4 py-2.5 bg-steel-100 border-b border-steel-200 flex items-center justify-between gap-2 font-mono text-[11px]">
+        <div className="px-5 py-3 bg-steel-50 border-b border-steel-200 flex items-center justify-between gap-2 font-mono text-[11px]">
           <span className="font-bold text-stillage-blue uppercase tracking-wider truncate">
             {post.category}
           </span>
@@ -22,17 +22,13 @@ export function BlogCard({ post }: BlogCardProps) {
           </span>
         </div>
 
-        {/* Studio Image Stage */}
+        {/* Crisp Studio White Image Stage */}
         <Link
           href={`/blog/${post.slug}`}
-          className={`block h-48 p-5 flex items-center justify-center relative border-b border-steel-200 transition-colors ${
-            post.backdropStyle === 'sand'
-              ? 'bg-surface-sand/75 group-hover:bg-surface-sand'
-              : 'bg-surface-white group-hover:bg-surface-sand/40'
-          }`}
+          className="block h-48 p-6 flex items-center justify-center relative border-b border-steel-200 bg-surface-white group-hover:bg-steel-50 transition-colors"
         >
           {post.featured && (
-            <span className="absolute top-3 left-3 bg-brand-navy text-surface-sand font-mono text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-sm">
+            <span className="absolute top-3 left-3 bg-brand-navy text-white font-mono text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-sm">
               Featured Guide
             </span>
           )}
@@ -71,7 +67,7 @@ export function BlogCard({ post }: BlogCardProps) {
               {post.tags.slice(0, 3).map((tag) => (
                 <span
                   key={tag}
-                  className="font-mono text-[10px] bg-surface-sandLight border border-steel-200 text-steel-800 px-2 py-0.5 rounded-sm"
+                  className="font-mono text-[10px] bg-steel-50 border border-steel-200 text-steel-800 px-2 py-0.5 rounded-sm"
                 >
                   {tag}
                 </span>
@@ -82,7 +78,7 @@ export function BlogCard({ post }: BlogCardProps) {
       </div>
 
       {/* Footer CTA */}
-      <div className="px-5 py-3 bg-surface-sandLight border-t border-steel-200 flex items-center justify-between font-mono text-xs font-bold text-stillage-blue">
+      <div className="px-5 py-3.5 bg-steel-50 border-t border-steel-200 flex items-center justify-between font-mono text-xs font-bold text-stillage-blue">
         <Link href={`/blog/${post.slug}`} className="inline-flex items-center justify-between w-full">
           <span>Read Engineering Guide</span>
           <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />

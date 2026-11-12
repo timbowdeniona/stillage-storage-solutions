@@ -11,7 +11,7 @@ export function Footer() {
           <div className="flex items-start gap-3.5">
             <ShieldCheck className="w-7 h-7 text-accent-teal shrink-0 mt-0.5" />
             <div>
-              <h3 className="font-display font-bold uppercase tracking-wider text-surface-sand text-sm">
+              <h3 className="font-display font-bold uppercase tracking-wider text-white text-sm">
                 Certified Safe Working Loads
               </h3>
               <p className="text-xs text-steel-200 mt-1">
@@ -21,9 +21,9 @@ export function Footer() {
           </div>
 
           <div className="flex items-start gap-3.5">
-            <Wrench className="w-7 h-7 text-stillage-blueLight shrink-0 mt-0.5" />
+            <Wrench className="w-7 h-7 text-stillage-sky shrink-0 mt-0.5" />
             <div>
-              <h3 className="font-display font-bold uppercase tracking-wider text-surface-sand text-sm">
+              <h3 className="font-display font-bold uppercase tracking-wider text-white text-sm">
                 Custom RAL &amp; Bespoke Builds
               </h3>
               <p className="text-xs text-steel-200 mt-1">
@@ -35,7 +35,7 @@ export function Footer() {
           <div className="flex items-start gap-3.5">
             <Truck className="w-7 h-7 text-accent-amber shrink-0 mt-0.5" />
             <div>
-              <h3 className="font-display font-bold uppercase tracking-wider text-surface-sand text-sm">
+              <h3 className="font-display font-bold uppercase tracking-wider text-white text-sm">
                 UK HGV Pallet Network
               </h3>
               <p className="text-xs text-steel-200 mt-1">
@@ -45,9 +45,9 @@ export function Footer() {
           </div>
 
           <div className="flex items-start gap-3.5">
-            <Layers className="w-7 h-7 text-surface-sand shrink-0 mt-0.5" />
+            <Layers className="w-7 h-7 text-stillage-sky shrink-0 mt-0.5" />
             <div>
-              <h3 className="font-display font-bold uppercase tracking-wider text-surface-sand text-sm">
+              <h3 className="font-display font-bold uppercase tracking-wider text-white text-sm">
                 Trade &amp; Proforma Accounts
               </h3>
               <p className="text-xs text-steel-200 mt-1">
@@ -67,13 +67,13 @@ export function Footer() {
           <p className="text-xs text-steel-200 leading-relaxed">
             Direct UK manufacturer and supplier of heavy-duty steel stillages, cantilever bar storage racks, modular hopper towers, and stackable post pallets.
           </p>
-          <div className="font-mono text-xs text-surface-sand pt-1">
+          <div className="font-mono text-xs text-stillage-sky pt-1">
             stillagestoragesolutions.co.uk
           </div>
         </div>
 
         <div>
-          <h4 className="font-display font-bold uppercase tracking-wider text-surface-sand mb-3">
+          <h4 className="font-display font-bold uppercase tracking-wider text-white mb-3">
             Product Range
           </h4>
           <ul className="space-y-2 text-xs text-steel-200">
@@ -106,7 +106,7 @@ export function Footer() {
         </div>
 
         <div>
-          <h4 className="font-display font-bold uppercase tracking-wider text-surface-sand mb-3">
+          <h4 className="font-display font-bold uppercase tracking-wider text-white mb-3">
             Technical Guides &amp; Tools
           </h4>
           <ul className="space-y-2 text-xs text-steel-200">
@@ -116,12 +116,12 @@ export function Footer() {
               </Link>
             </li>
             <li>
-              <Link href="/blueprint-studio" className="text-surface-sand font-bold hover:underline">
+              <Link href="/blueprint-studio" className="text-stillage-sky font-bold hover:underline">
                 CAD Blueprint Vector Studio &rarr;
               </Link>
             </li>
             <li>
-              <Link href="/blog" className="text-surface-sand font-bold hover:underline">
+              <Link href="/blog" className="text-white font-bold hover:underline">
                 Technical Blog &amp; Engineering Guides &rarr;
               </Link>
             </li>
@@ -153,14 +153,14 @@ export function Footer() {
         </div>
 
         <div>
-          <h4 className="font-display font-bold uppercase tracking-wider text-surface-sand mb-3">
+          <h4 className="font-display font-bold uppercase tracking-wider text-white mb-3">
             Trade Sales &amp; Enquiries
           </h4>
           <p className="text-xs text-steel-200 mb-3">
             Need custom dimensions, stencil ID numbering, or a bulk fabrication tender?
           </p>
           <div className="bg-brand-navyDark p-3.5 rounded border border-white/10 font-mono text-xs space-y-1">
-            <div className="text-surface-sand font-bold">Tel: 01978 800 500</div>
+            <div className="text-white font-bold">Tel: 01978 800 500</div>
             <div className="text-steel-200">sales@stillagestoragesolutions.co.uk</div>
             <div className="text-[11px] text-accent-teal pt-1">Mon–Fri: 07:30 – 17:00 GMT</div>
           </div>
@@ -174,7 +174,7 @@ export function Footer() {
         <Link href="/analytics-report" className="text-accent-teal hover:underline font-bold">
           Client SEO, GEO &amp; Monthly Analytics Dashboard &rarr;
         </Link>
-        <Link href="/design-system" className="text-surface-sand hover:underline">
+        <Link href="/design-system" className="text-stillage-sky hover:underline">
           View Design System &amp; Colour/Font Swatches &rarr;
         </Link>
       </div>

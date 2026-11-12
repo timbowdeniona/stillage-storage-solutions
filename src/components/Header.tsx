@@ -11,8 +11,6 @@ import {
   ShoppingBag,
   Menu,
   X,
-  SlidersHorizontal,
-  Database,
   ArrowRight,
   Sparkles,
   BookOpen,
@@ -36,13 +34,10 @@ export function Header() {
     cleanedQuery: '',
     intentBadges: [],
   });
-  const [instantEngine, setInstantEngine] = useState<
-    'algolia-dsn' | 'algolia-dsn-cached' | 'algolia-local-replica'
-  >('algolia-local-replica');
   const searchContainerRef = useRef<HTMLFormElement>(null);
   const router = useRouter();
 
-  // Pillar 1 Quota Multiplier: 180ms keystroke debounce cuts free-tier search requests by ~75%
+  // 180ms keystroke debounce
   useEffect(() => {
     const trimmed = searchQuery.trim();
     if (!trimmed) {
@@ -72,7 +67,6 @@ export function Header() {
         setInstantHits(res.hits.slice(0, 4));
         setInstantArticles(res.articleHits.slice(0, 2));
         setInstantIntent(res.parsedIntent);
-        setInstantEngine(res.engine);
       }
     });
 
@@ -126,22 +120,22 @@ export function Header() {
       <div className="bg-brand-navyDark border-b border-white/10 text-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-4 text-steel-200">
-            <span className="inline-flex items-center gap-1.5 font-medium text-surface-sand">
+            <span className="inline-flex items-center gap-1.5 font-medium text-white">
               <ShieldCheck className="w-3.5 h-3.5 text-accent-teal" />
               UK Manufactured Heavy-Gauge Steel Stillages
             </span>
             <span className="hidden md:inline-flex items-center gap-1.5 text-steel-200">
-              <Truck className="w-3.5 h-3.5 text-stillage-blueLight" />
-              Nationwide HGV Pallet Delivery &amp; Tail-Lift Offloading
+              <Truck className="w-3.5 h-3.5 text-stillage-sky" />
+              48–72hr Nationwide HGV Pallet Delivery
             </span>
           </div>
 
           <div className="flex items-center gap-4 ml-auto">
             <a
-              href="tel:08001123456"
-              className="hidden sm:inline-flex items-center gap-1.5 text-steel-200 hover:text-surface-sand transition-colors font-mono"
+              href="tel:01978800500"
+              className="hidden sm:inline-flex items-center gap-1.5 text-steel-200 hover:text-white transition-colors font-mono"
             >
-              <PhoneCall className="w-3.5 h-3.5 text-accent-amber" />
+              <PhoneCall className="w-3.5 h-3.5 text-stillage-sky" />
               Trade Desk: 01978 800 500
             </a>
 
@@ -183,7 +177,7 @@ export function Header() {
         <div className="flex items-center justify-between gap-6">
           {/* Standalone Stillage Storage Solutions Emblem */}
           <Link href="/" className="flex items-center gap-3.5 group shrink-0">
-            <div className="w-11 h-11 rounded bg-stillage-blue border-2 border-surface-sand/80 flex items-center justify-center shadow-inner group-hover:bg-stillage-blueLight transition-colors">
+            <div className="w-11 h-11 rounded bg-stillage-blue border-2 border-white/30 flex items-center justify-center shadow-inner group-hover:bg-stillage-blueLight transition-colors">
               <svg
                 viewBox="0 0 40 40"
                 className="w-7 h-7 text-surface-white"
@@ -202,7 +196,7 @@ export function Header() {
                 STILLAGE STORAGE
               </div>
               <div className="flex items-center gap-2 mt-1">
-                <span className="font-display font-bold text-xs uppercase tracking-[0.2em] text-surface-sand">
+                <span className="font-display font-bold text-xs uppercase tracking-[0.2em] text-stillage-sky">
                   SOLUTIONS UK
                 </span>
                 <span className="h-3 w-0.5 bg-accent-teal inline-block" />
@@ -213,7 +207,7 @@ export function Header() {
             </div>
           </Link>
 
-          {/* Algolia Federated Instant Search Bar */}
+          {/* Clean Instant Search Bar */}
           <form
             ref={searchContainerRef}
             onSubmit={handleSearch}
@@ -243,8 +237,8 @@ export function Header() {
                 aria-autocomplete="list"
                 aria-expanded={showDropdown}
                 aria-controls="header-algolia-autocomplete"
-                placeholder="Search by stillage type, SKU, SWL, or guide (e.g. PUWER, ISO 1461)..."
-                className="w-full bg-brand-navyDark text-white placeholder-steel-400 text-sm px-4 py-2.5 rounded-l border border-white/20 focus:outline-none focus:border-surface-sand"
+                placeholder="Search by stillage type, SKU, SWL, or dimensions (e.g. 1200x1000)..."
+                className="w-full bg-brand-navyDark text-white placeholder-steel-400 text-sm px-4 py-2.5 rounded-l border border-white/20 focus:outline-none focus:border-stillage-sky"
               />
               <button
                 type="submit"
@@ -255,34 +249,26 @@ export function Header() {
               </button>
             </div>
 
-            {/* Federated Algolia Autocomplete Overlay (Products + Technical Guides) */}
+            {/* Instant Search Autocomplete Overlay */}
             {showDropdown && (
               <div
                 id="header-algolia-autocomplete"
                 role="region"
-                aria-label="Instant Algolia federated search suggestions"
+                aria-label="Instant search suggestions"
                 className="absolute left-0 right-0 top-full mt-1.5 bg-surface-white text-steel-900 border-2 border-brand-navy shadow-2xl rounded-sm z-50 overflow-hidden"
               >
-                <div className="bg-surface-sandLight px-3.5 py-2 border-b border-steel-200 flex flex-wrap items-center justify-between gap-2 text-[11px] font-mono">
-                  <span className="inline-flex items-center gap-1.5 text-brand-navy font-bold">
-                    <Database className="w-3.5 h-3.5 text-stillage-blue" />
-                    {instantEngine === 'algolia-dsn-cached'
-                      ? 'Algolia Instant Cache (0 Quota)'
-                      : instantEngine === 'algolia-dsn'
-                      ? 'Algolia Federated Multi-Index'
-                      : 'Algolia Instant Replica'}
-                  </span>
-                  {instantIntent.intentBadges.length > 0 && (
+                {instantIntent.intentBadges.length > 0 && (
+                  <div className="bg-steel-100 px-3.5 py-2 border-b border-steel-200 flex items-center justify-between gap-2 text-[11px] font-mono">
                     <span className="inline-flex items-center gap-1 text-stillage-blue font-bold">
                       <Sparkles className="w-3 h-3" />
                       {instantIntent.intentBadges[0]}
                     </span>
-                  )}
-                </div>
+                  </div>
+                )}
 
                 {instantHits.length === 0 && instantArticles.length === 0 ? (
                   <div className="p-4 text-xs text-steel-600 font-mono">
-                    No direct SKU matches for &ldquo;{debouncedQuery}&rdquo; — press Enter to consult our AI Steel Stillage Engineer.
+                    No direct SKU matches for &ldquo;{debouncedQuery}&rdquo; — press Enter to view full search results.
                   </div>
                 ) : (
                   <div>
@@ -304,7 +290,7 @@ export function Header() {
                               key={hit.id}
                               href={targetHref}
                               onClick={() => setAutocompleteOpen(false)}
-                              className="p-3 hover:bg-surface-sand/40 flex items-center justify-between gap-3 transition-colors"
+                              className="p-3 hover:bg-steel-100/70 flex items-center justify-between gap-3 transition-colors"
                             >
                               <div className="flex items-center gap-3 min-w-0">
                                 <img
@@ -312,7 +298,7 @@ export function Header() {
                                   alt={hit.title}
                                   width={44}
                                   height={44}
-                                  className="w-11 h-11 object-contain bg-surface-sand p-1 rounded-sm border border-steel-200 shrink-0"
+                                  className="w-11 h-11 object-contain bg-steel-50 p-1 rounded-sm border border-steel-200 shrink-0"
                                 />
                                 <div className="min-w-0">
                                   <div className="flex items-center gap-2 font-mono text-[10px]">
@@ -353,12 +339,11 @@ export function Header() {
                       </div>
                     )}
 
-                    {/* Pillar 2: Federated Technical Compliance & Engineering Guides */}
                     {instantArticles.length > 0 && (
-                      <div className="border-t-2 border-steel-200 bg-surface-sandLight/60">
+                      <div className="border-t-2 border-steel-200 bg-steel-50">
                         <div className="px-3.5 py-1.5 font-mono text-[10px] uppercase font-bold text-steel-600 flex items-center gap-1.5">
                           <BookOpen className="w-3 h-3 text-stillage-blue" />
-                          <span>Technical Engineering &amp; Compliance Guides</span>
+                          <span>Technical Engineering Guides</span>
                         </div>
                         <div className="divide-y divide-steel-200">
                           {instantArticles.map((art) => (
@@ -366,7 +351,7 @@ export function Header() {
                               key={art.objectID}
                               href={`/blog/${art.slug}`}
                               onClick={() => setAutocompleteOpen(false)}
-                              className="px-3.5 py-2.5 hover:bg-surface-sand/50 flex items-center justify-between gap-3 transition-colors"
+                              className="px-3.5 py-2.5 hover:bg-steel-100 flex items-center justify-between gap-3 transition-colors"
                             >
                               <div className="min-w-0">
                                 <div className="font-display font-bold text-xs uppercase text-brand-navy truncate">
@@ -388,12 +373,12 @@ export function Header() {
                   </div>
                 )}
 
-                <div className="bg-brand-navy text-surface-sand px-3.5 py-2 flex items-center justify-between text-xs font-mono">
+                <div className="bg-brand-navy text-white px-3.5 py-2 flex items-center justify-between text-xs font-mono">
                   <button
                     type="submit"
                     className="hover:underline inline-flex items-center gap-1.5 font-bold"
                   >
-                    <span>View All Algolia Results for &ldquo;{searchQuery}&rdquo;</span>
+                    <span>View All Results for &ldquo;{searchQuery}&rdquo;</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -401,27 +386,19 @@ export function Header() {
             )}
           </form>
 
-          {/* Right Actions: Catalog Filter & Active Quote Basket */}
+          {/* Right Actions: Workshop & Active Quote Basket */}
           <div className="flex items-center gap-3">
             <Link
               href="/workshop"
-              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 rounded bg-accent-teal text-brand-navy hover:bg-white text-xs font-mono uppercase tracking-wider font-bold transition-colors shadow-xs"
+              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 rounded bg-white/10 text-white hover:bg-stillage-blue border border-white/15 text-xs font-mono uppercase tracking-wider font-bold transition-colors"
             >
-              <Wrench className="w-3.5 h-3.5" />
+              <Wrench className="w-3.5 h-3.5 text-accent-teal" />
               <span>Workshop</span>
             </Link>
 
             <Link
-              href="/products"
-              className="hidden lg:inline-flex items-center gap-2 px-3.5 py-2 rounded border border-white/20 hover:border-surface-sand text-xs font-mono uppercase tracking-wider text-surface-sand transition-colors"
-            >
-              <SlidersHorizontal className="w-3.5 h-3.5" />
-              Spec Finder
-            </Link>
-
-            <Link
               href="/checkout"
-              className="inline-flex items-center gap-2.5 bg-surface-sand text-brand-navy hover:bg-white px-3.5 py-2 rounded font-mono text-xs font-bold transition-colors"
+              className="inline-flex items-center gap-2.5 bg-surface-white text-brand-navy hover:bg-steel-100 px-3.5 py-2 rounded font-mono text-xs font-bold transition-colors shadow-xs"
             >
               <ShoppingBag className="w-4 h-4 text-stillage-blue" />
               <span>
@@ -443,7 +420,7 @@ export function Header() {
         </div>
       </div>
 
-      {/* Category Navigation Bar */}
+      {/* Clean Streamlined Category Navigation Bar */}
       <nav
         aria-label="Product categories"
         className="bg-brand-navyLight/60 border-t border-white/10 hidden md:block"
@@ -452,56 +429,43 @@ export function Header() {
           <div className="flex items-center space-x-1">
             <Link
               href="/products"
-              className="px-3.5 py-2.5 font-bold text-surface-sand hover:bg-stillage-blue/40 transition-colors"
+              className="px-3.5 py-2.5 font-bold text-white hover:bg-stillage-blue/40 transition-colors"
             >
-              All Stillages &amp; Racks
+              All 12 Models
             </Link>
             <Link
               href="/products?category=cantilever-bar-racks"
-              className="px-3.5 py-2.5 text-white hover:bg-stillage-blue/40 transition-colors"
+              className="px-3.5 py-2.5 text-steel-200 hover:text-white hover:bg-stillage-blue/40 transition-colors"
             >
-              Cantilever &amp; Bar Racks
+              Cantilever Racks
             </Link>
             <Link
               href="/products?category=hopper-bin-stillages"
-              className="px-3.5 py-2.5 text-white hover:bg-stillage-blue/40 transition-colors"
+              className="px-3.5 py-2.5 text-steel-200 hover:text-white hover:bg-stillage-blue/40 transition-colors"
             >
-              Hopper &amp; Bin Stillages
+              Hopper Bins
             </Link>
             <Link
               href="/products?category=sheet-stillages"
-              className="px-3.5 py-2.5 text-white hover:bg-stillage-blue/40 transition-colors"
+              className="px-3.5 py-2.5 text-steel-200 hover:text-white hover:bg-stillage-blue/40 transition-colors"
             >
-              Solid Sheet Stillages
-            </Link>
-            <Link
-              href="/products?category=mesh-stillages"
-              className="px-3.5 py-2.5 text-white hover:bg-stillage-blue/40 transition-colors"
-            >
-              Mesh Security Cages
+              Solid Sheet &amp; Mesh
             </Link>
             <Link
               href="/products?category=post-pallets"
-              className="px-3.5 py-2.5 text-white hover:bg-stillage-blue/40 transition-colors"
+              className="px-3.5 py-2.5 text-steel-200 hover:text-white hover:bg-stillage-blue/40 transition-colors"
             >
-              Demountable Post Pallets
+              Post Pallets
             </Link>
             <Link
               href="/blog"
-              className="px-3.5 py-2.5 text-surface-sand font-bold hover:bg-stillage-blue/40 transition-colors"
+              className="px-3.5 py-2.5 text-stillage-sky font-bold hover:bg-stillage-blue/40 transition-colors"
             >
-              Technical Blog &amp; Guides
-            </Link>
-            <Link
-              href="/workshop"
-              className="px-3.5 py-2.5 text-accent-teal font-bold hover:bg-stillage-blue/40 transition-colors inline-flex items-center gap-1.5"
-            >
-              <Wrench className="w-3.5 h-3.5" />
-              <span>Workshop Builder</span>
+              Technical Guides
             </Link>
           </div>
-          <div className="text-[11px] font-mono text-surface-sand/90 py-2">
-            BULK TIERS: 5+ UNITS (-5%) | 10+ UNITS (-10%)
+          <div className="text-[11px] font-mono text-steel-200 py-2">
+            BULK DISCOUNTS: 5+ UNITS (-5%) | 10+ UNITS (-10%)
           </div>
         </div>
       </nav>
@@ -535,61 +499,54 @@ export function Header() {
           </form>
           <div className="grid grid-cols-1 gap-1.5 pt-2 font-display uppercase tracking-wider text-sm">
             <Link
-              href="/workshop"
-              onClick={() => setMobileMenuOpen(false)}
-              className="py-2.5 px-3 rounded bg-accent-teal text-brand-navy font-bold flex items-center gap-2"
-            >
-              <Wrench className="w-4 h-4" />
-              <span>Workshop: Stack Builder</span>
-            </Link>
-            <Link
               href="/products"
               onClick={() => setMobileMenuOpen(false)}
-              className="py-2 px-3 rounded bg-white/5 text-surface-sand font-bold"
+              className="py-2 px-3 rounded bg-white/10 text-white font-bold"
             >
-              All Stillages &amp; Racks
+              All 12 Models
             </Link>
             <Link
               href="/products?category=cantilever-bar-racks"
               onClick={() => setMobileMenuOpen(false)}
-              className="py-2 px-3 rounded hover:bg-white/5"
+              className="py-2 px-3 rounded hover:bg-white/5 text-steel-200"
             >
               Cantilever &amp; Bar Racks
             </Link>
             <Link
               href="/products?category=hopper-bin-stillages"
               onClick={() => setMobileMenuOpen(false)}
-              className="py-2 px-3 rounded hover:bg-white/5"
+              className="py-2 px-3 rounded hover:bg-white/5 text-steel-200"
             >
               Stackable Hopper &amp; Bin Stillages
             </Link>
             <Link
               href="/products?category=sheet-stillages"
               onClick={() => setMobileMenuOpen(false)}
-              className="py-2 px-3 rounded hover:bg-white/5"
+              className="py-2 px-3 rounded hover:bg-white/5 text-steel-200"
             >
-              Solid Sheet Steel Stillages
-            </Link>
-            <Link
-              href="/products?category=mesh-stillages"
-              onClick={() => setMobileMenuOpen(false)}
-              className="py-2 px-3 rounded hover:bg-white/5"
-            >
-              Mesh Sided Stillages
+              Solid Sheet &amp; Mesh Stillages
             </Link>
             <Link
               href="/products?category=post-pallets"
               onClick={() => setMobileMenuOpen(false)}
-              className="py-2 px-3 rounded hover:bg-white/5"
+              className="py-2 px-3 rounded hover:bg-white/5 text-steel-200"
             >
-              Post Pallets &amp; Cradles
+              Demountable Post Pallets
             </Link>
             <Link
               href="/blog"
               onClick={() => setMobileMenuOpen(false)}
-              className="py-2 px-3 rounded bg-white/5 text-surface-sand font-bold"
+              className="py-2 px-3 rounded bg-white/5 text-stillage-sky font-bold"
             >
               Technical Blog &amp; Engineering Guides
+            </Link>
+            <Link
+              href="/workshop"
+              onClick={() => setMobileMenuOpen(false)}
+              className="py-2.5 px-3 rounded bg-stillage-blue text-white font-bold flex items-center gap-2"
+            >
+              <Wrench className="w-4 h-4" />
+              <span>Workshop: Stack Builder</span>
             </Link>
           </div>
         </div>
