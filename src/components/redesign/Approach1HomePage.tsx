@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { BlogPost, Product } from '@/types/catalog';
+import { HomePageContent } from '@/types/content';
+import { SEED_HOME_PAGE } from '@/data/seedSiteContent';
 import { ProductCard } from '@/components/ProductCard';
 import { BlogCard } from '@/components/BlogCard';
 import { FEATURES } from '@/lib/features';
@@ -11,33 +13,42 @@ import { FEATURES } from '@/lib/features';
 interface Approach1Props {
   products: Product[];
   featuredPosts?: BlogPost[];
+  homeContent?: HomePageContent;
 }
 
-export function Approach1HomePage({ products, featuredPosts = [] }: Approach1Props) {
+function interpolateCount(template: string, count: number): string {
+  return template.replace(/\{count\}/g, String(count));
+}
+
+export function Approach1HomePage({
+  products,
+  featuredPosts = [],
+  homeContent = SEED_HOME_PAGE,
+}: Approach1Props) {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
   const categories = [
-    { id: 'all', label: 'All', count: products.length },
+    { id: 'all', label: homeContent.filterAllLabel, count: products.length },
     {
       id: 'cantilever-bar-racks',
-      label: 'Cantilever Racks',
+      label: homeContent.filterCantileverLabel,
       count: products.filter((p) => p.categorySlug.includes('cantilever')).length,
     },
     {
       id: 'hopper-bin-stillages',
-      label: 'Hopper Stillages',
+      label: homeContent.filterHopperLabel,
       count: products.filter((p) => p.categorySlug.includes('hopper')).length,
     },
     {
       id: 'sheet-mesh',
-      label: 'Solid & Mesh Cages',
+      label: homeContent.filterSheetMeshLabel,
       count: products.filter(
         (p) => p.categorySlug.includes('sheet') || p.categorySlug.includes('mesh')
       ).length,
     },
     {
       id: 'post-pallets',
-      label: 'Post Pallets',
+      label: homeContent.filterPostPalletsLabel,
       count: products.filter((p) => p.categorySlug.includes('post')).length,
     },
   ];
@@ -62,21 +73,21 @@ export function Approach1HomePage({ products, featuredPosts = [] }: Approach1Pro
             {/* Left Headline & Single Focused CTA */}
             <div className="lg:col-span-7">
               <h1 className="font-display font-bold text-4xl sm:text-5xl lg:text-[56px] tracking-tight leading-[1.06] text-surface-white">
-                Heavy-Duty Steel Stillages.
+                {homeContent.heroHeadlineLine1}
                 <br />
-                Built in the UK. Delivered Fast.
+                {homeContent.heroHeadlineLine2}
               </h1>
 
               <p className="font-display text-xl sm:text-2xl text-steel-100 mt-4 font-normal">
-                {products.length} precision-engineered standard models in stock for rapid dispatch.
+                {interpolateCount(homeContent.heroSubtitleTemplate, products.length)}
               </p>
 
               <div className="mt-7">
                 <a
-                  href="#catalog"
+                  href={homeContent.heroCtaHref}
                   className="inline-flex items-center justify-center bg-stillage-blue hover:bg-stillage-blueLight text-surface-white font-display font-bold text-lg px-7 py-3 rounded-md shadow-sm transition-colors"
                 >
-                  Explore All {products.length} Models
+                  {interpolateCount(homeContent.heroCtaLabel, products.length)}
                 </a>
               </div>
             </div>
@@ -85,8 +96,8 @@ export function Approach1HomePage({ products, featuredPosts = [] }: Approach1Pro
             <div className="lg:col-span-5 flex justify-center">
               <div className="w-full max-w-md bg-surface-white rounded-xl p-6 shadow-xl flex items-center justify-center">
                 <img
-                  src="/images/products/base-render-sss-cant-3b8a.jpg"
-                  alt="Heavy-Duty Cantilever Bar Rack"
+                  src={homeContent.heroImage}
+                  alt={homeContent.heroImageAlt}
                   fetchPriority="high"
                   className="w-full h-60 object-contain"
                   width={460}
@@ -139,17 +150,17 @@ export function Approach1HomePage({ products, featuredPosts = [] }: Approach1Pro
             <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
               <div>
                 <h2 className="font-display font-bold text-3xl text-brand-navy">
-                  Technical Guides &amp; Safety Standards
+                  {homeContent.guidesTitle}
                 </h2>
                 <p className="text-steel-600 text-sm mt-1">
-                  UK engineering guides covering SWL ratings, PUWER compliance, and finish selection.
+                  {homeContent.guidesSubtitle}
                 </p>
               </div>
               <Link
                 href="/blog"
                 className="inline-flex items-center gap-1.5 font-display font-bold text-base text-stillage-blue hover:text-brand-navy"
               >
-                <span>View All Guides</span>
+                <span>{homeContent.guidesViewAllLabel}</span>
                 <ArrowRight className="w-4 h-4" />
               </Link>
             </div>

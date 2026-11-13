@@ -1,5 +1,17 @@
 import { SEED_BLOG_POSTS, SEED_CATEGORIES, SEED_PRODUCTS } from '@/data/seedCatalog';
+import {
+  SEED_HOME_PAGE,
+  SEED_NAVIGATION_MENUS,
+  SEED_SITE_MICROTEXTS,
+} from '@/data/seedSiteContent';
 import { BlogPost, Category, Product } from '@/types/catalog';
+import {
+  HomePageContent,
+  NavigationItem,
+  NavigationMenuMap,
+  SiteContentBundle,
+  SiteMicrotexts,
+} from '@/types/content';
 
 function getEnv(name: string, fallback = ''): string {
   if (typeof process === 'undefined' || !process.env) return fallback;
@@ -70,7 +82,8 @@ export function resolveContentfulImage(
 }
 
 async function fetchContentfulCollection<T>(
-  contentType: string
+  contentType: string,
+  tags: string[] = ['contentful-site']
 ): Promise<{ items: ContentfulEntry<T>[]; assetMap: Record<string, string> } | null> {
   if (!CONTENTFUL_SPACE_ID || !CONTENTFUL_CDA_TOKEN) {
     return null;
@@ -82,7 +95,7 @@ async function fetchContentfulCollection<T>(
       headers: {
         Authorization: `Bearer ${CONTENTFUL_CDA_TOKEN}`,
       },
-      next: { revalidate: 60 },
+      next: { revalidate: 60, tags },
     });
 
     if (!res.ok) {
@@ -259,4 +272,158 @@ export async function getFeaturedBlogPosts(limit = 3): Promise<BlogPost[]> {
   const posts = await getBlogPosts();
   const featured = posts.filter((post) => post.featured);
   return (featured.length > 0 ? featured : posts).slice(0, limit);
+}
+
+function nonEmpty(value: string | undefined | null, fallback: string): string {
+  return value && value.trim().length > 0 ? value : fallback;
+}
+
+function sortNavItems(items: NavigationItem[]): NavigationItem[] {
+  return [...items]
+    .sort((a, b) => (a.order ?? 99) - (b.order ?? 99))
+    .map((item) => ({
+      ...item,
+      children: Array.isArray(item.children) ? sortNavItems(item.children) : undefined,
+    }));
+}
+
+export async function getHomePageContent(): Promise<HomePageContent> {
+  const result = await fetchContentfulCollection<
+    Partial<Omit<HomePageContent, 'heroImage' | 'ogImage'>> & {
+      heroImage?: string | ContentfulAssetLink;
+      ogImage?: string | ContentfulAssetLink;
+    }
+  >('homePage');
+
+  if (!result || result.items.length === 0) {
+    return SEED_HOME_PAGE;
+  }
+
+  const fields = result.items[0].fields;
+  const { assetMap } = result;
+
+  return {
+    heroHeadlineLine1: nonEmpty(fields.heroHeadlineLine1, SEED_HOME_PAGE.heroHeadlineLine1),
+    heroHeadlineLine2: nonEmpty(fields.heroHeadlineLine2, SEED_HOME_PAGE.heroHeadlineLine2),
+    heroSubtitleTemplate: nonEmpty(
+      fields.heroSubtitleTemplate,
+      SEED_HOME_PAGE.heroSubtitleTemplate
+    ),
+    heroCtaLabel: nonEmpty(fields.heroCtaLabel, SEED_HOME_PAGE.heroCtaLabel),
+    heroCtaHref: nonEmpty(fields.heroCtaHref, SEED_HOME_PAGE.heroCtaHref),
+    heroImage:
+      resolveContentfulImage(fields.heroImage, assetMap, SEED_HOME_PAGE.heroImage) ||
+      SEED_HOME_PAGE.heroImage,
+    heroImageAlt: nonEmpty(fields.heroImageAlt, SEED_HOME_PAGE.heroImageAlt),
+    filterAllLabel: nonEmpty(fields.filterAllLabel, SEED_HOME_PAGE.filterAllLabel),
+    filterCantileverLabel: nonEmpty(
+      fields.filterCantileverLabel,
+      SEED_HOME_PAGE.filterCantileverLabel
+    ),
+    filterHopperLabel: nonEmpty(fields.filterHopperLabel, SEED_HOME_PAGE.filterHopperLabel),
+    filterSheetMeshLabel: nonEmpty(
+      fields.filterSheetMeshLabel,
+      SEED_HOME_PAGE.filterSheetMeshLabel
+    ),
+    filterPostPalletsLabel: nonEmpty(
+      fields.filterPostPalletsLabel,
+      SEED_HOME_PAGE.filterPostPalletsLabel
+    ),
+    guidesTitle: nonEmpty(fields.guidesTitle, SEED_HOME_PAGE.guidesTitle),
+    guidesSubtitle: nonEmpty(fields.guidesSubtitle, SEED_HOME_PAGE.guidesSubtitle),
+    guidesViewAllLabel: nonEmpty(fields.guidesViewAllLabel, SEED_HOME_PAGE.guidesViewAllLabel),
+    seoTitle: nonEmpty(fields.seoTitle, SEED_HOME_PAGE.seoTitle),
+    seoDescription: nonEmpty(fields.seoDescription, SEED_HOME_PAGE.seoDescription),
+    ogImage: resolveContentfulImage(fields.ogImage, assetMap),
+  };
+}
+
+export async function getNavigationMenus(): Promise<NavigationMenuMap> {
+  const result = await fetchContentfulCollection<{
+    menuKey?: string;
+    title?: string;
+    items?: NavigationItem[];
+  }>('navigationMenu');
+
+  if (!result || result.items.length === 0) {
+    return SEED_NAVIGATION_MENUS;
+  }
+
+  const menus: NavigationMenuMap = { ...SEED_NAVIGATION_MENUS };
+
+  for (const entry of result.items) {
+    const key = entry.fields.menuKey;
+    if (!key) continue;
+    const rawItems = Array.isArray(entry.fields.items) ? entry.fields.items : [];
+    const fallbackMenu = SEED_NAVIGATION_MENUS[key];
+    menus[key] = {
+      menuKey: key,
+      title: nonEmpty(entry.fields.title, fallbackMenu?.title || key),
+      items:
+        rawItems.length > 0
+          ? sortNavItems(rawItems)
+          : fallbackMenu?.items || [],
+    };
+  }
+
+  return menus;
+}
+
+function mergeMicrotextGroup<T extends object>(
+  defaults: T,
+  overrides: Record<string, unknown> | undefined
+): T {
+  if (!overrides || typeof overrides !== 'object') return defaults;
+  const merged = { ...defaults };
+  for (const key of Object.keys(defaults) as (keyof T)[]) {
+    const val = overrides[key as string];
+    if (typeof val === 'string' && val.trim().length > 0) {
+      merged[key] = val as T[keyof T];
+    }
+  }
+  return merged;
+}
+
+export async function getAllComponentMicrotexts(): Promise<SiteMicrotexts> {
+  const result = await fetchContentfulCollection<{
+    componentKey?: string;
+    title?: string;
+    labels?: Record<string, string>;
+  }>('componentMicrotexts');
+
+  if (!result || result.items.length === 0) {
+    return SEED_SITE_MICROTEXTS;
+  }
+
+  const byKey: Record<string, Record<string, string>> = {};
+  for (const entry of result.items) {
+    if (entry.fields.componentKey && entry.fields.labels) {
+      byKey[entry.fields.componentKey] = entry.fields.labels;
+    }
+  }
+
+  return {
+    header: mergeMicrotextGroup(SEED_SITE_MICROTEXTS.header, byKey['header']),
+    footer: mergeMicrotextGroup(SEED_SITE_MICROTEXTS.footer, byKey['footer']),
+    productCard: mergeMicrotextGroup(
+      SEED_SITE_MICROTEXTS.productCard,
+      byKey['product-card']
+    ),
+    blogCard: mergeMicrotextGroup(SEED_SITE_MICROTEXTS.blogCard, byKey['blog-card']),
+    configurator: mergeMicrotextGroup(
+      SEED_SITE_MICROTEXTS.configurator,
+      byKey['product-configurator']
+    ),
+    checkout: mergeMicrotextGroup(SEED_SITE_MICROTEXTS.checkout, byKey['checkout']),
+  };
+}
+
+export async function getSiteContentBundle(): Promise<SiteContentBundle> {
+  const [homePage, navigation, microtexts] = await Promise.all([
+    getHomePageContent(),
+    getNavigationMenus(),
+    getAllComponentMicrotexts(),
+  ]);
+
+  return { homePage, navigation, microtexts };
 }

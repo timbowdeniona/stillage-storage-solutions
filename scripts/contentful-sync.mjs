@@ -1063,13 +1063,26 @@ async function upsertAndPublishContentType(envPath, contentTypeDef) {
   console.log(`Published Contentful content type: ${id} (${body.name})`);
 }
 
-async function upsertAndPublishEntry(envPath, contentTypeId, entryData, locale = 'en-US') {
+async function upsertAndPublishEntry(
+  envPath,
+  contentTypeId,
+  entryData,
+  locale = 'en-US',
+  { overwriteExisting = false } = {}
+) {
   const entryPath = `${envPath}/entries/${entryData.id}`;
   let existing = null;
   try {
     existing = await cmaFetch(entryPath);
   } catch {
     existing = null;
+  }
+
+  const label = entryData.slug || entryData.menuKey || entryData.componentKey || entryData.id;
+
+  if (existing && !overwriteExisting) {
+    console.log(`Skipped existing ${contentTypeId} entry: ${entryData.id} (${label}) — preserving client edits`);
+    return;
   }
 
   const headers = {
@@ -1087,7 +1100,7 @@ async function upsertAndPublishEntry(envPath, contentTypeId, entryData, locale =
     method: 'PUT',
     headers: { 'X-Contentful-Version': String(saved.sys.version) },
   });
-  console.log(`Published ${contentTypeId} entry: ${entryData.id} (${entryData.slug})`);
+  console.log(`Published ${contentTypeId} entry: ${entryData.id} (${label})`);
 }
 
 async function main() {
@@ -1095,6 +1108,10 @@ async function main() {
     console.error('Error: Please set CONTENTFUL_MANAGEMENT_TOKEN in your environment or .env.local.');
     process.exit(1);
   }
+
+  const args = new Set(process.argv.slice(2));
+  const siteOnly = args.has('--site-only');
+  const overwriteExisting = args.has('--force');
 
   const spacesRes = await cmaFetch('/spaces');
   const spaces = spacesRes.items || [];
@@ -1107,31 +1124,279 @@ async function main() {
   const defaultLocale =
     (localesRes.items || []).find((l) => l.default)?.code || 'en-US';
 
-  // 1. Upload, process & publish all required product media assets
-  for (const assetDef of PRODUCT_MEDIA_ASSETS) {
-    await uploadAndPublishAsset(space.sys.id, envPath, assetDef, defaultLocale);
+  if (!siteOnly) {
+    // 1. Upload, process & publish all required product media assets
+    for (const assetDef of PRODUCT_MEDIA_ASSETS) {
+      await uploadAndPublishAsset(space.sys.id, envPath, assetDef, defaultLocale);
+    }
+
+    // 2. Update & publish Stillage Product content type (primaryImage & secondaryImage as Media Asset Links)
+    await upsertAndPublishContentType(envPath, PRODUCT_CONTENT_TYPE);
+
+    // 3. Create missing Stillage Product entries (preserving any client edits unless --force is passed)
+    for (const prod of SEED_PRODUCT_ENTRIES) {
+      await upsertAndPublishEntry(envPath, PRODUCT_CONTENT_TYPE.id, prod, defaultLocale, {
+        overwriteExisting,
+      });
+    }
+
+    // 4. Create/update & publish Blog Post content type
+    await upsertAndPublishContentType(envPath, BLOG_POST_CONTENT_TYPE);
+
+    // 5. Create missing blog posts (preserving any client edits unless --force is passed)
+    for (const post of SEED_BLOG_ENTRIES) {
+      await upsertAndPublishEntry(envPath, BLOG_POST_CONTENT_TYPE.id, post, defaultLocale, {
+        overwriteExisting,
+      });
+    }
+  } else {
+    // Ensure hero image asset exists for homePage link if not already uploaded
+    const heroAsset = PRODUCT_MEDIA_ASSETS.find((a) => a.id === 'asset-base-render-sss-cant-3b8a');
+    if (heroAsset) {
+      await uploadAndPublishAsset(space.sys.id, envPath, heroAsset, defaultLocale);
+    }
   }
 
-  // 2. Update & publish Stillage Product content type (primaryImage & secondaryImage as Media Asset Links)
-  await upsertAndPublishContentType(envPath, PRODUCT_CONTENT_TYPE);
+  // 6. Create/update & publish Home Page, Navigation Menu, and Component Microtexts
+  await upsertAndPublishContentType(envPath, HOME_PAGE_CONTENT_TYPE);
+  await upsertAndPublishEntry(
+    envPath,
+    HOME_PAGE_CONTENT_TYPE.id,
+    SEED_HOME_PAGE_ENTRY,
+    defaultLocale,
+    { overwriteExisting }
+  );
 
-  // 3. Update & publish all 6 Stillage Product entries with linked Media Assets
-  for (const prod of SEED_PRODUCT_ENTRIES) {
-    await upsertAndPublishEntry(envPath, PRODUCT_CONTENT_TYPE.id, prod, defaultLocale);
+  await upsertAndPublishContentType(envPath, NAVIGATION_MENU_CONTENT_TYPE);
+  for (const nav of SEED_NAVIGATION_ENTRIES) {
+    await upsertAndPublishEntry(envPath, NAVIGATION_MENU_CONTENT_TYPE.id, nav, defaultLocale, {
+      overwriteExisting,
+    });
   }
 
-  // 4. Create/update & publish Blog Post content type
-  await upsertAndPublishContentType(envPath, BLOG_POST_CONTENT_TYPE);
-
-  // 5. Upsert & publish all 5 test blog posts
-  for (const post of SEED_BLOG_ENTRIES) {
-    await upsertAndPublishEntry(envPath, BLOG_POST_CONTENT_TYPE.id, post, defaultLocale);
+  await upsertAndPublishContentType(envPath, COMPONENT_MICROTEXTS_CONTENT_TYPE);
+  for (const microtext of SEED_COMPONENT_MICROTEXT_ENTRIES) {
+    await upsertAndPublishEntry(
+      envPath,
+      COMPONENT_MICROTEXTS_CONTENT_TYPE.id,
+      microtext,
+      defaultLocale,
+      { overwriteExisting }
+    );
   }
 
   console.log(
-    `Successfully uploaded ${PRODUCT_MEDIA_ASSETS.length} media assets, updated ${SEED_PRODUCT_ENTRIES.length} Stillage Products with media links, and synced ${SEED_BLOG_ENTRIES.length} blogPost entries to Contentful.`
+    siteOnly
+      ? `Synced site content models (homePage, navigationMenu, componentMicrotexts) without modifying products or blog posts. Existing entries were preserved.`
+      : `Contentful sync complete (existing client-edited entries preserved unless --force was passed).`
   );
 }
+
+export const HOME_PAGE_CONTENT_TYPE = {
+  id: 'homePage',
+  name: 'Home Page',
+  description: 'Editable homepage hero, category filter labels, guides heading, and SEO metadata',
+  displayField: 'heroHeadlineLine1',
+  fields: [
+    { id: 'heroHeadlineLine1', name: 'Hero Headline Line 1', type: 'Symbol', required: true, localized: false },
+    { id: 'heroHeadlineLine2', name: 'Hero Headline Line 2', type: 'Symbol', required: true, localized: false },
+    { id: 'heroSubtitleTemplate', name: 'Hero Subtitle (use {count} for model count)', type: 'Symbol', required: true, localized: false },
+    { id: 'heroCtaLabel', name: 'Hero CTA Button Label (use {count})', type: 'Symbol', required: true, localized: false },
+    { id: 'heroCtaHref', name: 'Hero CTA Link', type: 'Symbol', required: true, localized: false },
+    { id: 'heroImage', name: 'Hero Showcase Image', type: 'Link', linkType: 'Asset', required: false, localized: false },
+    { id: 'heroImageAlt', name: 'Hero Image Alt Text', type: 'Symbol', required: false, localized: false },
+    { id: 'filterAllLabel', name: 'Filter Pill: All', type: 'Symbol', required: true, localized: false },
+    { id: 'filterCantileverLabel', name: 'Filter Pill: Cantilever', type: 'Symbol', required: true, localized: false },
+    { id: 'filterHopperLabel', name: 'Filter Pill: Hopper', type: 'Symbol', required: true, localized: false },
+    { id: 'filterSheetMeshLabel', name: 'Filter Pill: Sheet & Mesh', type: 'Symbol', required: true, localized: false },
+    { id: 'filterPostPalletsLabel', name: 'Filter Pill: Post Pallets', type: 'Symbol', required: true, localized: false },
+    { id: 'guidesTitle', name: 'Technical Guides Heading', type: 'Symbol', required: false, localized: false },
+    { id: 'guidesSubtitle', name: 'Technical Guides Subtitle', type: 'Symbol', required: false, localized: false },
+    { id: 'guidesViewAllLabel', name: 'Technical Guides View All Label', type: 'Symbol', required: false, localized: false },
+    { id: 'seoTitle', name: 'SEO Meta Title', type: 'Symbol', required: false, localized: false },
+    { id: 'seoDescription', name: 'SEO Meta Description', type: 'Text', required: false, localized: false },
+    { id: 'ogImage', name: 'Open Graph Image', type: 'Link', linkType: 'Asset', required: false, localized: false },
+  ],
+};
+
+export const NAVIGATION_MENU_CONTENT_TYPE = {
+  id: 'navigationMenu',
+  name: 'Navigation Menu',
+  description: 'Managed header and footer navigation menus',
+  displayField: 'title',
+  fields: [
+    { id: 'menuKey', name: 'Menu Key', type: 'Symbol', required: true, localized: false },
+    { id: 'title', name: 'Menu Title', type: 'Symbol', required: true, localized: false },
+    { id: 'items', name: 'Navigation Items (JSON Array)', type: 'Object', required: true, localized: false },
+  ],
+};
+
+export const COMPONENT_MICROTEXTS_CONTENT_TYPE = {
+  id: 'componentMicrotexts',
+  name: 'Component Microtexts',
+  description: 'Editable UI microcopy, badges, and labels for separate components',
+  displayField: 'title',
+  fields: [
+    { id: 'componentKey', name: 'Component Key', type: 'Symbol', required: true, localized: false },
+    { id: 'title', name: 'Component Name', type: 'Symbol', required: true, localized: false },
+    { id: 'labels', name: 'Microtext Labels (JSON Object)', type: 'Object', required: true, localized: false },
+  ],
+};
+
+export const SEED_HOME_PAGE_ENTRY = {
+  id: 'home-page-main',
+  heroHeadlineLine1: 'Heavy-Duty Steel Stillages.',
+  heroHeadlineLine2: 'Built in the UK. Delivered Fast.',
+  heroSubtitleTemplate: '{count} precision-engineered standard models in stock for rapid dispatch.',
+  heroCtaLabel: 'Explore All {count} Models',
+  heroCtaHref: '#catalog',
+  heroImage: makeAssetLink('/images/products/base-render-sss-cant-3b8a.jpg'),
+  heroImageAlt: 'Heavy-Duty Cantilever Bar Rack',
+  filterAllLabel: 'All',
+  filterCantileverLabel: 'Cantilever Racks',
+  filterHopperLabel: 'Hopper Stillages',
+  filterSheetMeshLabel: 'Solid & Mesh Cages',
+  filterPostPalletsLabel: 'Post Pallets',
+  guidesTitle: 'Technical Guides & Safety Standards',
+  guidesSubtitle: 'UK engineering guides covering SWL ratings, PUWER compliance, and finish selection.',
+  guidesViewAllLabel: 'View All Guides',
+  seoTitle: 'Stillage Storage Solutions | Heavy-Duty UK Steel Stillages, Racks & Post Pallets',
+  seoDescription: 'UK manufacturer and online supplier of heavy-duty steel stillages, double-sided cantilever bar racks, modular stackable hopper bins, mesh cages, and post pallets. Buy online at stillagestoragesolutions.co.uk.',
+};
+
+export const SEED_NAVIGATION_ENTRIES = [
+  {
+    id: 'nav-header-main',
+    menuKey: 'header-main',
+    title: 'Header Main Navigation',
+    items: [
+      {
+        label: 'Products',
+        href: '/products',
+        order: 1,
+        children: [
+          { label: 'All 12 Models', href: '/products', order: 1 },
+          { label: 'Cantilever Racks (3)', href: '/products?category=cantilever-bar-racks', order: 2 },
+          { label: 'Hopper Stillages (3)', href: '/products?category=hopper-bin-stillages', order: 3 },
+          { label: 'Solid & Mesh Cages (4)', href: '/products?category=sheet-stillages', order: 4 },
+          { label: 'Post Pallets (2)', href: '/products?category=post-pallets', order: 5 },
+        ],
+      },
+      { label: 'Custom Fab', href: '/workshop', order: 2 },
+      { label: 'About & Guides', href: '/blog', order: 3, requiresBlogFeature: true },
+      { label: 'Contact', href: 'mailto:sales@stillagestoragesolutions.co.uk', order: 4, isExternal: true },
+    ],
+  },
+  {
+    id: 'nav-footer-products',
+    menuKey: 'footer-products',
+    title: 'Footer Products Column',
+    items: [
+      { label: 'All 12 Standard Models', href: '/products', order: 1 },
+      { label: 'Cantilever Racks (3)', href: '/products?category=cantilever-bar-racks', order: 2 },
+      { label: 'Hopper Stillages (3)', href: '/products?category=hopper-bin-stillages', order: 3 },
+      { label: 'Solid & Mesh Cages (4)', href: '/products?category=sheet-stillages', order: 4 },
+      { label: 'Post Pallets (2)', href: '/products?category=post-pallets', order: 5 },
+    ],
+  },
+  {
+    id: 'nav-footer-engineering',
+    menuKey: 'footer-engineering',
+    title: 'Footer Engineering Column',
+    items: [
+      { label: 'Custom Fab & Stack Builder', href: '/workshop', order: 1 },
+      { label: 'Quote Basket & Proforma Checkout', href: '/checkout', order: 2 },
+      { label: 'Technical Guides & Safety Standards', href: '/blog', order: 3, requiresBlogFeature: true },
+      { label: 'SWL, PUWER & Stacking Guide', href: '/blog/swl-puwer-ukca-stillage-stacking-safety-guide', order: 4, requiresBlogFeature: true },
+      { label: 'Galvanised vs RAL 5010 Finishes', href: '/blog/hot-dip-galvanised-vs-ral-5010-painted-steel-stillages', order: 5, requiresBlogFeature: true },
+    ],
+  },
+];
+
+export const SEED_COMPONENT_MICROTEXT_ENTRIES = [
+  {
+    id: 'microtext-header',
+    componentKey: 'header',
+    title: 'Header Microtexts',
+    labels: {
+      brandWordmarkPrimary: 'STILLAGE',
+      brandWordmarkSecondary: 'STORAGE SOLUTIONS',
+      searchPlaceholder: 'Search SKU, SWL or size...',
+      searchAriaLabel: 'Search stillages, storage racks, and compliance guides',
+      noSearchMatchesPrefix: 'No direct SKU matches for',
+      viewAllResultsPrefix: 'View All Results for',
+      phoneDisplay: '+44 (0) 1978 800 500',
+      phoneHref: 'tel:01978800500',
+      vatToggleExLabel: 'EX. VAT',
+      vatToggleIncLabel: 'INC. VAT',
+      vatToggleTitle: 'Toggle Ex. VAT / Inc. VAT pricing',
+      basketLabel: 'Quote Basket',
+    },
+  },
+  {
+    id: 'microtext-footer',
+    componentKey: 'footer',
+    title: 'Footer Microtexts',
+    labels: {
+      brandWordmarkPrimary: 'STILLAGE',
+      brandWordmarkSecondary: 'STORAGE SOLUTIONS',
+      brandTagline: 'Direct UK manufacturer of heavy-duty steel stillages, cantilever bar racks, hopper bins, and stackable post pallets.',
+      productsHeading: 'Products',
+      engineeringHeadingDefault: 'Custom Engineering',
+      engineeringHeadingWithBlog: 'Engineering & Guides',
+      contactHeading: 'Contact Trade Desk',
+      phoneDisplay: '+44 (0) 1978 800 500',
+      emailDisplay: 'sales@stillagestoragesolutions.co.uk',
+      openingHours: 'Mon–Fri: 07:30 – 17:00 GMT',
+      copyrightSuffix: 'Stillage Storage Solutions. All prices subject to UK VAT at 20%.',
+    },
+  },
+  {
+    id: 'microtext-product-card',
+    componentKey: 'product-card',
+    title: 'Product Card Microtexts',
+    labels: {
+      cadBadgeLabel: 'CAD Drawing',
+      swlSuffix: 'SWL',
+      configureButtonLabel: 'Configure & Buy',
+    },
+  },
+  {
+    id: 'microtext-blog-card',
+    componentKey: 'blog-card',
+    title: 'Blog Card Microtexts',
+    labels: {
+      featuredBadgeLabel: 'Featured Guide',
+      minReadSuffix: 'min read',
+      readGuideLabel: 'Read Engineering Guide',
+    },
+  },
+  {
+    id: 'microtext-product-configurator',
+    componentKey: 'product-configurator',
+    title: 'Product Configurator Microtexts',
+    labels: {
+      addToBasketLabel: 'Add Specification to Order Basket & Keep Browsing',
+      proformaButtonLabel: 'Generate Official B2B VAT Proforma Invoice',
+      bulkTier5Badge: 'Save 5% (5+)',
+      bulkTier10Badge: 'Save 10% (10+)',
+      leadTimePrefix: 'Dispatch:',
+      ukcaBadgeLabel: 'UKCA / PUWER Certified',
+    },
+  },
+  {
+    id: 'microtext-checkout',
+    componentKey: 'checkout',
+    title: 'Checkout Microtexts',
+    labels: {
+      pageTitle: 'Quote Basket & Trade Checkout',
+      emptyBasketTitle: 'Your Quote Basket is Empty',
+      emptyBasketCta: 'Browse 12 Standard Models',
+      proformaButtonLabel: 'Request B2B Proforma Invoice',
+      stripeButtonLabel: 'Pay Online Now (Card / BACS)',
+    },
+  },
+];
 
 const isMainModule =
   process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1];

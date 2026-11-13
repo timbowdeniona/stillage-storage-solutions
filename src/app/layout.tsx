@@ -1,9 +1,11 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { VatProvider } from '@/context/VatContext';
+import { SiteContentProvider } from '@/context/SiteContentContext';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { AnalyticsTracker } from '@/components/AnalyticsTracker';
+import { getAllComponentMicrotexts, getNavigationMenus } from '@/lib/contentful';
 import {
   buildOgImageUrl,
   buildOrganizationSchema,
@@ -81,12 +83,16 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   const organizationJsonLd = buildOrganizationSchema();
+  const [navigation, microtexts] = await Promise.all([
+    getNavigationMenus(),
+    getAllComponentMicrotexts(),
+  ]);
 
   return (
     <html lang="en-GB">
@@ -104,11 +110,13 @@ export default function RootLayout({
       </head>
       <body className="font-sans antialiased min-h-screen flex flex-col bg-surface-white text-steel-900">
         <AnalyticsTracker />
-        <VatProvider>
-          <Header />
-          <main className="flex-1">{children}</main>
-          <Footer />
-        </VatProvider>
+        <SiteContentProvider navigation={navigation} microtexts={microtexts}>
+          <VatProvider>
+            <Header />
+            <main className="flex-1">{children}</main>
+            <Footer />
+          </VatProvider>
+        </SiteContentProvider>
       </body>
     </html>
   );
