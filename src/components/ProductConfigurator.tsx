@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useId, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -144,6 +144,57 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
     FINISH_OPTIONS.find((f) => f.id === finishOption) || FINISH_OPTIONS[0];
   const selectedMobility =
     MOBILITY_OPTIONS.find((m) => m.id === mobilityOption) || MOBILITY_OPTIONS[0];
+
+  // Two-step configurator tab state ('configure' | 'delivery')
+  const [activeTab, setActiveTab] = useState<'configure' | 'delivery'>('configure');
+  const instanceId = useId();
+  const configureTabId = `${instanceId}-configure-tab`;
+  const deliveryTabId = `${instanceId}-delivery-tab`;
+  const configureTabRef = useRef<HTMLButtonElement>(null);
+  const deliveryTabRef = useRef<HTMLButtonElement>(null);
+  const configurePanelRef = useRef<HTMLDivElement>(null);
+  const deliveryPanelRef = useRef<HTMLDivElement>(null);
+
+  // Reveal hidden="until-found" tab panels automatically during browser Find-in-Page
+  useEffect(() => {
+    const configureEl = configurePanelRef.current;
+    const deliveryEl = deliveryPanelRef.current;
+    const onConfigureMatch = () => setActiveTab('configure');
+    const onDeliveryMatch = () => setActiveTab('delivery');
+
+    configureEl?.addEventListener('beforematch', onConfigureMatch);
+    deliveryEl?.addEventListener('beforematch', onDeliveryMatch);
+    return () => {
+      configureEl?.removeEventListener('beforematch', onConfigureMatch);
+      deliveryEl?.removeEventListener('beforematch', onDeliveryMatch);
+    };
+  }, []);
+
+  const handleTabKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowLeft' || e.key === 'Home' || e.key === 'End') {
+      e.preventDefault();
+      const nextTab =
+        e.key === 'Home'
+          ? 'configure'
+          : e.key === 'End'
+          ? 'delivery'
+          : activeTab === 'configure'
+          ? 'delivery'
+          : 'configure';
+      setActiveTab(nextTab);
+      (nextTab === 'configure' ? configureTabRef.current : deliveryTabRef.current)?.focus();
+    }
+  };
+
+  const mobilityShortLabels: Record<string, string> = {
+    'standard-feet': 'Stacking Feet',
+    'forklift-pockets': 'Forklift Pockets',
+    'heavy-duty-castors': 'Lockable Castors',
+    'both-castors-pockets': 'Castors + Pockets',
+  };
+
+  const unitsOnCurrentPallet = quantity % 4 === 0 ? 4 : quantity % 4;
+  const palletFillPercent = Math.round((unitsOnCurrentPallet / 4) * 100);
 
   const syncCurrentConfigToBasket = () => {
     trackAlgoliaEvent({
@@ -458,273 +509,386 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
 
       {/* Right Column: Interactive Stillage Configurator & Live Quote */}
       <div className="lg:col-span-5 border-2 border-brand-navy bg-surface-white rounded-sm shadow-lg sticky top-24 overflow-hidden">
-        {/* Configurator Header */}
-        <div className="bg-brand-navy text-surface-white p-5 border-b border-white/15">
-          <div className="flex items-center justify-between text-xs font-mono text-stillage-sky">
-            <span>DIRECT FACTORY CONFIGURATOR</span>
-            <span>{product.inStock ? 'IN STOCK' : 'MADE TO ORDER'}</span>
+        {/* Compact Configurator Header */}
+        <div className="bg-brand-navy text-surface-white px-5 py-4 border-b border-white/15">
+          <div className="flex items-center justify-between gap-2 text-[11px] font-mono">
+            <span className="text-stillage-sky tracking-wider">DIRECT FACTORY CONFIGURATOR</span>
+            <span
+              className={`px-2 py-0.5 rounded-full font-bold text-[10px] tracking-wide ${
+                product.inStock
+                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/40'
+                  : 'bg-accent-amber/20 text-amber-200 border border-accent-amber/40'
+              }`}
+            >
+              {product.inStock ? 'IN STOCK' : 'MADE TO ORDER'}
+            </span>
           </div>
-          <h1 className="font-display font-bold text-2xl uppercase tracking-wide mt-1">
+          <h1 className="font-display font-bold text-xl sm:text-2xl uppercase tracking-wide mt-1.5 leading-tight">
             {product.title}
           </h1>
-          <div className="mt-3 flex items-baseline gap-3">
-            <span className="font-mono font-bold text-3xl text-white">
+          <div className="mt-2.5 flex items-baseline gap-2.5 flex-wrap">
+            <span className="font-mono font-bold text-2xl sm:text-3xl text-white">
               {formatBothPrices(quote.discountedUnitExVatPence).primary}
             </span>
             <span className="font-mono text-xs text-steel-200">
               per unit ({formatBothPrices(quote.discountedUnitExVatPence).label})
             </span>
             {quote.discountPercentage > 0 && (
-              <span className="ml-auto bg-accent-amber text-white font-mono text-xs font-bold px-2.5 py-0.5 rounded-sm">
-                {quote.discountPercentage}% Bulk Discount Active
+              <span className="ml-auto bg-accent-amber text-white font-mono text-[11px] font-bold px-2 py-0.5 rounded-sm">
+                {quote.discountPercentage}% Bulk Off
               </span>
             )}
           </div>
         </div>
 
-        <div className="p-6 space-y-6">
-          {/* Step 1: Finish Option */}
-          <div>
-            <label className="block font-display font-bold uppercase tracking-wider text-sm text-brand-navy mb-2.5">
-              1. Select Surface Finish / RAL Coating
-            </label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-              {FINISH_OPTIONS.map((opt) => {
-                const isSelected = finishOption === opt.id;
-                const modText =
-                  opt.priceModifierPence === 0
-                    ? 'Included'
-                    : opt.priceModifierPence > 0
-                    ? `+${formatGBP(opt.priceModifierPence)}`
-                    : `-${formatGBP(Math.abs(opt.priceModifierPence))}`;
-
-                return (
-                  <button
-                    key={opt.id}
-                    type="button"
-                    onClick={() => {
-                      setFinishOption(opt.id);
-                      trackB2BEvent({
-                        event: 'configurator_option_select',
-                        sku: product.sku,
-                        productTitle: product.title,
-                        optionType: 'finish',
-                        optionValue: opt.id,
-                      });
-                    }}
-                    className={`p-3 border text-left rounded-sm transition-all flex flex-col justify-between ${
-                      isSelected
-                        ? 'border-2 border-stillage-blue bg-stillage-blue/5'
-                        : 'border-steel-200 hover:border-steel-400 bg-surface-white'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="inline-flex items-center gap-2 font-bold text-xs text-steel-900">
-                        <span
-                          className="w-3.5 h-3.5 rounded-full border border-black/20 shrink-0"
-                          style={{ backgroundColor: opt.swatchHex }}
-                        />
-                        {opt.code}
-                      </span>
-                      <span className="font-mono text-[11px] font-bold text-stillage-blue">
-                        {modText}
-                      </span>
-                    </div>
-                    <div className="text-[11px] text-steel-600 mt-1.5 leading-snug">{opt.name}</div>
-                  </button>
-                );
-              })}
-            </div>
+        {/* Two-Step Segmented Tab Bar */}
+        <div className="bg-steel-100 px-4 pt-3 pb-2 border-b border-steel-200">
+          <div
+            role="tablist"
+            aria-label="Product configurator steps"
+            className="grid grid-cols-2 gap-1.5 bg-steel-200/70 p-1 rounded-sm"
+          >
+            <button
+              ref={configureTabRef}
+              id={configureTabId}
+              type="button"
+              role="tab"
+              aria-selected={activeTab === 'configure'}
+              tabIndex={activeTab === 'configure' ? 0 : -1}
+              onClick={() => setActiveTab('configure')}
+              onKeyDown={handleTabKeyDown}
+              className={`py-2 px-3 rounded-sm text-xs font-display font-bold uppercase tracking-wider transition-all focus-visible:outline-2 focus-visible:outline-stillage-blue focus-visible:outline-offset-2 ${
+                activeTab === 'configure'
+                  ? 'bg-surface-white text-brand-navy shadow-sm border-b-2 border-stillage-blue'
+                  : 'text-steel-600 hover:text-brand-navy border-b-2 border-transparent'
+              }`}
+            >
+              1. Configure Unit
+            </button>
+            <button
+              ref={deliveryTabRef}
+              id={deliveryTabId}
+              type="button"
+              role="tab"
+              aria-selected={activeTab === 'delivery'}
+              tabIndex={activeTab === 'delivery' ? 0 : -1}
+              onClick={() => setActiveTab('delivery')}
+              onKeyDown={handleTabKeyDown}
+              className={`py-2 px-3 rounded-sm text-xs font-display font-bold uppercase tracking-wider transition-all focus-visible:outline-2 focus-visible:outline-stillage-blue focus-visible:outline-offset-2 ${
+                activeTab === 'delivery'
+                  ? 'bg-surface-white text-brand-navy shadow-sm border-b-2 border-stillage-blue'
+                  : 'text-steel-600 hover:text-brand-navy border-b-2 border-transparent'
+              }`}
+            >
+              2. Delivery &amp; Quote
+            </button>
           </div>
+        </div>
 
-          {/* Step 2: Base Feet, Castors & Forklift Guides */}
-          <div>
-            <label className="block font-display font-bold uppercase tracking-wider text-sm text-brand-navy mb-2.5">
-              2. Base Handling, Feet &amp; Castor Options
-            </label>
-            <div className="space-y-2">
-              {MOBILITY_OPTIONS.map((opt) => {
-                const isSelected = mobilityOption === opt.id;
-                const modText =
-                  opt.priceModifierPence === 0
-                    ? 'Standard'
-                    : `+${formatGBP(opt.priceModifierPence)} / unit`;
-                return (
-                  <button
-                    key={opt.id}
-                    type="button"
-                    onClick={() => setMobilityOption(opt.id)}
-                    className={`w-full p-3 border text-left rounded-sm transition-all ${
-                      isSelected
-                        ? 'border-2 border-stillage-blue bg-stillage-blue/5'
-                        : 'border-steel-200 hover:border-steel-400 bg-surface-white'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-xs text-steel-900 flex items-center gap-2">
-                        {isSelected && <Check className="w-3.5 h-3.5 text-stillage-blue" />}
-                        {opt.name}
-                      </span>
-                      <span className="font-mono text-xs font-bold text-stillage-blue">
-                        {modText}
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-steel-600 mt-1">{opt.description}</p>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+        {/* Tab Panel 1: Configure Unit */}
+        <div
+          ref={configurePanelRef}
+          role="tabpanel"
+          aria-labelledby={configureTabId}
+          hidden={activeTab !== 'configure' ? ('until-found' as unknown as boolean) : undefined}
+        >
+          <div className="p-5 space-y-5">
+            {/* Step 1: Visual Circular Finish Swatches */}
+            <div>
+              <div className="flex items-center justify-between mb-2.5">
+                <span className="font-display font-bold uppercase tracking-wider text-xs text-brand-navy">
+                  Finish &amp; Coating
+                </span>
+                <span className="font-mono text-[11px] text-steel-600 truncate max-w-[60%]">
+                  {selectedFinish.code}
+                </span>
+              </div>
+              <div className="grid grid-cols-4 gap-2">
+                {FINISH_OPTIONS.map((opt) => {
+                  const isSelected = finishOption === opt.id;
+                  const modText =
+                    opt.priceModifierPence === 0
+                      ? 'Included'
+                      : opt.priceModifierPence > 0
+                      ? `+${formatGBP(opt.priceModifierPence)}`
+                      : `-${formatGBP(Math.abs(opt.priceModifierPence))}`;
 
-          {/* Step 3: Quantity & Interactive Bulk Tier Selector */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <label
-                htmlFor="qty-input"
-                className="font-display font-bold uppercase tracking-wider text-sm text-brand-navy"
-              >
-                3. Order Quantity &amp; Bulk Tiers
-              </label>
-              <span className="font-mono text-xs text-steel-600">
-                Up to 4 units per HGV pallet
-              </span>
-            </div>
+                  const swatchStyle: React.CSSProperties =
+                    opt.id === 'custom-ral'
+                      ? {
+                          background:
+                            'conic-gradient(#145DA0, #0F2342, #D97706, #059669, #DC2626, #145DA0)',
+                        }
+                      : opt.id === 'galvanised'
+                      ? {
+                          background:
+                            'linear-gradient(135deg, #CBD5E1 0%, #F1F5F9 45%, #94A3B8 100%)',
+                        }
+                      : { backgroundColor: opt.swatchHex };
 
-            <div className="grid grid-cols-3 gap-2 mb-3 font-mono text-xs">
-              {[
-                { label: '1–4 Units', minQty: 1, pct: 'Standard' },
-                { label: '5–9 Units', minQty: 5, pct: 'Save 5%' },
-                { label: '10+ Units', minQty: 10, pct: 'Save 10%' },
-              ].map((tier) => {
-                const active =
-                  (tier.minQty === 1 && quantity < 5) ||
-                  (tier.minQty === 5 && quantity >= 5 && quantity < 10) ||
-                  (tier.minQty === 10 && quantity >= 10);
-                return (
-                  <button
-                    key={tier.label}
-                    type="button"
-                    onClick={() => {
-                      setQuantity(tier.minQty);
-                      if (tier.minQty >= 5) {
+                  return (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      aria-pressed={isSelected}
+                      onClick={() => {
+                        setFinishOption(opt.id);
                         trackB2BEvent({
-                          event: 'bulk_tier_unlocked',
+                          event: 'configurator_option_select',
                           sku: product.sku,
                           productTitle: product.title,
-                          quantity: tier.minQty,
-                          discountPercentage: tier.minQty >= 10 ? 10 : 5,
+                          optionType: 'finish',
+                          optionValue: opt.id,
                         });
-                      }
-                    }}
-                    className={`p-2 border rounded-sm text-center transition-colors ${
-                      active
-                        ? 'bg-brand-navy text-white border-brand-navy font-bold'
-                        : 'bg-steel-50 text-steel-800 border-steel-200 hover:border-stillage-blue'
-                    }`}
-                  >
-                    <div>{tier.label}</div>
-                    <div className="text-[10px] text-accent-amber font-bold">{tier.pct}</div>
-                  </button>
-                );
-              })}
-            </div>
-
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                className="w-10 h-10 border border-steel-200 font-mono font-bold text-lg hover:bg-steel-100"
-                aria-label="Decrease quantity"
-              >
-                -
-              </button>
-              <input
-                id="qty-input"
-                type="number"
-                min={1}
-                max={500}
-                value={quantity}
-                onChange={(e) => setQuantity(Math.max(1, Number(e.target.value) || 1))}
-                className="w-24 h-10 text-center border border-steel-200 font-mono font-bold text-base"
-              />
-              <button
-                type="button"
-                onClick={() => setQuantity(quantity + 1)}
-                className="w-10 h-10 border border-steel-200 font-mono font-bold text-lg hover:bg-steel-100"
-                aria-label="Increase quantity"
-              >
-                +
-              </button>
-              <div className="ml-auto text-right font-mono text-xs text-steel-600">
-                <div>Total Weight: {product.unitWeightKg * quantity} kg</div>
-                <div>Pallets Required: {quote.palletCount}</div>
+                      }}
+                      className="group flex flex-col items-center text-center p-1.5 rounded-sm transition-colors hover:bg-steel-50 focus-visible:outline-2 focus-visible:outline-stillage-blue focus-visible:outline-offset-2"
+                    >
+                      <span
+                        className={`w-11 h-11 rounded-full border border-black/20 flex items-center justify-center transition-all ${
+                          isSelected
+                            ? 'ring-2 ring-stillage-blue ring-offset-2 scale-105'
+                            : 'group-hover:scale-105'
+                        }`}
+                        style={swatchStyle}
+                      >
+                        {isSelected && (
+                          <Check
+                            className={`w-4 h-4 drop-shadow ${
+                              opt.id === 'galvanised' ? 'text-brand-navy' : 'text-white'
+                            }`}
+                            aria-hidden="true"
+                          />
+                        )}
+                      </span>
+                      <span className="mt-2 font-bold text-[11px] text-steel-900 leading-tight">
+                        {opt.code}
+                      </span>
+                      <span className="font-mono text-[10px] font-semibold text-stillage-blue mt-0.5">
+                        {modText}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
+              <p className="mt-2 text-[11px] text-steel-600 bg-steel-50 border border-steel-200 rounded-sm px-2.5 py-1.5">
+                <strong className="text-brand-navy">{selectedFinish.name}:</strong>{' '}
+                {selectedFinish.leadTimeNote}
+              </p>
             </div>
 
-            {/* Smart HGV Pallet & Bulk Tier Optimizer */}
-            <div className="mt-3 bg-steel-50 border border-steel-200 border-l-4 border-l-stillage-blue p-2.5 text-xs flex items-center justify-between gap-2">
-              <div className="flex items-start gap-2">
-                <Sparkles className="w-4 h-4 text-stillage-blue shrink-0 mt-0.5" />
-                <div className="text-steel-800 leading-snug">
-                  {quantity % 4 !== 0 ? (
-                    <>
-                      <strong className="text-brand-navy">Unused HGV Pallet Space:</strong>{' '}
-                      {4 - (quantity % 4)} more unit{4 - (quantity % 4) > 1 ? 's' : ''} can stack on
-                      Pallet #{quote.palletCount} for <strong>£0 extra freight</strong>.
-                    </>
-                  ) : quantity === 4 ? (
-                    <>
-                      <strong className="text-brand-navy">Bulk Tier Alert:</strong> Stepping to{' '}
-                      <strong>5+ units</strong> (or 8 units on 2 full pallets) unlocks{' '}
-                      <strong>5% Off</strong> every configured stillage.
-                    </>
-                  ) : (
-                    <>
-                      <strong className="text-brand-navy">Optimal Pallet Load:</strong>{' '}
-                      {quote.palletCount} full HGV pallet space{quote.palletCount > 1 ? 's' : ''}{' '}
-                      ({quantity} units) with{' '}
-                      <strong>{quote.discountPercentage}% Bulk Trade Discount</strong> active.
-                    </>
-                  )}
+            {/* Step 2: Base & Mobility 2x2 Tile Grid */}
+            <div>
+              <span className="block font-display font-bold uppercase tracking-wider text-xs text-brand-navy mb-2.5">
+                Base &amp; Mobility
+              </span>
+              <div className="grid grid-cols-2 gap-2.5">
+                {MOBILITY_OPTIONS.map((opt) => {
+                  const isSelected = mobilityOption === opt.id;
+                  const shortLabel = mobilityShortLabels[opt.id] || opt.name;
+                  const modText =
+                    opt.priceModifierPence === 0
+                      ? 'Included'
+                      : `+${formatGBP(opt.priceModifierPence)}`;
+
+                  return (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      aria-pressed={isSelected}
+                      onClick={() => setMobilityOption(opt.id)}
+                      className={`p-2.5 border text-left rounded-sm transition-all flex items-center gap-2.5 focus-visible:outline-2 focus-visible:outline-stillage-blue focus-visible:outline-offset-2 ${
+                        isSelected
+                          ? 'border-2 border-stillage-blue bg-stillage-blue/5 shadow-sm'
+                          : 'border-steel-200 hover:border-steel-400 bg-surface-white'
+                      }`}
+                    >
+                      <span
+                        className={`w-8 h-8 rounded-sm flex items-center justify-center shrink-0 ${
+                          isSelected
+                            ? 'bg-stillage-blue text-white'
+                            : 'bg-steel-100 text-brand-navy'
+                        }`}
+                      >
+                        {opt.id === 'standard-feet' ? (
+                          <Layers className="w-4 h-4" aria-hidden="true" />
+                        ) : opt.id === 'forklift-pockets' ? (
+                          <Truck className="w-4 h-4" aria-hidden="true" />
+                        ) : (
+                          <Wrench className="w-4 h-4" aria-hidden="true" />
+                        )}
+                      </span>
+                      <span className="min-w-0">
+                        <span className="block font-bold text-xs text-steel-900 leading-tight truncate">
+                          {shortLabel}
+                        </span>
+                        <span className="block font-mono text-[11px] font-semibold text-stillage-blue mt-0.5">
+                          {modText}
+                        </span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="mt-2 text-[11px] text-steel-600 leading-snug">
+                {selectedMobility.description}
+              </p>
+            </div>
+
+            {/* Step 3: Quantity, Pallet Capacity & Bulk Tier Chips */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label
+                  htmlFor="qty-input"
+                  className="font-display font-bold uppercase tracking-wider text-xs text-brand-navy"
+                >
+                  Quantity
+                </label>
+                <span className="font-mono text-[11px] text-steel-600">
+                  {product.unitWeightKg * quantity} kg total
+                </span>
+              </div>
+
+              <div className="flex items-center gap-4">
+                <div className="inline-flex items-center border border-steel-200 rounded-sm overflow-hidden shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    className="w-9 h-9 font-mono font-bold text-base hover:bg-steel-100 transition-colors focus-visible:outline-2 focus-visible:outline-stillage-blue"
+                    aria-label="Decrease quantity"
+                  >
+                    -
+                  </button>
+                  <input
+                    id="qty-input"
+                    type="number"
+                    min={1}
+                    max={500}
+                    value={quantity}
+                    onChange={(e) => setQuantity(Math.max(1, Number(e.target.value) || 1))}
+                    className="w-14 h-9 text-center border-x border-steel-200 font-mono font-bold text-sm focus:outline-none focus:bg-steel-50"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setQuantity(quantity + 1)}
+                    className="w-9 h-9 font-mono font-bold text-base hover:bg-steel-100 transition-colors focus-visible:outline-2 focus-visible:outline-stillage-blue"
+                    aria-label="Increase quantity"
+                  >
+                    +
+                  </button>
+                </div>
+
+                {/* Pallet Capacity Bar */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between font-mono text-[11px] text-steel-700 mb-1">
+                    <span className="truncate">
+                      Pallet Capacity: {unitsOnCurrentPallet}/4
+                    </span>
+                    <span className="font-bold text-brand-navy shrink-0">
+                      {quote.palletCount} Pallet{quote.palletCount > 1 ? 's' : ''}
+                    </span>
+                  </div>
+                  <div className="w-full h-2 bg-steel-100 rounded-full overflow-hidden border border-steel-200">
+                    <div
+                      className="h-full bg-stillage-blue transition-all duration-300"
+                      style={{ width: `${palletFillPercent}%` }}
+                    />
+                  </div>
                 </div>
               </div>
-              {quantity % 4 !== 0 ? (
-                <button
-                  type="button"
-                  onClick={() => setQuantity(quantity + (4 - (quantity % 4)))}
-                  className="shrink-0 bg-brand-navy hover:bg-stillage-blue text-white px-2.5 py-1 rounded-sm font-mono text-[11px] font-bold transition-colors"
-                >
-                  Fill Pallet ({quantity + (4 - (quantity % 4))})
-                </button>
-              ) : quantity === 4 ? (
-                <button
-                  type="button"
-                  onClick={() => setQuantity(8)}
-                  className="shrink-0 bg-brand-navy hover:bg-stillage-blue text-white px-2.5 py-1 rounded-sm font-mono text-[11px] font-bold transition-colors"
-                >
-                  2 Pallets / -5% (8)
-                </button>
-              ) : null}
+
+              {/* Compact Bulk Tier Chips */}
+              <div className="mt-3 flex items-center flex-wrap gap-2">
+                {[
+                  { label: '1–4', minQty: 1, badge: null },
+                  { label: '5–9', minQty: 5, badge: '-5%' },
+                  { label: '10+', minQty: 10, badge: '-10%' },
+                ].map((tier) => {
+                  const active =
+                    (tier.minQty === 1 && quantity < 5) ||
+                    (tier.minQty === 5 && quantity >= 5 && quantity < 10) ||
+                    (tier.minQty === 10 && quantity >= 10);
+                  return (
+                    <button
+                      key={tier.label}
+                      type="button"
+                      aria-pressed={active}
+                      onClick={() => {
+                        setQuantity(tier.minQty);
+                        if (tier.minQty >= 5) {
+                          trackB2BEvent({
+                            event: 'bulk_tier_unlocked',
+                            sku: product.sku,
+                            productTitle: product.title,
+                            quantity: tier.minQty,
+                            discountPercentage: tier.minQty >= 10 ? 10 : 5,
+                          });
+                        }
+                      }}
+                      className={`px-2.5 py-1 rounded-full font-mono text-[11px] font-bold border transition-colors focus-visible:outline-2 focus-visible:outline-stillage-blue ${
+                        active
+                          ? 'bg-brand-navy text-white border-brand-navy'
+                          : 'bg-steel-50 text-steel-700 border-steel-200 hover:border-stillage-blue'
+                      }`}
+                    >
+                      {tier.label}
+                      {tier.badge && (
+                        <span className={active ? 'text-accent-amber ml-1' : 'text-emerald-700 ml-1'}>
+                          ({tier.badge})
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+
+                {quantity % 4 !== 0 ? (
+                  <button
+                    type="button"
+                    onClick={() => setQuantity(quantity + (4 - (quantity % 4)))}
+                    className="ml-auto inline-flex items-center gap-1 text-[11px] font-mono font-bold text-stillage-blue hover:underline"
+                  >
+                    <Sparkles className="w-3 h-3" aria-hidden="true" />
+                    Fill pallet ({quantity + (4 - (quantity % 4))})
+                  </button>
+                ) : quantity === 4 ? (
+                  <button
+                    type="button"
+                    onClick={() => setQuantity(8)}
+                    className="ml-auto inline-flex items-center gap-1 text-[11px] font-mono font-bold text-stillage-blue hover:underline"
+                  >
+                    <Sparkles className="w-3 h-3" aria-hidden="true" />
+                    8 units = -5%
+                  </button>
+                ) : null}
+              </div>
             </div>
           </div>
+        </div>
 
-          {/* Step 4: UK Postcode Pallet Freight & Offloading Method */}
-          <div className="border-t border-steel-200 pt-5 space-y-3">
-            <label className="block font-display font-bold uppercase tracking-wider text-sm text-brand-navy">
-              4. UK Pallet Delivery &amp; Site Offloading
-            </label>
+        {/* Tab Panel 2: Delivery & Quote */}
+        <div
+          ref={deliveryPanelRef}
+          role="tabpanel"
+          aria-labelledby={deliveryTabId}
+          hidden={activeTab !== 'delivery' ? ('until-found' as unknown as boolean) : undefined}
+        >
+          <div className="p-5 space-y-4">
+            {/* UK Postcode & Offloading */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label htmlFor="postcode-input" className="block text-[11px] font-mono text-steel-600 mb-1">
+                <label
+                  htmlFor="postcode-input"
+                  className="block text-[11px] font-mono text-steel-600 mb-1"
+                >
                   Delivery Postcode
                 </label>
                 <input
                   id="postcode-input"
                   type="text"
+                  autoComplete="postal-code"
                   value={postcode}
                   onChange={(e) => setPostcode(e.target.value)}
                   placeholder="e.g. LL13, B1, M1, IV1"
-                  className="w-full px-3 py-2 border border-steel-200 rounded-sm font-mono text-xs uppercase"
+                  className="w-full px-3 py-2 border border-steel-200 rounded-sm font-mono text-xs uppercase focus-visible:outline-2 focus-visible:outline-stillage-blue"
                 />
               </div>
               <div>
@@ -733,148 +897,225 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
                 </span>
                 <button
                   type="button"
+                  aria-pressed={requiresTailLift}
                   onClick={() => setRequiresTailLift(!requiresTailLift)}
-                  className={`w-full px-3 py-2 border rounded-sm font-mono text-xs text-left flex items-center justify-between ${
+                  className={`w-full px-3 py-2 border rounded-sm font-mono text-xs text-left flex items-center justify-between focus-visible:outline-2 focus-visible:outline-stillage-blue ${
                     requiresTailLift
                       ? 'bg-accent-amber/15 border-accent-amber text-brand-navy font-bold'
                       : 'bg-surface-white border-steel-200 text-steel-800'
                   }`}
                 >
-                  <span>{requiresTailLift ? 'Tail-Lift Required (+£15)' : 'Forklift On-Site (£0)'}</span>
-                  <Truck className="w-4 h-4 text-stillage-blue" />
+                  <span>{requiresTailLift ? 'Tail-Lift (+£15)' : 'Forklift On-Site (£0)'}</span>
+                  <Truck className="w-4 h-4 text-stillage-blue shrink-0" aria-hidden="true" />
                 </button>
               </div>
             </div>
+
             <div className="flex items-start gap-2 text-[11px] text-steel-600 bg-steel-50 p-2.5 border border-steel-200 rounded-sm">
-              <AlertTriangle className="w-4 h-4 text-accent-amber shrink-0 mt-0.5" />
+              <AlertTriangle className="w-4 h-4 text-accent-amber shrink-0 mt-0.5" aria-hidden="true" />
               <span>
-                Stillages ship via HGV pallet network ({quote.deliveryZone}). Select{' '}
-                <strong>Tail-Lift Required</strong> if you do not have a forklift on site to offload.
-              </span>
-            </div>
-          </div>
-
-          {/* Live Quote Breakdown */}
-          <div className="bg-steel-50 border border-steel-200 p-4 rounded-sm space-y-2 font-mono text-xs">
-            <div className="flex items-center justify-between text-[11px] text-steel-600 border-b border-steel-200 pb-2">
-              <span className="inline-flex items-center gap-1.5 font-bold text-brand-navy">
-                <Calculator className="w-3.5 h-3.5 text-stillage-blue" />
-                LIVE QUOTE SUMMARY
-              </span>
-              <span>{showIncVat ? 'INC. VAT VIEW' : 'EX. VAT VIEW'}</span>
-            </div>
-
-            <div className="flex justify-between pt-1">
-              <span className="text-steel-600">
-                {quote.quantity} × Configured Stillage ({selectedFinish.code})
-              </span>
-              <span className="font-bold text-steel-900">
-                {formatGBP(quote.lineSubtotalExVatPence)}
+                Ships via HGV pallet network ({quote.deliveryZone}). Select{' '}
+                <strong>Tail-Lift</strong> if no forklift is available on site.
               </span>
             </div>
 
-            {quote.bulkSavingsExVatPence > 0 && (
-              <div className="flex justify-between text-emerald-700 font-bold">
-                <span>Bulk Tier Discount ({quote.discountPercentage}% Off)</span>
-                <span>-{formatGBP(quote.bulkSavingsExVatPence)}</span>
+            {/* Live Quote Breakdown */}
+            <div className="bg-steel-50 border border-steel-200 p-3.5 rounded-sm space-y-1.5 font-mono text-xs">
+              <div className="flex items-center justify-between text-[11px] text-steel-600 border-b border-steel-200 pb-1.5">
+                <span className="inline-flex items-center gap-1.5 font-bold text-brand-navy">
+                  <Calculator className="w-3.5 h-3.5 text-stillage-blue" aria-hidden="true" />
+                  LIVE QUOTE SUMMARY
+                </span>
+                <span>{showIncVat ? 'INC. VAT VIEW' : 'EX. VAT VIEW'}</span>
               </div>
+
+              <div className="flex justify-between pt-1">
+                <span className="text-steel-600">
+                  {quote.quantity} × Stillage ({selectedFinish.code})
+                </span>
+                <span className="font-bold text-steel-900">
+                  {formatGBP(quote.lineSubtotalExVatPence)}
+                </span>
+              </div>
+
+              <div className="flex justify-between text-steel-600">
+                <span>Base: {mobilityShortLabels[selectedMobility.id] || selectedMobility.name}</span>
+                <span>
+                  {selectedMobility.priceModifierPence === 0
+                    ? 'Included'
+                    : `+${formatGBP(selectedMobility.priceModifierPence * quote.quantity)}`}
+                </span>
+              </div>
+
+              {quote.bulkSavingsExVatPence > 0 && (
+                <div className="flex justify-between text-emerald-700 font-bold">
+                  <span>Bulk Discount ({quote.discountPercentage}% Off)</span>
+                  <span>-{formatGBP(quote.bulkSavingsExVatPence)}</span>
+                </div>
+              )}
+
+              <div className="flex justify-between">
+                <span className="text-steel-600">
+                  HGV Freight ({quote.palletCount} Pallet{quote.palletCount > 1 ? 's' : ''})
+                </span>
+                <span className="font-bold text-steel-900">
+                  {formatGBP(quote.deliveryExVatPence)}
+                </span>
+              </div>
+
+              <div className="border-t border-steel-200 pt-1.5 flex justify-between font-bold text-brand-navy">
+                <span>Total Ex. VAT</span>
+                <span>{formatGBP(quote.totalExVatPence)}</span>
+              </div>
+
+              <div className="flex justify-between text-steel-600">
+                <span>UK VAT (20%)</span>
+                <span>{formatGBP(quote.vatAmountPence)}</span>
+              </div>
+
+              <div className="border-t border-brand-navy pt-1.5 flex justify-between text-sm font-bold text-stillage-blue">
+                <span>Total Inc. VAT</span>
+                <span>{formatGBP(quote.totalIncVatPence)}</span>
+              </div>
+            </div>
+
+            {/* Optional Company Name / PO */}
+            <div>
+              <label
+                htmlFor="configurator-company-input"
+                className="block font-mono text-[11px] text-steel-600 mb-1"
+              >
+                Company Name / PO Reference (Optional)
+              </label>
+              <input
+                id="configurator-company-input"
+                type="text"
+                name="organization"
+                autoComplete="organization"
+                value={companyName}
+                onChange={(e) => setCompanyName(e.target.value)}
+                placeholder="e.g. Midlands Engineering Ltd / PO-4829"
+                className="w-full px-3 py-2 border border-steel-200 rounded-sm text-xs focus-visible:outline-2 focus-visible:outline-stillage-blue"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Sticky Bottom Summary & Action Footer */}
+        <div className="border-t border-steel-200 bg-steel-50 px-5 py-4 space-y-3">
+          <div className="flex items-baseline justify-between gap-2">
+            <div>
+              <div className="font-mono font-bold text-xl text-brand-navy">
+                {formatGBP(quote.totalIncVatPence)}{' '}
+                <span className="text-xs font-normal text-steel-600">inc. VAT</span>
+              </div>
+              <div className="font-mono text-[11px] text-steel-600">
+                {formatGBP(quote.totalExVatPence)} ex. VAT • {quote.palletCount} Pallet
+                {quote.palletCount > 1 ? 's' : ''} ({postcode.toUpperCase() || 'UK'})
+              </div>
+            </div>
+            {activeTab === 'configure' && (
+              <button
+                type="button"
+                onClick={() => setActiveTab('delivery')}
+                className="text-xs font-mono font-bold text-stillage-blue hover:underline shrink-0"
+              >
+                Edit delivery
+              </button>
             )}
-
-            <div className="flex justify-between">
-              <span className="text-steel-600">
-                HGV Pallet Freight ({quote.palletCount} Pallet{quote.palletCount > 1 ? 's' : ''})
-              </span>
-              <span className="font-bold text-steel-900">
-                {formatGBP(quote.deliveryExVatPence)}
-              </span>
-            </div>
-
-            <div className="border-t border-steel-200 pt-2 flex justify-between text-sm font-bold text-brand-navy">
-              <span>Total Ex. VAT</span>
-              <span>{formatGBP(quote.totalExVatPence)}</span>
-            </div>
-
-            <div className="flex justify-between text-steel-600">
-              <span>UK VAT (20%)</span>
-              <span>{formatGBP(quote.vatAmountPence)}</span>
-            </div>
-
-            <div className="border-t-2 border-brand-navy pt-2 flex justify-between text-base font-bold text-stillage-blue">
-              <span>Total Inc. VAT</span>
-              <span>{formatGBP(quote.totalIncVatPence)}</span>
-            </div>
           </div>
 
-          {/* Optional Company Name for B2B Proforma */}
-          <div>
-            <label
-              htmlFor="configurator-company-input"
-              className="block font-mono text-[11px] text-steel-600 mb-1"
-            >
-              Optional: Company Name / PO Reference for VAT Invoice
-            </label>
-            <input
-              id="configurator-company-input"
-              type="text"
-              name="organization"
-              autoComplete="organization"
-              value={companyName}
-              onChange={(e) => setCompanyName(e.target.value)}
-              placeholder="e.g. Midlands Engineering Ltd / PO-4829"
-              className="w-full px-3 py-2 border border-steel-200 rounded-sm text-xs"
-            />
-          </div>
+          {activeTab === 'configure' ? (
+            <div className="space-y-2">
+              <button
+                type="button"
+                onClick={() => setActiveTab('delivery')}
+                className="w-full bg-brand-navy hover:bg-brand-navyLight text-white font-display font-bold uppercase tracking-wider text-sm py-3 px-4 rounded-sm flex items-center justify-center gap-2 shadow-sm transition-colors focus-visible:outline-2 focus-visible:outline-stillage-blue focus-visible:outline-offset-2"
+              >
+                <span>Continue to Delivery &amp; Quote</span>
+                <ArrowRight className="w-4 h-4" aria-hidden="true" />
+              </button>
+              <div className="flex items-center justify-center gap-3 text-xs font-mono text-steel-600 pt-0.5">
+                <button
+                  type="button"
+                  disabled={submitting}
+                  onClick={() => handleCheckout('card')}
+                  className="hover:text-stillage-blue font-bold underline-offset-2 hover:underline"
+                >
+                  Buy Now
+                </button>
+                <span aria-hidden="true">•</span>
+                <button
+                  type="button"
+                  onClick={handleAddToBasketOnly}
+                  className="hover:text-stillage-blue font-bold underline-offset-2 hover:underline"
+                >
+                  Add to Basket
+                </button>
+                <span aria-hidden="true">•</span>
+                <button
+                  type="button"
+                  disabled={submitting}
+                  onClick={() => handleCheckout('b2b_proforma')}
+                  className="hover:text-stillage-blue font-bold underline-offset-2 hover:underline"
+                >
+                  PDF Quote
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <button
+                type="button"
+                disabled={submitting}
+                onClick={() => handleCheckout('card')}
+                className="w-full bg-stillage-blue hover:bg-stillage-blueDark text-white font-display font-bold uppercase tracking-wider text-sm py-3 px-4 rounded-sm flex items-center justify-center gap-2 shadow-sm transition-colors focus-visible:outline-2 focus-visible:outline-brand-navy focus-visible:outline-offset-2"
+              >
+                <ShoppingBag className="w-4 h-4" aria-hidden="true" />
+                <span>Buy Online Now — {formatGBP(quote.totalIncVatPence)} Inc. VAT</span>
+              </button>
 
-          {/* Conversion CTAs */}
-          <div className="space-y-2.5">
-            <button
-              type="button"
-              disabled={submitting}
-              onClick={() => handleCheckout('card')}
-              className="w-full bg-stillage-blue hover:bg-stillage-blueDark text-white font-display font-bold uppercase tracking-wider text-base py-3.5 px-5 rounded-sm flex items-center justify-center gap-2 shadow-sm transition-colors"
-            >
-              <ShoppingBag className="w-4 h-4" />
-              <span>
-                Buy Online Now — {formatGBP(quote.totalIncVatPence)} Inc. VAT
-              </span>
-            </button>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={handleAddToBasketOnly}
+                  className="bg-surface-white hover:bg-steel-100 text-brand-navy border border-steel-200 font-display font-bold uppercase tracking-wider text-[11px] py-2.5 px-3 rounded-sm flex items-center justify-center gap-1.5 transition-colors focus-visible:outline-2 focus-visible:outline-stillage-blue"
+                >
+                  <PlusCircle className="w-3.5 h-3.5 text-stillage-blue shrink-0" aria-hidden="true" />
+                  <span className="truncate">{configCopy.addToBasketLabel || 'Add to Basket'}</span>
+                </button>
 
-            <button
-              type="button"
-              disabled={submitting}
-              onClick={() => handleCheckout('b2b_proforma')}
-              className="w-full bg-brand-navy hover:bg-brand-navyLight text-white font-display font-bold uppercase tracking-wider text-sm py-3 px-5 rounded-sm flex items-center justify-center gap-2 transition-colors"
-            >
-              <FileText className="w-4 h-4 text-accent-amber" />
-              <span>{configCopy.proformaButtonLabel || 'Generate Official B2B VAT Proforma Invoice'}</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={handleAddToBasketOnly}
-              className="w-full bg-steel-50 hover:bg-steel-100 text-brand-navy border border-steel-200 font-display font-bold uppercase tracking-wider text-xs py-2.5 px-4 rounded-sm flex items-center justify-center gap-2 transition-colors"
-            >
-              <PlusCircle className="w-3.5 h-3.5 text-stillage-blue" />
-              <span>{configCopy.addToBasketLabel}</span>
-            </button>
-          </div>
+                <button
+                  type="button"
+                  disabled={submitting}
+                  onClick={() => handleCheckout('b2b_proforma')}
+                  className="bg-brand-navy hover:bg-brand-navyLight text-white font-display font-bold uppercase tracking-wider text-[11px] py-2.5 px-3 rounded-sm flex items-center justify-center gap-1.5 transition-colors focus-visible:outline-2 focus-visible:outline-stillage-blue"
+                >
+                  <FileText className="w-3.5 h-3.5 text-accent-amber shrink-0" aria-hidden="true" />
+                  <span className="truncate">
+                    {configCopy.proformaButtonLabel ? 'B2B PDF Proforma' : 'PDF Proforma Quote'}
+                  </span>
+                </button>
+              </div>
+            </div>
+          )}
 
           {orderStatusMessage && (
             <div
               role="status"
               aria-live="polite"
-              className="p-3.5 bg-emerald-50 border border-emerald-600 text-emerald-950 text-xs font-medium rounded-sm flex items-start justify-between gap-2.5"
+              className="p-3 bg-emerald-50 border border-emerald-600 text-emerald-950 text-xs font-medium rounded-sm flex items-start justify-between gap-2.5"
             >
-              <div className="flex items-start gap-2.5">
-                <Layers className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
+              <div className="flex items-start gap-2">
+                <Layers className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" aria-hidden="true" />
                 <div>{orderStatusMessage}</div>
               </div>
               <Link
                 href="/checkout"
                 className="shrink-0 inline-flex items-center gap-1 font-mono font-bold text-stillage-blue hover:underline"
               >
-                <span>View Checkout</span>
-                <ArrowRight className="w-3.5 h-3.5" />
+                <span>Checkout</span>
+                <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
               </Link>
             </div>
           )}
