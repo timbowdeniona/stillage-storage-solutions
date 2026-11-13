@@ -15,6 +15,8 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import { useVat } from '@/context/VatContext';
+import { useSiteContent } from '@/context/SiteContentContext';
+import { BrandIcon } from '@/components/BrandIcon';
 import { SEED_PRODUCTS } from '@/data/seedCatalog';
 import { searchProductsWithAlgolia } from '@/lib/algolia';
 import { AlgoliaArticleRecord, ParsedSearchIntent, Product } from '@/types/catalog';
@@ -23,6 +25,11 @@ import { FEATURES } from '@/lib/features';
 
 export function Header() {
   const { showIncVat, setShowIncVat, basket, formatPrice, formatBothPrices } = useVat();
+  const { navigation, microtexts } = useSiteContent();
+  const headerCopy = microtexts.header;
+  const headerNavItems = (navigation['header-main']?.items || []).filter(
+    (item) => !item.requiresBlogFeature || FEATURES.enableBlogGuides
+  );
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -127,93 +134,84 @@ export function Header() {
   return (
     <header className="sticky top-0 z-40 bg-surface-white text-brand-navy border-b border-steel-200 shadow-xs">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-6">
-        {/* Left: Option 1 Stacked Brand Logo + Navigation Links */}
+        {/* Left: Brand Icon + Stacked Brand Wordmark + Navigation Links */}
         <div className="flex items-center gap-10">
-          <Link href="/" className="flex flex-col shrink-0 group">
-            <span className="font-display font-extrabold text-3xl sm:text-[34px] tracking-tight text-brand-navy leading-[0.85] uppercase">
-              STILLAGE
-            </span>
-            <span className="font-display font-bold text-[11px] sm:text-xs tracking-[0.08em] text-brand-navy uppercase mt-0.5">
-              STORAGE SOLUTIONS
+          <Link href="/" className="flex items-center gap-3 shrink-0 group">
+            <BrandIcon size={40} className="w-10 h-10 shrink-0 transition-transform group-hover:scale-105" />
+            <span className="flex flex-col">
+              <span className="font-display font-extrabold text-3xl sm:text-[34px] tracking-tight text-brand-navy leading-[0.85] uppercase">
+                {headerCopy.brandWordmarkPrimary}
+              </span>
+              <span className="font-display font-bold text-[11px] sm:text-xs tracking-[0.08em] text-brand-navy uppercase mt-0.5">
+                {headerCopy.brandWordmarkSecondary}
+              </span>
             </span>
           </Link>
 
-          {/* Clean Option 1 Navigation Links */}
+          {/* Contentful-Managed Navigation Links */}
           <nav aria-label="Main navigation" className="hidden lg:flex items-center gap-7">
-            <div ref={productsMenuRef} className="relative">
-              <button
-                type="button"
-                onClick={() => setProductsMenuOpen((prev) => !prev)}
-                aria-expanded={productsMenuOpen}
-                className="inline-flex items-center gap-1 font-display font-bold text-lg text-brand-navy hover:text-stillage-blue transition-colors"
-              >
-                <span>Products</span>
-                <ChevronDown className="w-4 h-4 text-brand-navy" />
-              </button>
+            {headerNavItems.map((item) => {
+              const visibleChildren = (item.children || []).filter(
+                (child) => !child.requiresBlogFeature || FEATURES.enableBlogGuides
+              );
 
-              {productsMenuOpen && (
-                <div className="absolute left-0 top-full mt-2 w-60 bg-surface-white border border-steel-200 rounded-lg shadow-xl py-2 z-50">
-                  <Link
-                    href="/products"
-                    onClick={() => setProductsMenuOpen(false)}
-                    className="block px-4 py-2 font-display font-bold text-base text-brand-navy hover:bg-steel-50 hover:text-stillage-blue"
-                  >
-                    All 12 Models
-                  </Link>
-                  <Link
-                    href="/products?category=cantilever-bar-racks"
-                    onClick={() => setProductsMenuOpen(false)}
-                    className="block px-4 py-2 font-display font-medium text-base text-steel-800 hover:bg-steel-50 hover:text-stillage-blue"
-                  >
-                    Cantilever Racks (3)
-                  </Link>
-                  <Link
-                    href="/products?category=hopper-bin-stillages"
-                    onClick={() => setProductsMenuOpen(false)}
-                    className="block px-4 py-2 font-display font-medium text-base text-steel-800 hover:bg-steel-50 hover:text-stillage-blue"
-                  >
-                    Hopper Stillages (3)
-                  </Link>
-                  <Link
-                    href="/products?category=sheet-stillages"
-                    onClick={() => setProductsMenuOpen(false)}
-                    className="block px-4 py-2 font-display font-medium text-base text-steel-800 hover:bg-steel-50 hover:text-stillage-blue"
-                  >
-                    Solid &amp; Mesh Cages (4)
-                  </Link>
-                  <Link
-                    href="/products?category=post-pallets"
-                    onClick={() => setProductsMenuOpen(false)}
-                    className="block px-4 py-2 font-display font-medium text-base text-steel-800 hover:bg-steel-50 hover:text-stillage-blue"
-                  >
-                    Post Pallets (2)
-                  </Link>
-                </div>
-              )}
-            </div>
+              if (visibleChildren.length > 0) {
+                return (
+                  <div key={`${item.label}-${item.href}`} ref={productsMenuRef} className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setProductsMenuOpen((prev) => !prev)}
+                      aria-expanded={productsMenuOpen}
+                      className="inline-flex items-center gap-1 font-display font-bold text-lg text-brand-navy hover:text-stillage-blue transition-colors"
+                    >
+                      <span>{item.label}</span>
+                      <ChevronDown className="w-4 h-4 text-brand-navy" />
+                    </button>
 
-            <Link
-              href="/workshop"
-              className="font-display font-bold text-lg text-brand-navy hover:text-stillage-blue transition-colors"
-            >
-              Custom Fab
-            </Link>
+                    {productsMenuOpen && (
+                      <div className="absolute left-0 top-full mt-2 w-60 bg-surface-white border border-steel-200 rounded-lg shadow-xl py-2 z-50">
+                        {visibleChildren.map((child, idx) => (
+                          <Link
+                            key={`${child.label}-${child.href}`}
+                            href={child.href}
+                            onClick={() => setProductsMenuOpen(false)}
+                            className={`block px-4 py-2 font-display text-base hover:bg-steel-50 hover:text-stillage-blue ${
+                              idx === 0
+                                ? 'font-bold text-brand-navy'
+                                : 'font-medium text-steel-800'
+                            }`}
+                          >
+                            {child.label}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              }
 
-            {FEATURES.enableBlogGuides && (
-              <Link
-                href="/blog"
-                className="font-display font-bold text-lg text-brand-navy hover:text-stillage-blue transition-colors"
-              >
-                About &amp; Guides
-              </Link>
-            )}
+              if (item.isExternal || item.href.startsWith('mailto:') || item.href.startsWith('tel:')) {
+                return (
+                  <a
+                    key={`${item.label}-${item.href}`}
+                    href={item.href}
+                    className="font-display font-bold text-lg text-brand-navy hover:text-stillage-blue transition-colors"
+                  >
+                    {item.label}
+                  </a>
+                );
+              }
 
-            <a
-              href="mailto:sales@stillagestoragesolutions.co.uk"
-              className="font-display font-bold text-lg text-brand-navy hover:text-stillage-blue transition-colors"
-            >
-              Contact
-            </a>
+              return (
+                <Link
+                  key={`${item.label}-${item.href}`}
+                  href={item.href}
+                  className="font-display font-bold text-lg text-brand-navy hover:text-stillage-blue transition-colors"
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
           </nav>
         </div>
 
@@ -229,7 +227,7 @@ export function Header() {
             {searchOpen ? (
               <div className="flex items-center">
                 <label htmlFor="header-algolia-search" className="sr-only">
-                  Search stillages, storage racks, and compliance guides
+                  {headerCopy.searchAriaLabel}
                 </label>
                 <input
                   id="header-algolia-search"
@@ -251,7 +249,7 @@ export function Header() {
                   aria-autocomplete="list"
                   aria-expanded={showDropdown}
                   aria-controls="header-algolia-autocomplete"
-                  placeholder="Search SKU, SWL or size..."
+                  placeholder={headerCopy.searchPlaceholder}
                   className="w-56 bg-steel-50 text-brand-navy placeholder-steel-400 text-sm px-3.5 py-2 rounded-l-md border border-steel-200 focus:outline-none focus:border-stillage-blue"
                 />
                 <button
@@ -292,7 +290,7 @@ export function Header() {
 
                 {instantHits.length === 0 && instantArticles.length === 0 ? (
                   <div className="p-4 text-xs text-steel-600 font-mono">
-                    No direct SKU matches for &ldquo;{debouncedQuery}&rdquo; — press Enter to view all results.
+                    {headerCopy.noSearchMatchesPrefix} &ldquo;{debouncedQuery}&rdquo; — press Enter to view all results.
                   </div>
                 ) : (
                   <div>
@@ -401,7 +399,9 @@ export function Header() {
                     type="submit"
                     className="hover:underline inline-flex items-center gap-1.5 font-bold"
                   >
-                    <span>View All Results for &ldquo;{searchQuery}&rdquo;</span>
+                    <span>
+                      {headerCopy.viewAllResultsPrefix} &ldquo;{searchQuery}&rdquo;
+                    </span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -409,13 +409,13 @@ export function Header() {
             )}
           </form>
 
-          {/* Phone Number matching Option 1 */}
+          {/* Phone Number */}
           <a
-            href="tel:01978800500"
+            href={headerCopy.phoneHref}
             className="hidden sm:inline-flex items-center gap-2 font-display font-bold text-lg text-brand-navy hover:text-stillage-blue transition-colors"
           >
             <Phone className="w-4 h-4 text-brand-navy fill-brand-navy" />
-            <span>+44 (0) 1978 800 500</span>
+            <span>{headerCopy.phoneDisplay}</span>
           </a>
 
           {/* Compact VAT Toggle */}
@@ -423,12 +423,12 @@ export function Header() {
             type="button"
             onClick={() => setShowIncVat(!showIncVat)}
             className="hidden xl:inline-flex items-center px-2.5 py-1 rounded border border-steel-200 bg-steel-50 hover:bg-steel-100 text-[11px] font-mono font-bold text-brand-navy transition-colors"
-            title="Toggle Ex. VAT / Inc. VAT pricing"
+            title={headerCopy.vatToggleTitle}
           >
-            {showIncVat ? 'INC. VAT' : 'EX. VAT'}
+            {showIncVat ? headerCopy.vatToggleIncLabel : headerCopy.vatToggleExLabel}
           </button>
 
-          {/* Quote Basket Button matching Option 1 */}
+          {/* Quote Basket Button */}
           <Link
             href="/checkout"
             className="inline-flex items-center gap-2 bg-stillage-blue hover:bg-stillage-blueLight text-white px-5 py-2.5 rounded-md font-display font-bold text-base transition-colors shadow-xs"
@@ -436,8 +436,8 @@ export function Header() {
             <ShoppingCart className="w-4 h-4" />
             <span>
               {totalUnits > 0
-                ? `Quote Basket (${totalUnits} • ${formatPrice(totalExVat)})`
-                : 'Quote Basket'}
+                ? `${headerCopy.basketLabel} (${totalUnits} • ${formatPrice(totalExVat)})`
+                : headerCopy.basketLabel}
             </span>
           </Link>
 
@@ -480,57 +480,47 @@ export function Header() {
             </button>
           </form>
           <div className="grid grid-cols-1 gap-1 pt-2 font-display font-bold text-base text-brand-navy">
-            <Link
-              href="/products"
-              onClick={() => setMobileMenuOpen(false)}
-              className="py-2 px-3 rounded-md bg-steel-50"
-            >
-              All 12 Models
-            </Link>
-            <Link
-              href="/products?category=cantilever-bar-racks"
-              onClick={() => setMobileMenuOpen(false)}
-              className="py-2 px-3 rounded-md hover:bg-steel-50"
-            >
-              Cantilever Racks (3)
-            </Link>
-            <Link
-              href="/products?category=hopper-bin-stillages"
-              onClick={() => setMobileMenuOpen(false)}
-              className="py-2 px-3 rounded-md hover:bg-steel-50"
-            >
-              Hopper Stillages (3)
-            </Link>
-            <Link
-              href="/products?category=sheet-stillages"
-              onClick={() => setMobileMenuOpen(false)}
-              className="py-2 px-3 rounded-md hover:bg-steel-50"
-            >
-              Solid &amp; Mesh Cages (4)
-            </Link>
-            <Link
-              href="/products?category=post-pallets"
-              onClick={() => setMobileMenuOpen(false)}
-              className="py-2 px-3 rounded-md hover:bg-steel-50"
-            >
-              Post Pallets (2)
-            </Link>
-            <Link
-              href="/workshop"
-              onClick={() => setMobileMenuOpen(false)}
-              className="py-2 px-3 rounded-md hover:bg-steel-50"
-            >
-              Custom Fab
-            </Link>
-            {FEATURES.enableBlogGuides && (
-              <Link
-                href="/blog"
-                onClick={() => setMobileMenuOpen(false)}
-                className="py-2 px-3 rounded-md hover:bg-steel-50"
-              >
-                About &amp; Guides
-              </Link>
-            )}
+            {headerNavItems.flatMap((item) => {
+              const visibleChildren = (item.children || []).filter(
+                (child) => !child.requiresBlogFeature || FEATURES.enableBlogGuides
+              );
+              if (visibleChildren.length > 0) {
+                return visibleChildren.map((child, idx) => (
+                  <Link
+                    key={`mobile-${child.label}-${child.href}`}
+                    href={child.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={`py-2 px-3 rounded-md ${
+                      idx === 0 ? 'bg-steel-50' : 'hover:bg-steel-50'
+                    }`}
+                  >
+                    {child.label}
+                  </Link>
+                ));
+              }
+              if (item.isExternal || item.href.startsWith('mailto:') || item.href.startsWith('tel:')) {
+                return [
+                  <a
+                    key={`mobile-${item.label}-${item.href}`}
+                    href={item.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="py-2 px-3 rounded-md hover:bg-steel-50"
+                  >
+                    {item.label}
+                  </a>,
+                ];
+              }
+              return [
+                <Link
+                  key={`mobile-${item.label}-${item.href}`}
+                  href={item.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="py-2 px-3 rounded-md hover:bg-steel-50"
+                >
+                  {item.label}
+                </Link>,
+              ];
+            })}
           </div>
         </div>
       )}

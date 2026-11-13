@@ -1,13 +1,19 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
 import { ArrowRight, Calendar, Clock, User } from 'lucide-react';
 import { BlogPost } from '@/types/catalog';
+import { useSiteContent } from '@/context/SiteContentContext';
 
 interface BlogCardProps {
   post: BlogPost;
 }
 
 export function BlogCard({ post }: BlogCardProps) {
+  const { microtexts } = useSiteContent();
+  const blogCopy = microtexts.blogCard;
+
   return (
     <article className="group border border-steel-200 hover:border-stillage-blue bg-surface-white rounded-sm flex flex-col justify-between transition-all shadow-xs hover:shadow-lg overflow-hidden">
       <div>
@@ -18,7 +24,7 @@ export function BlogCard({ post }: BlogCardProps) {
           </span>
           <span className="inline-flex items-center gap-1 text-steel-600 shrink-0">
             <Clock className="w-3 h-3" />
-            {post.readingTimeMinutes} min read
+            {post.readingTimeMinutes} {blogCopy.minReadSuffix}
           </span>
         </div>
 
@@ -29,7 +35,7 @@ export function BlogCard({ post }: BlogCardProps) {
         >
           {post.featured && (
             <span className="absolute top-3 left-3 bg-brand-navy text-white font-mono text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-sm">
-              Featured Guide
+              {blogCopy.featuredBadgeLabel}
             </span>
           )}
           <img
@@ -80,7 +86,7 @@ export function BlogCard({ post }: BlogCardProps) {
       {/* Footer CTA */}
       <div className="px-5 py-3.5 bg-steel-50 border-t border-steel-200 flex items-center justify-between font-mono text-xs font-bold text-stillage-blue">
         <Link href={`/blog/${post.slug}`} className="inline-flex items-center justify-between w-full">
-          <span>Read Engineering Guide</span>
+          <span>{blogCopy.readGuideLabel}</span>
           <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
         </Link>
       </div>

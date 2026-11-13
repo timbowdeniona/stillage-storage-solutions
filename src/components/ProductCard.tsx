@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { Product } from '@/types/catalog';
 import { useVat } from '@/context/VatContext';
+import { useSiteContent } from '@/context/SiteContentContext';
 
 interface ProductCardProps {
   product: Product;
@@ -12,6 +13,8 @@ interface ProductCardProps {
 
 export function ProductCard({ product, priority = false }: ProductCardProps) {
   const { formatBothPrices } = useVat();
+  const { microtexts } = useSiteContent();
+  const cardCopy = microtexts.productCard;
   const priceDisplay = formatBothPrices(product.basePriceExVatPence);
   const hasDrawing = Boolean(product.technicalDrawing);
 
@@ -68,7 +71,7 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
           {hasDrawing ? (
             <span className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-brand-navy/95 text-white border border-white/20 text-[10px] font-mono uppercase px-2 py-0.5 rounded flex items-center gap-1 shadow-sm pointer-events-none">
               <span className="w-1.5 h-1.5 rounded-full bg-accent-teal animate-pulse" />
-              CAD Drawing
+              {cardCopy.cadBadgeLabel || 'CAD Drawing'}
             </span>
           ) : null}
         </Link>
@@ -81,7 +84,7 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
         {/* Option 1 Spec Pill Badges: SWL & Dimensions */}
         <div className="flex flex-wrap items-center gap-1.5 mt-3">
           <span className="bg-steel-100 text-brand-navy font-display font-bold text-xs px-2.5 py-1 rounded">
-            {product.swlKg.toLocaleString('en-GB')}kg SWL
+            {product.swlKg.toLocaleString('en-GB')}kg {cardCopy.swlSuffix}
           </span>
           <span className="bg-steel-100 text-brand-navy font-display font-bold text-xs px-2.5 py-1 rounded">
             {product.externalLengthMm}x{product.externalWidthMm}x{product.externalHeightMm}mm
@@ -104,7 +107,7 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
           href={`/products/${product.slug}`}
           className="w-full bg-stillage-blue hover:bg-stillage-blueLight text-white font-display font-bold text-base py-2.5 px-4 rounded-md text-center block transition-colors shadow-xs"
         >
-          Configure &amp; Buy
+          {cardCopy.configureButtonLabel}
         </Link>
       </div>
     </article>

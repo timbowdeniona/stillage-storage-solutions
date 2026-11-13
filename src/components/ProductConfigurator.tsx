@@ -24,6 +24,7 @@ import { calculateQuote } from '@/lib/pricing';
 import { trackAlgoliaEvent } from '@/lib/algolia';
 import { trackB2BEvent } from '@/lib/analytics';
 import { formatGBP, useVat } from '@/context/VatContext';
+import { useSiteContent } from '@/context/SiteContentContext';
 import { ProductTechnicalDiagram } from '@/components/ProductTechnicalDiagram';
 
 interface ProductConfiguratorProps {
@@ -33,6 +34,8 @@ interface ProductConfiguratorProps {
 export function ProductConfigurator({ product }: ProductConfiguratorProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { microtexts } = useSiteContent();
+  const configCopy = microtexts.configurator;
   const {
     showIncVat,
     formatBothPrices,
@@ -843,7 +846,7 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
               className="w-full bg-brand-navy hover:bg-brand-navyLight text-white font-display font-bold uppercase tracking-wider text-sm py-3 px-5 rounded-sm flex items-center justify-center gap-2 transition-colors"
             >
               <FileText className="w-4 h-4 text-accent-amber" />
-              <span>Generate Official B2B VAT Proforma Invoice</span>
+              <span>{configCopy.proformaButtonLabel || 'Generate Official B2B VAT Proforma Invoice'}</span>
             </button>
 
             <button
@@ -852,7 +855,7 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
               className="w-full bg-steel-50 hover:bg-steel-100 text-brand-navy border border-steel-200 font-display font-bold uppercase tracking-wider text-xs py-2.5 px-4 rounded-sm flex items-center justify-center gap-2 transition-colors"
             >
               <PlusCircle className="w-3.5 h-3.5 text-stillage-blue" />
-              <span>Add Specification to Order Basket &amp; Keep Browsing</span>
+              <span>{configCopy.addToBasketLabel}</span>
             </button>
           </div>
 
