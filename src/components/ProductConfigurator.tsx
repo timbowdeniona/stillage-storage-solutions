@@ -508,13 +508,15 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
       </div>
 
       {/* Right Column: Interactive Stillage Configurator & Live Quote */}
-      <div className="lg:col-span-5 border-2 border-brand-navy bg-surface-white rounded-sm shadow-lg sticky top-24 overflow-hidden">
-        {/* Compact Configurator Header */}
-        <div className="bg-brand-navy text-surface-white px-5 py-4 border-b border-white/15">
-          <div className="flex items-center justify-between gap-2 text-[11px] font-mono">
-            <span className="text-stillage-sky tracking-wider">DIRECT FACTORY CONFIGURATOR</span>
+      <div className="lg:col-span-5 border-2 border-brand-navy bg-surface-white rounded-sm shadow-lg sticky top-20 overflow-hidden">
+        {/* Slim Configurator Header */}
+        <div className="bg-brand-navy text-surface-white px-4 py-2.5 border-b border-white/15">
+          <div className="flex items-start justify-between gap-2">
+            <h1 className="font-display font-bold text-base sm:text-lg uppercase tracking-wide leading-snug line-clamp-2">
+              {product.title}
+            </h1>
             <span
-              className={`px-2 py-0.5 rounded-full font-bold text-[10px] tracking-wide ${
+              className={`shrink-0 mt-0.5 px-2 py-0.5 rounded-full font-mono font-bold text-[10px] tracking-wide ${
                 product.inStock
                   ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/40'
                   : 'bg-accent-amber/20 text-amber-200 border border-accent-amber/40'
@@ -523,18 +525,15 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
               {product.inStock ? 'IN STOCK' : 'MADE TO ORDER'}
             </span>
           </div>
-          <h1 className="font-display font-bold text-xl sm:text-2xl uppercase tracking-wide mt-1.5 leading-tight">
-            {product.title}
-          </h1>
-          <div className="mt-2.5 flex items-baseline gap-2.5 flex-wrap">
-            <span className="font-mono font-bold text-2xl sm:text-3xl text-white">
+          <div className="mt-1 flex items-baseline gap-2 flex-wrap">
+            <span className="font-mono font-bold text-xl text-white">
               {formatBothPrices(quote.discountedUnitExVatPence).primary}
             </span>
-            <span className="font-mono text-xs text-steel-200">
-              per unit ({formatBothPrices(quote.discountedUnitExVatPence).label})
+            <span className="font-mono text-[11px] text-steel-200">
+              / unit ({formatBothPrices(quote.discountedUnitExVatPence).label})
             </span>
             {quote.discountPercentage > 0 && (
-              <span className="ml-auto bg-accent-amber text-white font-mono text-[11px] font-bold px-2 py-0.5 rounded-sm">
+              <span className="ml-auto bg-accent-amber text-white font-mono text-[10px] font-bold px-2 py-0.5 rounded-sm">
                 {quote.discountPercentage}% Bulk Off
               </span>
             )}
@@ -542,7 +541,7 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
         </div>
 
         {/* Two-Step Segmented Tab Bar */}
-        <div className="bg-steel-100 px-4 pt-3 pb-2 border-b border-steel-200">
+        <div className="bg-steel-100 px-4 py-2 border-b border-steel-200">
           <div
             role="tablist"
             aria-label="Product configurator steps"
@@ -557,7 +556,7 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
               tabIndex={activeTab === 'configure' ? 0 : -1}
               onClick={() => setActiveTab('configure')}
               onKeyDown={handleTabKeyDown}
-              className={`py-2 px-3 rounded-sm text-xs font-display font-bold uppercase tracking-wider transition-all focus-visible:outline-2 focus-visible:outline-stillage-blue focus-visible:outline-offset-2 ${
+              className={`py-1.5 px-3 rounded-sm text-xs font-display font-bold uppercase tracking-wider transition-all focus-visible:outline-2 focus-visible:outline-stillage-blue focus-visible:outline-offset-2 ${
                 activeTab === 'configure'
                   ? 'bg-surface-white text-brand-navy shadow-sm border-b-2 border-stillage-blue'
                   : 'text-steel-600 hover:text-brand-navy border-b-2 border-transparent'
@@ -574,7 +573,7 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
               tabIndex={activeTab === 'delivery' ? 0 : -1}
               onClick={() => setActiveTab('delivery')}
               onKeyDown={handleTabKeyDown}
-              className={`py-2 px-3 rounded-sm text-xs font-display font-bold uppercase tracking-wider transition-all focus-visible:outline-2 focus-visible:outline-stillage-blue focus-visible:outline-offset-2 ${
+              className={`py-1.5 px-3 rounded-sm text-xs font-display font-bold uppercase tracking-wider transition-all focus-visible:outline-2 focus-visible:outline-stillage-blue focus-visible:outline-offset-2 ${
                 activeTab === 'delivery'
                   ? 'bg-surface-white text-brand-navy shadow-sm border-b-2 border-stillage-blue'
                   : 'text-steel-600 hover:text-brand-navy border-b-2 border-transparent'
@@ -592,18 +591,21 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
           aria-labelledby={configureTabId}
           hidden={activeTab !== 'configure' ? ('until-found' as unknown as boolean) : undefined}
         >
-          <div className="p-5 space-y-5">
+          <div className="p-4 space-y-3.5">
             {/* Step 1: Visual Circular Finish Swatches */}
             <div>
-              <div className="flex items-center justify-between mb-2.5">
+              <div className="flex items-center justify-between gap-2 mb-1.5">
                 <span className="font-display font-bold uppercase tracking-wider text-xs text-brand-navy">
                   Finish &amp; Coating
                 </span>
-                <span className="font-mono text-[11px] text-steel-600 truncate max-w-[60%]">
-                  {selectedFinish.code}
+                <span
+                  className="font-mono text-[11px] text-steel-600 truncate max-w-[65%]"
+                  title={`${selectedFinish.name}: ${selectedFinish.leadTimeNote}`}
+                >
+                  {selectedFinish.name}
                 </span>
               </div>
-              <div className="grid grid-cols-4 gap-2">
+              <div className="grid grid-cols-4 gap-1.5">
                 {FINISH_OPTIONS.map((opt) => {
                   const isSelected = finishOption === opt.id;
                   const modText =
@@ -641,10 +643,10 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
                           optionValue: opt.id,
                         });
                       }}
-                      className="group flex flex-col items-center text-center p-1.5 rounded-sm transition-colors hover:bg-steel-50 focus-visible:outline-2 focus-visible:outline-stillage-blue focus-visible:outline-offset-2"
+                      className="group flex flex-col items-center text-center p-1 rounded-sm transition-colors hover:bg-steel-50 focus-visible:outline-2 focus-visible:outline-stillage-blue focus-visible:outline-offset-2"
                     >
                       <span
-                        className={`w-11 h-11 rounded-full border border-black/20 flex items-center justify-center transition-all ${
+                        className={`w-9 h-9 rounded-full border border-black/20 flex items-center justify-center transition-all ${
                           isSelected
                             ? 'ring-2 ring-stillage-blue ring-offset-2 scale-105'
                             : 'group-hover:scale-105'
@@ -653,35 +655,39 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
                       >
                         {isSelected && (
                           <Check
-                            className={`w-4 h-4 drop-shadow ${
+                            className={`w-3.5 h-3.5 drop-shadow ${
                               opt.id === 'galvanised' ? 'text-brand-navy' : 'text-white'
                             }`}
                             aria-hidden="true"
                           />
                         )}
                       </span>
-                      <span className="mt-2 font-bold text-[11px] text-steel-900 leading-tight">
+                      <span className="mt-1.5 font-bold text-[11px] text-steel-900 leading-tight">
                         {opt.code}
                       </span>
-                      <span className="font-mono text-[10px] font-semibold text-stillage-blue mt-0.5">
+                      <span className="font-mono text-[10px] font-semibold text-stillage-blue">
                         {modText}
                       </span>
                     </button>
                   );
                 })}
               </div>
-              <p className="mt-2 text-[11px] text-steel-600 bg-steel-50 border border-steel-200 rounded-sm px-2.5 py-1.5">
-                <strong className="text-brand-navy">{selectedFinish.name}:</strong>{' '}
-                {selectedFinish.leadTimeNote}
-              </p>
             </div>
 
             {/* Step 2: Base & Mobility 2x2 Tile Grid */}
             <div>
-              <span className="block font-display font-bold uppercase tracking-wider text-xs text-brand-navy mb-2.5">
-                Base &amp; Mobility
-              </span>
-              <div className="grid grid-cols-2 gap-2.5">
+              <div className="flex items-center justify-between gap-2 mb-1.5">
+                <span className="font-display font-bold uppercase tracking-wider text-xs text-brand-navy">
+                  Base &amp; Mobility
+                </span>
+                <span
+                  className="text-[11px] text-steel-500 truncate max-w-[65%]"
+                  title={selectedMobility.description}
+                >
+                  {selectedMobility.description}
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
                 {MOBILITY_OPTIONS.map((opt) => {
                   const isSelected = mobilityOption === opt.id;
                   const shortLabel = mobilityShortLabels[opt.id] || opt.name;
@@ -696,32 +702,32 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
                       type="button"
                       aria-pressed={isSelected}
                       onClick={() => setMobilityOption(opt.id)}
-                      className={`p-2.5 border text-left rounded-sm transition-all flex items-center gap-2.5 focus-visible:outline-2 focus-visible:outline-stillage-blue focus-visible:outline-offset-2 ${
+                      className={`p-2 border text-left rounded-sm transition-all flex items-center gap-2 focus-visible:outline-2 focus-visible:outline-stillage-blue focus-visible:outline-offset-2 ${
                         isSelected
                           ? 'border-2 border-stillage-blue bg-stillage-blue/5 shadow-sm'
                           : 'border-steel-200 hover:border-steel-400 bg-surface-white'
                       }`}
                     >
                       <span
-                        className={`w-8 h-8 rounded-sm flex items-center justify-center shrink-0 ${
+                        className={`w-7 h-7 rounded-sm flex items-center justify-center shrink-0 ${
                           isSelected
                             ? 'bg-stillage-blue text-white'
                             : 'bg-steel-100 text-brand-navy'
                         }`}
                       >
                         {opt.id === 'standard-feet' ? (
-                          <Layers className="w-4 h-4" aria-hidden="true" />
+                          <Layers className="w-3.5 h-3.5" aria-hidden="true" />
                         ) : opt.id === 'forklift-pockets' ? (
-                          <Truck className="w-4 h-4" aria-hidden="true" />
+                          <Truck className="w-3.5 h-3.5" aria-hidden="true" />
                         ) : (
-                          <Wrench className="w-4 h-4" aria-hidden="true" />
+                          <Wrench className="w-3.5 h-3.5" aria-hidden="true" />
                         )}
                       </span>
                       <span className="min-w-0">
                         <span className="block font-bold text-xs text-steel-900 leading-tight truncate">
                           {shortLabel}
                         </span>
-                        <span className="block font-mono text-[11px] font-semibold text-stillage-blue mt-0.5">
+                        <span className="block font-mono text-[10px] font-semibold text-stillage-blue">
                           {modText}
                         </span>
                       </span>
@@ -729,14 +735,11 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
                   );
                 })}
               </div>
-              <p className="mt-2 text-[11px] text-steel-600 leading-snug">
-                {selectedMobility.description}
-              </p>
             </div>
 
             {/* Step 3: Quantity, Pallet Capacity & Bulk Tier Chips */}
             <div>
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between mb-1.5">
                 <label
                   htmlFor="qty-input"
                   className="font-display font-bold uppercase tracking-wider text-xs text-brand-navy"
@@ -748,12 +751,12 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
                 </span>
               </div>
 
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3">
                 <div className="inline-flex items-center border border-steel-200 rounded-sm overflow-hidden shrink-0">
                   <button
                     type="button"
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="w-9 h-9 font-mono font-bold text-base hover:bg-steel-100 transition-colors focus-visible:outline-2 focus-visible:outline-stillage-blue"
+                    className="w-8 h-8 font-mono font-bold text-base hover:bg-steel-100 transition-colors focus-visible:outline-2 focus-visible:outline-stillage-blue"
                     aria-label="Decrease quantity"
                   >
                     -
@@ -765,12 +768,12 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
                     max={500}
                     value={quantity}
                     onChange={(e) => setQuantity(Math.max(1, Number(e.target.value) || 1))}
-                    className="w-14 h-9 text-center border-x border-steel-200 font-mono font-bold text-sm focus:outline-none focus:bg-steel-50"
+                    className="w-12 h-8 text-center border-x border-steel-200 font-mono font-bold text-sm focus:outline-none focus:bg-steel-50"
                   />
                   <button
                     type="button"
                     onClick={() => setQuantity(quantity + 1)}
-                    className="w-9 h-9 font-mono font-bold text-base hover:bg-steel-100 transition-colors focus-visible:outline-2 focus-visible:outline-stillage-blue"
+                    className="w-8 h-8 font-mono font-bold text-base hover:bg-steel-100 transition-colors focus-visible:outline-2 focus-visible:outline-stillage-blue"
                     aria-label="Increase quantity"
                   >
                     +
@@ -787,7 +790,7 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
                       {quote.palletCount} Pallet{quote.palletCount > 1 ? 's' : ''}
                     </span>
                   </div>
-                  <div className="w-full h-2 bg-steel-100 rounded-full overflow-hidden border border-steel-200">
+                  <div className="w-full h-1.5 bg-steel-100 rounded-full overflow-hidden border border-steel-200">
                     <div
                       className="h-full bg-stillage-blue transition-all duration-300"
                       style={{ width: `${palletFillPercent}%` }}
@@ -797,7 +800,7 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
               </div>
 
               {/* Compact Bulk Tier Chips */}
-              <div className="mt-3 flex items-center flex-wrap gap-2">
+              <div className="mt-2.5 flex items-center flex-wrap gap-1.5">
                 {[
                   { label: '1–4', minQty: 1, badge: null },
                   { label: '5–9', minQty: 5, badge: '-5%' },
@@ -1002,23 +1005,23 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
         </div>
 
         {/* Sticky Bottom Summary & Action Footer */}
-        <div className="border-t border-steel-200 bg-steel-50 px-5 py-4 space-y-3">
+        <div className="border-t border-steel-200 bg-steel-50 px-4 py-3 space-y-2">
           <div className="flex items-baseline justify-between gap-2">
-            <div>
-              <div className="font-mono font-bold text-xl text-brand-navy">
+            <div className="flex items-baseline gap-2 flex-wrap">
+              <span className="font-mono font-bold text-lg text-brand-navy">
                 {formatGBP(quote.totalIncVatPence)}{' '}
-                <span className="text-xs font-normal text-steel-600">inc. VAT</span>
-              </div>
-              <div className="font-mono text-[11px] text-steel-600">
-                {formatGBP(quote.totalExVatPence)} ex. VAT • {quote.palletCount} Pallet
-                {quote.palletCount > 1 ? 's' : ''} ({postcode.toUpperCase() || 'UK'})
-              </div>
+                <span className="text-[11px] font-normal text-steel-600">inc. VAT</span>
+              </span>
+              <span className="font-mono text-[11px] text-steel-500">
+                ({formatGBP(quote.totalExVatPence)} ex. VAT • {quote.palletCount} Pallet
+                {quote.palletCount > 1 ? 's' : ''})
+              </span>
             </div>
             {activeTab === 'configure' && (
               <button
                 type="button"
                 onClick={() => setActiveTab('delivery')}
-                className="text-xs font-mono font-bold text-stillage-blue hover:underline shrink-0"
+                className="text-[11px] font-mono font-bold text-stillage-blue hover:underline shrink-0"
               >
                 Edit delivery
               </button>
@@ -1026,11 +1029,11 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
           </div>
 
           {activeTab === 'configure' ? (
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <button
                 type="button"
                 onClick={() => setActiveTab('delivery')}
-                className="w-full bg-brand-navy hover:bg-brand-navyLight text-white font-display font-bold uppercase tracking-wider text-sm py-3 px-4 rounded-sm flex items-center justify-center gap-2 shadow-sm transition-colors focus-visible:outline-2 focus-visible:outline-stillage-blue focus-visible:outline-offset-2"
+                className="w-full bg-brand-navy hover:bg-brand-navyLight text-white font-display font-bold uppercase tracking-wider text-sm py-2.5 px-4 rounded-sm flex items-center justify-center gap-2 shadow-sm transition-colors focus-visible:outline-2 focus-visible:outline-stillage-blue focus-visible:outline-offset-2"
               >
                 <span>Continue to Delivery &amp; Quote</span>
                 <ArrowRight className="w-4 h-4" aria-hidden="true" />
