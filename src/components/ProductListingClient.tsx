@@ -1,20 +1,30 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import {
   Search,
-  Filter,
   RotateCcw,
   CheckCircle2,
   SlidersHorizontal,
-  Database,
   Sparkles,
+  BookOpen,
+  ArrowRight,
+  ShieldCheck,
 } from 'lucide-react';
-import { Category, ParsedSearchIntent, Product } from '@/types/catalog';
+import {
+  AlgoliaArticleRecord,
+  AlgoliaRuleBanner,
+  Category,
+  ParsedSearchIntent,
+  Product,
+} from '@/types/catalog';
 import { searchProductsWithAlgolia, SearchFilterOptions } from '@/lib/algolia';
 import { ProductCard } from '@/components/ProductCard';
 import { AiSpecAdvisor } from '@/components/AiSpecAdvisor';
+import { AlgoliaHighlight } from '@/components/AlgoliaHighlight';
+import { FEATURES } from '@/lib/features';
 
 interface ProductListingClientProps {
   initialProducts: Product[];
@@ -41,40 +51,65 @@ export function ProductListingClient({
   const orderConfirmed = searchParams.get('order_confirmed');
 
   const [query, setQuery] = useState(initialQuery);
+  const [debouncedQuery, setDebouncedQuery] = useState(initialQuery);
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [selectedFootprint, setSelectedFootprint] = useState(initialFootprint);
   const [minSwlKg, setMinSwlKg] = useState<number>(0);
   const [inStockOnly, setInStockOnly] = useState<boolean>(false);
   const [sortBy, setSortBy] = useState<SearchFilterOptions['sortBy']>('featured');
   const [results, setResults] = useState<Product[]>(initialProducts);
+  const [articleHits, setArticleHits] = useState<AlgoliaArticleRecord[]>([]);
+  const [ruleBanners, setRuleBanners] = useState<AlgoliaRuleBanner[]>([]);
   const [facetCounts, setFacetCounts] = useState<Record<string, Record<string, number>>>({});
   const [parsedIntent, setParsedIntent] = useState<ParsedSearchIntent>({
     cleanedQuery: '',
     intentBadges: [],
   });
-  const [searchEngine, setSearchEngine] = useState<'algolia-dsn' | 'algolia-local-replica'>(
-    'algolia-local-replica'
-  );
+  const [aiOpenSignal, setAiOpenSignal] = useState(0);
+  const gridContainerRef = useRef<HTMLDivElement>(null);
+  const cachedTextNodesRef = useRef<Node[]>([]);
 
   useEffect(() => {
     setSelectedCategory(searchParams.get('category') || 'all');
-    setQuery(searchParams.get('q') || '');
+    const urlQuery = searchParams.get('q') || '';
+    setQuery(urlQuery);
+    setDebouncedQuery(urlQuery);
     setSelectedFootprint(searchParams.get('footprint') || 'all');
   }, [searchParams]);
+
+  // 180ms keystroke debounce
+  useEffect(() => {
+    const trimmed = query.trim();
+    if (!trimmed) {
+      setDebouncedQuery('');
+      return;
+    }
+    const timer = setTimeout(() => {
+      setDebouncedQuery(trimmed);
+    }, 180);
+    return () => clearTimeout(timer);
+  }, [query]);
 
   useEffect(() => {
     let active = true;
     searchProductsWithAlgolia(initialProducts, {
-      query,
+      query: debouncedQuery,
       categorySlug: selectedCategory,
       minSwlKg,
       footprintMm: selectedFootprint,
       inStockOnly,
       sortBy,
+      includeArticles: FEATURES.enableBlogGuides && debouncedQuery.length > 0,
+      skipNetworkOnDefault: true,
     }).then((res) => {
       if (active) {
         setResults(res.hits);
-        setSearchEngine(res.engine);
+        setArticleHits(FEATURES.enableBlogGuides ? res.articleHits : []);
+        setRuleBanners(
+          FEATURES.enableBlogGuides
+            ? res.ruleBanners
+            : res.ruleBanners.filter((b) => !b.ctaHref?.startsWith('/blog'))
+        );
         setParsedIntent(res.parsedIntent);
         if (res.facets) {
           setFacetCounts(res.facets);
@@ -86,7 +121,7 @@ export function ProductListingClient({
     };
   }, [
     initialProducts,
-    query,
+    debouncedQuery,
     selectedCategory,
     selectedFootprint,
     minSwlKg,
@@ -94,8 +129,67 @@ export function ProductListingClient({
     sortBy,
   ]);
 
+  // Modern Web Guidance (highlight-text-ranges): cache text-node list and rebuild only when grid DOM changes
+  useEffect(() => {
+    if (!gridContainerRef.current || typeof document === 'undefined') {
+      cachedTextNodesRef.current = [];
+      return;
+    }
+    const walker = document.createTreeWalker(
+      gridContainerRef.current,
+      NodeFilter.SHOW_TEXT
+    );
+    const nodes: Node[] = [];
+    let currentNode = walker.nextNode();
+    while (currentNode) {
+      nodes.push(currentNode);
+      currentNode = walker.nextNode();
+    }
+    cachedTextNodesRef.current = nodes;
+  }, [results]);
+
+  // Modern Web Guidance (highlight-text-ranges): CSS Custom Highlight API via cached text nodes
+  useEffect(() => {
+    if (typeof CSS === 'undefined' || !('highlights' in CSS)) return;
+    const registry = (CSS as unknown as { highlights: Map<string, unknown> }).highlights;
+    registry.delete('algolia-search-match');
+
+    const cleaned = parsedIntent.cleanedQuery.trim().toLowerCase();
+    if (!cleaned || cleaned.length < 2 || cachedTextNodesRef.current.length === 0) return;
+
+    const terms = cleaned.split(/\s+/).filter((t) => t.length >= 2);
+    if (terms.length === 0) return;
+
+    const matchingRanges: Range[] = [];
+    for (const currentNode of cachedTextNodesRef.current) {
+      if (!currentNode.isConnected) continue;
+      const text = currentNode.textContent || '';
+      const lowerText = text.toLowerCase();
+      for (const term of terms) {
+        let pos = lowerText.indexOf(term);
+        while (pos !== -1) {
+          const range = new Range();
+          range.setStart(currentNode, pos);
+          range.setEnd(currentNode, pos + term.length);
+          matchingRanges.push(range);
+          pos = lowerText.indexOf(term, pos + term.length);
+        }
+      }
+    }
+
+    if (matchingRanges.length > 0 && typeof Highlight !== 'undefined') {
+      const highlightInstance = new Highlight(...matchingRanges);
+      registry.set('algolia-search-match', highlightInstance);
+    }
+
+    return () => {
+      registry.delete('algolia-search-match');
+    };
+  }, [results, parsedIntent.cleanedQuery]);
+
   const resetFilters = () => {
     setQuery('');
+    setDebouncedQuery('');
     setSelectedCategory('all');
     setSelectedFootprint('all');
     setMinSwlKg(0);
@@ -103,11 +197,18 @@ export function ProductListingClient({
     setSortBy('featured');
   };
 
+  const hasActiveFilters =
+    query.trim() !== '' ||
+    selectedCategory !== 'all' ||
+    selectedFootprint !== 'all' ||
+    minSwlKg > 0 ||
+    inStockOnly;
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">
       {/* Order Confirmation Banner if redirected from checkout */}
       {orderConfirmed && (
-        <div className="mb-8 bg-emerald-50 border-2 border-emerald-600 p-4 rounded flex items-center justify-between gap-4">
+        <div className="bg-emerald-50 border-2 border-emerald-600 p-4 rounded-sm flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <CheckCircle2 className="w-6 h-6 text-emerald-700 shrink-0" />
             <div>
@@ -122,12 +223,52 @@ export function ProductListingClient({
         </div>
       )}
 
-      {/* AI Steel Stillage Engineer & Load Advisor (gemini-3.8-flash + Algolia RAG) */}
-      <AiSpecAdvisor />
+      {/* Approach 1 Rounded-Full Category Filter Pills */}
+      <div
+        role="tablist"
+        aria-label="Stillage categories"
+        className="flex flex-wrap items-center gap-3"
+      >
+        <button
+          type="button"
+          role="tab"
+          aria-selected={selectedCategory === 'all'}
+          onClick={() => setSelectedCategory('all')}
+          className={`px-6 py-2 rounded-full font-display font-bold text-base transition-all ${
+            selectedCategory === 'all'
+              ? 'bg-stillage-blue text-surface-white shadow-xs'
+              : 'bg-surface-white text-brand-navy border border-steel-200 hover:border-stillage-blue'
+          }`}
+        >
+          All ({initialProducts.length})
+        </button>
+        {categories.map((cat) => {
+          const count =
+            facetCounts.categorySlug?.[cat.slug] ??
+            initialProducts.filter((p) => p.categorySlug === cat.slug).length;
+          return (
+            <button
+              key={cat.id}
+              type="button"
+              role="tab"
+              aria-selected={selectedCategory === cat.slug}
+              onClick={() => setSelectedCategory(cat.slug)}
+              className={`px-6 py-2 rounded-full font-display font-bold text-base transition-all ${
+                selectedCategory === cat.slug
+                  ? 'bg-stillage-blue text-surface-white shadow-xs'
+                  : 'bg-surface-white text-brand-navy border border-steel-200 hover:border-stillage-blue'
+              }`}
+            >
+              {cat.title} ({count})
+            </button>
+          );
+        })}
+      </div>
 
-      {/* Top Search & Sort Toolbar */}
-      <div className="bg-surface-sandLight border border-steel-200 p-4 mb-8 space-y-3">
+      {/* Streamlined Horizontal Filter & Search Bar */}
+      <div className="bg-steel-50 border border-steel-200 p-4 rounded-sm space-y-3">
         <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
+          {/* Search Input */}
           <div className="relative flex-1">
             <label htmlFor="catalog-algolia-search" className="sr-only">
               Filter stillage catalog by keyword, footprint, SWL, or SKU
@@ -143,37 +284,80 @@ export function ProductListingClient({
               autoCapitalize="off"
               spellCheck={false}
               data-form-type="other"
-              placeholder="Instant Algolia search: try '1500kg outdoor', '1200x1000 castors', 'Cantilever', or SKU..."
-              className="w-full pl-10 pr-4 py-2.5 bg-white border border-steel-200 rounded-sm text-sm focus:outline-none focus:border-stillage-blue"
+              placeholder="Filter by keyword, SKU, SWL (e.g. 1500kg), or footprint (e.g. 1200x1000)..."
+              className="w-full pl-10 pr-4 py-2 bg-surface-white border border-steel-200 rounded-sm text-sm focus:outline-none focus:border-stillage-blue"
             />
           </div>
 
+          {/* Inline SWL, Footprint & Sort Controls */}
           <div className="flex flex-wrap items-center gap-3">
-            <div className="inline-flex items-center gap-1.5 text-[11px] font-mono text-steel-600 bg-white px-2.5 py-1.5 border border-steel-200 rounded-sm">
-              <Database className="w-3.5 h-3.5 text-stillage-blue" />
-              <span>
-                Index: {searchEngine === 'algolia-dsn' ? 'Algolia Live DSN' : 'Algolia Instant Replica'}
-              </span>
+            {/* Min SWL Pills */}
+            <div className="inline-flex items-center bg-surface-white border border-steel-200 rounded-sm p-0.5 font-mono text-xs">
+              {[0, 1000, 1500].map((swl) => (
+                <button
+                  key={swl}
+                  type="button"
+                  onClick={() => setMinSwlKg(swl)}
+                  className={`px-2.5 py-1.5 rounded-xs transition-colors ${
+                    minSwlKg === swl
+                      ? 'bg-brand-navy text-white font-bold'
+                      : 'text-steel-600 hover:text-brand-navy'
+                  }`}
+                >
+                  {swl === 0 ? 'Any SWL' : `${swl}kg+`}
+                </button>
+              ))}
             </div>
 
-            <div className="flex items-center gap-2 text-xs font-mono">
+            {/* Footprint Select */}
+            <div className="flex items-center gap-1.5 text-xs font-mono">
+              <label htmlFor="footprint-select" className="text-steel-600 uppercase sr-only">
+                Footprint
+              </label>
+              <select
+                id="footprint-select"
+                value={selectedFootprint}
+                onChange={(e) => setSelectedFootprint(e.target.value)}
+                className="bg-surface-white border border-steel-200 px-3 py-2 rounded-sm font-sans text-xs font-medium text-steel-900"
+              >
+                {FOOTPRINT_OPTIONS.map((fp) => (
+                  <option key={fp.value} value={fp.value}>
+                    {fp.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Sort Select */}
+            <div className="flex items-center gap-1.5 text-xs font-mono">
               <SlidersHorizontal className="w-3.5 h-3.5 text-brand-navy" />
-              <label htmlFor="sort-select" className="text-steel-600 uppercase">
-                Sort:
+              <label htmlFor="sort-select" className="text-steel-600 uppercase sr-only">
+                Sort
               </label>
               <select
                 id="sort-select"
                 name="sort"
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as SearchFilterOptions['sortBy'])}
-                className="bg-white border border-steel-200 px-3 py-2 rounded-sm font-sans text-xs font-medium text-steel-900"
+                className="bg-surface-white border border-steel-200 px-3 py-2 rounded-sm font-sans text-xs font-medium text-steel-900"
               >
-                <option value="featured">Featured Specifications</option>
-                <option value="price-asc">Price: Low to High (Ex. VAT)</option>
-                <option value="price-desc">Price: High to Low (Ex. VAT)</option>
-                <option value="swl-desc">Safe Working Load (Highest SWL)</option>
+                <option value="featured">Sort: Featured</option>
+                <option value="price-asc">Price: Low to High</option>
+                <option value="price-desc">Price: High to Low</option>
+                <option value="swl-desc">Highest SWL Rating</option>
               </select>
             </div>
+
+            {hasActiveFilters && (
+              <button
+                type="button"
+                onClick={resetFilters}
+                className="inline-flex items-center gap-1 text-xs font-mono text-stillage-blue hover:underline font-bold px-2 py-1"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                Reset
+              </button>
+            )}
           </div>
         </div>
 
@@ -182,12 +366,12 @@ export function ProductListingClient({
           <div className="pt-2 border-t border-steel-200 flex flex-wrap items-center gap-2 font-mono text-xs">
             <span className="inline-flex items-center gap-1 text-brand-navy font-bold">
               <Sparkles className="w-3.5 h-3.5 text-stillage-blue" />
-              AI Query Filters Detected:
+              Detected Filters:
             </span>
             {parsedIntent.intentBadges.map((badge) => (
               <span
                 key={badge}
-                className="bg-brand-navy text-surface-sand px-2.5 py-0.5 rounded-sm text-[11px] font-bold"
+                className="bg-brand-navy text-white px-2.5 py-0.5 rounded-sm text-[11px] font-bold"
               >
                 {badge}
               </span>
@@ -196,173 +380,71 @@ export function ProductListingClient({
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Left Faceted Technical Filter Sidebar */}
-        <aside className="lg:col-span-3 space-y-6">
-          <div className="border border-steel-200 bg-surface-white p-5">
-            <div className="flex items-center justify-between border-b border-steel-200 pb-3 mb-4">
-              <div className="flex items-center gap-2 font-display font-bold uppercase tracking-wider text-brand-navy text-sm">
-                <Filter className="w-4 h-4 text-stillage-blue" />
-                <span>Technical Facets</span>
-              </div>
-              <button
-                type="button"
-                onClick={resetFilters}
-                className="inline-flex items-center gap-1 text-[11px] font-mono text-stillage-blue hover:underline"
-              >
-                <RotateCcw className="w-3 h-3" />
-                Reset
-              </button>
-            </div>
+      {/* Collapsible AI Steel Stillage Engineer & Load Advisor */}
+      <AiSpecAdvisor
+        externalOpenSignal={aiOpenSignal}
+        initialPrompt={query.trim() || undefined}
+      />
 
-            {/* Category Facet */}
-            <div className="mb-6">
-              <h3 className="font-mono text-xs uppercase text-steel-600 font-bold mb-2.5">
-                Stillage Category
-              </h3>
-              <div className="space-y-1.5">
-                <button
-                  type="button"
-                  onClick={() => setSelectedCategory('all')}
-                  className={`w-full text-left px-3 py-2 text-xs rounded-sm font-medium transition-colors flex items-center justify-between ${
-                    selectedCategory === 'all'
-                      ? 'bg-brand-navy text-surface-sand font-bold'
-                      : 'hover:bg-steel-100 text-steel-800'
-                  }`}
-                >
-                  <span>All Stillages &amp; Racks</span>
-                  <span className="font-mono text-[11px]">{initialProducts.length}</span>
-                </button>
-                {categories.map((cat) => {
-                  const count =
-                    facetCounts.categorySlug?.[cat.slug] ??
-                    initialProducts.filter((p) => p.categorySlug === cat.slug).length;
-                  return (
-                    <button
-                      key={cat.id}
-                      type="button"
-                      onClick={() => setSelectedCategory(cat.slug)}
-                      className={`w-full text-left px-3 py-2 text-xs rounded-sm font-medium transition-colors flex items-center justify-between ${
-                        selectedCategory === cat.slug
-                          ? 'bg-brand-navy text-surface-sand font-bold'
-                          : 'hover:bg-steel-100 text-steel-800'
-                      }`}
-                    >
-                      <span className="truncate pr-2">{cat.title}</span>
-                      <span className="font-mono text-[11px]">{count}</span>
-                    </button>
-                  );
-                })}
+      {/* Query Rule Merchandising Banners */}
+      {ruleBanners.length > 0 && (
+        <div className="space-y-3">
+          {ruleBanners.map((banner) => (
+            <div
+              key={banner.bannerType}
+              className="bg-brand-navy text-surface-white p-4 sm:p-5 border-l-4 border-stillage-blue flex flex-col md:flex-row md:items-center justify-between gap-4 rounded-sm"
+            >
+              <div className="space-y-1">
+                <div className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-stillage-sky font-bold">
+                  <ShieldCheck className="w-3.5 h-3.5 text-accent-teal" />
+                  <span>ENGINEERING GUIDANCE • {banner.badge}</span>
+                </div>
+                <h3 className="font-display font-bold text-lg uppercase text-white">
+                  {banner.title}
+                </h3>
+                <p className="text-xs text-steel-200 max-w-3xl leading-relaxed">
+                  {banner.description}
+                </p>
               </div>
-            </div>
-
-            {/* SWL Capacity Facet */}
-            <div className="mb-6 border-t border-steel-200 pt-5">
-              <h3 className="font-mono text-xs uppercase text-steel-600 font-bold mb-2.5">
-                Min. Safe Working Load (SWL)
-              </h3>
-              <div className="grid grid-cols-2 gap-2 font-mono text-xs">
-                {[0, 1000, 1200, 1500].map((swl) => (
+              <div className="shrink-0">
+                {banner.ctaAction === 'open-ai-advisor' ? (
                   <button
-                    key={swl}
                     type="button"
-                    onClick={() => setMinSwlKg(swl)}
-                    className={`py-2 px-2.5 border text-center rounded-sm transition-colors ${
-                      minSwlKg === swl
-                        ? 'bg-stillage-blue text-white border-stillage-blue font-bold'
-                        : 'bg-white text-steel-800 border-steel-200 hover:border-stillage-blue'
-                    }`}
+                    onClick={() => {
+                      setAiOpenSignal((n) => n + 1);
+                      window.scrollTo({ top: 140, behavior: 'smooth' });
+                    }}
+                    className="bg-surface-white hover:bg-steel-100 text-brand-navy font-display font-bold uppercase tracking-wider text-xs px-4 py-2.5 rounded-sm inline-flex items-center gap-2 transition-colors"
                   >
-                    {swl === 0 ? 'Any SWL' : `${swl}kg+`}
+                    <span>{banner.ctaText}</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
                   </button>
-                ))}
+                ) : banner.ctaHref ? (
+                  <Link
+                    href={banner.ctaHref}
+                    className="bg-stillage-blue hover:bg-stillage-blueLight text-white font-display font-bold uppercase tracking-wider text-xs px-4 py-2.5 rounded-sm inline-flex items-center gap-2 transition-colors"
+                  >
+                    <span>{banner.ctaText}</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
+                ) : null}
               </div>
             </div>
+          ))}
+        </div>
+      )}
 
-            {/* Footprint Dimensions Facet */}
-            <div className="mb-6 border-t border-steel-200 pt-5">
-              <h3 className="font-mono text-xs uppercase text-steel-600 font-bold mb-2.5">
-                External Footprint (L × W)
-              </h3>
-              <div className="grid grid-cols-2 gap-2 font-mono text-xs">
-                {FOOTPRINT_OPTIONS.map((fp) => (
-                  <button
-                    key={fp.value}
-                    type="button"
-                    onClick={() => setSelectedFootprint(fp.value)}
-                    className={`py-2 px-2 border text-center rounded-sm transition-colors ${
-                      selectedFootprint === fp.value
-                        ? 'bg-stillage-blue text-white border-stillage-blue font-bold'
-                        : 'bg-white text-steel-800 border-steel-200 hover:border-stillage-blue'
-                    }`}
-                  >
-                    {fp.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Stock Status Facet */}
-            <div className="border-t border-steel-200 pt-5">
-              <label className="flex items-center gap-2.5 cursor-pointer text-xs font-medium text-steel-900">
-                <input
-                  type="checkbox"
-                  checked={inStockOnly}
-                  onChange={(e) => setInStockOnly(e.target.checked)}
-                  className="rounded border-steel-400 text-stillage-blue focus:ring-stillage-blue w-4 h-4"
-                />
-                <span>In Stock for Immediate Dispatch</span>
-              </label>
-            </div>
-          </div>
-
-          {/* Bespoke Fabrication Callout */}
-          <div className="bg-brand-navy text-surface-white p-5 border-l-4 border-accent-amber">
-            <div className="font-mono text-[11px] uppercase text-surface-sand">
-              Bespoke CAD &amp; Fabrication
-            </div>
-            <h4 className="font-display font-bold text-lg uppercase mt-1">
-              Need Non-Standard Dimensions?
-            </h4>
-            <p className="text-xs text-steel-200 mt-2 leading-relaxed">
-              We manufacture custom footprint stillages, crane-lifting frames, and OEM line-feed racks in batches of 5 to 500+ units.
-            </p>
-            <div className="mt-4 pt-3 border-t border-white/15 font-mono text-xs text-surface-sand">
-              Call Trade Engineering: 01978 800 500
-            </div>
-          </div>
-        </aside>
-
-        {/* Right Product Grid */}
-        <section className="lg:col-span-9">
-          <div className="flex flex-wrap items-center justify-between gap-2 mb-4 text-xs font-mono text-steel-600">
+      {/* Full-Width 3-Column Visual Product Grid */}
+      <section className="space-y-8">
+        <div>
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-6 text-xs font-mono text-steel-600">
             <span>
-              Showing <strong className="text-steel-900">{results.length}</strong> engineered stillage specification{results.length === 1 ? '' : 's'}
+              Showing <strong className="text-steel-900">{results.length}</strong> engineered stillage model{results.length === 1 ? '' : 's'}
             </span>
-            <div className="flex items-center gap-3">
-              {selectedFootprint !== 'all' && (
-                <button
-                  type="button"
-                  onClick={() => setSelectedFootprint('all')}
-                  className="text-stillage-blue hover:underline"
-                >
-                  Clear footprint ({selectedFootprint}mm) &times;
-                </button>
-              )}
-              {selectedCategory !== 'all' && (
-                <button
-                  type="button"
-                  onClick={() => setSelectedCategory('all')}
-                  className="text-stillage-blue hover:underline"
-                >
-                  Clear category filter &times;
-                </button>
-              )}
-            </div>
           </div>
 
           {results.length === 0 ? (
-            <div className="border border-steel-200 bg-surface-sandLight p-12 text-center">
+            <div className="border border-steel-200 bg-steel-50 p-12 text-center rounded-sm">
               <h3 className="font-display font-bold text-xl uppercase text-brand-navy">
                 No Matching Standard Stillages Found
               </h3>
@@ -378,14 +460,69 @@ export function ProductListingClient({
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            <div
+              ref={gridContainerRef}
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
+            >
               {results.map((product, index) => (
-                <ProductCard key={product.id} product={product} priority={index === 0} />
+                <ProductCard key={product.id} product={product} priority={index < 4} />
               ))}
             </div>
           )}
-        </section>
-      </div>
+        </div>
+
+        {/* Federated Technical Blog & Compliance Matches */}
+        {FEATURES.enableBlogGuides && articleHits.length > 0 && (
+          <div className="border-t border-steel-200 pt-8">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <BookOpen className="w-4 h-4 text-stillage-blue" />
+                <h3 className="font-display font-bold text-xl uppercase text-brand-navy">
+                  Matching Technical &amp; Compliance Guides ({articleHits.length})
+                </h3>
+              </div>
+              <Link
+                href="/blog"
+                className="font-mono text-xs text-stillage-blue hover:underline font-bold"
+              >
+                All Guides &rarr;
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {articleHits.map((article) => (
+                <Link
+                  key={article.objectID}
+                  href={`/blog/${article.slug}`}
+                  className="p-5 border border-steel-200 hover:border-stillage-blue bg-steel-50 rounded-sm flex flex-col justify-between transition-colors"
+                >
+                  <div>
+                    <div className="font-mono text-[10px] uppercase text-stillage-blue font-bold">
+                      {article.category} • {article.readingTimeMinutes} min read
+                    </div>
+                    <h4 className="font-display font-bold text-base uppercase text-brand-navy mt-1 leading-snug">
+                      <AlgoliaHighlight
+                        fallbackText={article.title}
+                        highlightField={article._highlightResult?.title}
+                      />
+                    </h4>
+                    <p className="text-xs text-steel-600 mt-1.5 line-clamp-2">
+                      <AlgoliaHighlight
+                        fallbackText={article.excerpt}
+                        highlightField={article._highlightResult?.excerpt}
+                      />
+                    </p>
+                  </div>
+                  <div className="mt-3 pt-2 border-t border-steel-200 font-mono text-[11px] font-bold text-brand-navy flex items-center justify-between">
+                    <span>Read Engineering Guide</span>
+                    <ArrowRight className="w-3.5 h-3.5 text-stillage-blue" />
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+      </section>
     </div>
   );
 }

@@ -18,12 +18,16 @@ const config: Config = {
           blue: '#145DA0',
           blueDark: '#0D447A',
           blueLight: '#2176C7',
+          sky: '#7DD3FC',
         },
         surface: {
-          sand: '#F2E3CE',
-          sandLight: '#FAF5EE',
-          sandDark: '#E5D0B1',
           white: '#FFFFFF',
+          slate: '#F8FAFC',
+          steel: '#F1F4F7',
+          // Legacy aliases mapped to cool industrial slate (cream removed per client preference)
+          sand: '#F1F5F9',
+          sandLight: '#F8FAFC',
+          sandDark: '#CBD5E1',
         },
         steel: {
           900: '#1C2026',
@@ -32,6 +36,7 @@ const config: Config = {
           400: '#8C96A4',
           200: '#DCE1E7',
           100: '#F1F4F7',
+          50: '#F8FAFC',
         },
         accent: {
           teal: '#00897B',

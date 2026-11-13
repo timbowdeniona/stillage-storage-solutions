@@ -15,6 +15,8 @@ import {
   PlusCircle,
   ArrowRight,
   Sparkles,
+  Compass,
+  Wrench,
 } from 'lucide-react';
 import { FINISH_OPTIONS, MOBILITY_OPTIONS } from '@/data/seedCatalog';
 import { Product, QuoteResponse } from '@/types/catalog';
@@ -22,6 +24,7 @@ import { calculateQuote } from '@/lib/pricing';
 import { trackAlgoliaEvent } from '@/lib/algolia';
 import { trackB2BEvent } from '@/lib/analytics';
 import { formatGBP, useVat } from '@/context/VatContext';
+import { ProductTechnicalDiagram } from '@/components/ProductTechnicalDiagram';
 
 interface ProductConfiguratorProps {
   product: Product;
@@ -40,13 +43,11 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
     setRequiresTailLift: setCtxTailLift,
   } = useVat();
 
-  // Stage visual controls
-  const [backdropMode, setBackdropMode] = useState<'sand' | 'white' | 'blueprint'>(
-    product.backdropStyle === 'white' ? 'white' : 'sand'
-  );
-  const [activeImageIndex, setActiveImageIndex] = useState<0 | 1>(0);
+  // Stage visual controls — crisp Studio White default (cream removed)
+  const [backdropMode, setBackdropMode] = useState<'white' | 'steel' | 'blueprint'>('white');
+  const [activeImageIndex, setActiveImageIndex] = useState<number>(0);
 
-  // Configurator state (supports deep-linking from Algolia Recommendations & AI Spec Advisor)
+  // Configurator state
   const [finishOption, setFinishOption] = useState<string>(() => {
     const param = searchParams.get('finish');
     return FINISH_OPTIONS.some((f) => f.id === param) ? (param as string) : 'standard-blue';
@@ -77,7 +78,7 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
     }
   }, [searchParams]);
 
-  // Live quote from Rust/Next API
+  // Live quote
   const [quote, setQuote] = useState<QuoteResponse>(() =>
     calculateQuote({
       sku: product.sku,
@@ -106,7 +107,6 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
       requiresTailLift,
     };
 
-    // Immediate deterministic calculation + async verification against API endpoint
     setQuote(calculateQuote(payload));
 
     const controller = new AbortController();
@@ -205,140 +205,245 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
     );
   };
 
-  const galleryImages = [
-    product.primaryImage,
-    product.secondaryImage || '/images/products/cantilever-rack-sand.png',
+  const mediaItems = [
+    {
+      src: product.primaryImage,
+      label: `${product.title} - Primary Elevation`,
+      badge: 'Primary',
+      type: 'primary' as const,
+    },
+    ...(product.technicalDrawing
+      ? [
+          {
+            src: product.technicalDrawing,
+            label: `${product.title} - Technical Blueprint Drawing`,
+            badge: 'CAD Drawing',
+            type: 'drawing' as const,
+          },
+        ]
+      : []),
+    ...(Array.isArray(product.gallery) && product.gallery.length > 0
+      ? product.gallery.map((imgSrc, i) => ({
+          src: imgSrc,
+          label: `${product.title} - Supplemental View ${i + 1}`,
+          badge: `View ${i + 1}`,
+          type: 'gallery' as const,
+        }))
+      : product.secondaryImage
+      ? [
+          {
+            src: product.secondaryImage,
+            label: `${product.title} - Detail View`,
+            badge: 'Detail',
+            type: 'gallery' as const,
+          },
+        ]
+      : []),
   ];
 
+  const safeActiveIndex = Math.min(activeImageIndex, Math.max(0, mediaItems.length - 1));
+  const currentMedia = mediaItems[safeActiveIndex] || mediaItems[0];
+
   const backdropClass =
-    backdropMode === 'sand'
-      ? 'bg-surface-sand'
-      : backdropMode === 'white'
+    backdropMode === 'white'
       ? 'bg-surface-white'
-      : 'bg-surface-sandLight bg-blueprint-grid';
+      : backdropMode === 'steel'
+      ? 'bg-steel-50'
+      : 'bg-steel-50 bg-blueprint-grid';
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
-      {/* Left Column: Visual Stage & Responsive Engineering Spec Table */}
+      {/* Left Column: Clean Visual Stage, CAD Diagram & Engineering Overview */}
       <div className="lg:col-span-7 space-y-8">
-        {/* Product Image Viewer with Surface Switcher */}
-        <div className="border border-steel-200 bg-surface-white shadow-sm">
-          <div className="px-4 py-3 border-b border-steel-200 bg-steel-100 flex flex-wrap items-center justify-between gap-2">
+        {/* Product Image Viewer */}
+        <div className="border border-steel-200 bg-surface-white rounded-sm shadow-xs overflow-hidden">
+          <div className="px-5 py-3 border-b border-steel-200 bg-steel-50 flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2 font-mono text-xs">
-              <span className="bg-brand-navy text-surface-sand px-2.5 py-0.5 font-bold rounded-sm">
+              <span className="bg-brand-navy text-white px-2.5 py-0.5 font-bold rounded-sm">
                 SKU: {product.sku}
               </span>
-              <span className="text-steel-600">|</span>
+              <span className="text-steel-400">|</span>
               <span className="font-bold text-stillage-blue">{product.swlKg} kg SWL Rated</span>
             </div>
 
-            {/* Backdrop Surface Toggle inspired by Uploaded Images 1 & 2 */}
+            {/* Clean Surface Switcher (Studio White / Cool Steel / Interactive CAD) */}
             <div className="flex items-center gap-1.5 text-[11px] font-mono">
-              <span className="text-steel-600 mr-1">Stage Surface:</span>
               <button
                 type="button"
-                onClick={() => setBackdropMode('sand')}
-                className={`px-2.5 py-1 rounded-sm border ${
-                  backdropMode === 'sand'
-                    ? 'bg-surface-sand border-brand-navy text-brand-navy font-bold'
-                    : 'bg-white border-steel-200 text-steel-600'
-                }`}
-              >
-                Workshop Sand
-              </button>
-              <button
-                type="button"
+                aria-pressed={backdropMode === 'white'}
                 onClick={() => setBackdropMode('white')}
-                className={`px-2.5 py-1 rounded-sm border ${
+                className={`px-2.5 py-1 rounded-sm border transition-colors ${
                   backdropMode === 'white'
                     ? 'bg-brand-navy border-brand-navy text-white font-bold'
-                    : 'bg-white border-steel-200 text-steel-600'
+                    : 'bg-surface-white border-steel-200 text-steel-600 hover:border-steel-400'
                 }`}
               >
                 Studio White
               </button>
               <button
                 type="button"
-                onClick={() => setBackdropMode('blueprint')}
-                className={`px-2.5 py-1 rounded-sm border ${
-                  backdropMode === 'blueprint'
-                    ? 'bg-stillage-blue border-stillage-blue text-white font-bold'
-                    : 'bg-white border-steel-200 text-steel-600'
+                aria-pressed={backdropMode === 'steel'}
+                onClick={() => setBackdropMode('steel')}
+                className={`px-2.5 py-1 rounded-sm border transition-colors ${
+                  backdropMode === 'steel'
+                    ? 'bg-brand-navy border-brand-navy text-white font-bold'
+                    : 'bg-surface-white border-steel-200 text-steel-600 hover:border-steel-400'
                 }`}
               >
-                Blueprint Grid
+                Cool Steel
+              </button>
+              <button
+                type="button"
+                aria-pressed={backdropMode === 'blueprint'}
+                onClick={() => setBackdropMode('blueprint')}
+                className={`px-2.5 py-1 rounded-sm border transition-colors ${
+                  backdropMode === 'blueprint'
+                    ? 'bg-stillage-blue border-stillage-blue text-white font-bold'
+                    : 'bg-surface-white border-steel-200 text-steel-600 hover:border-steel-400'
+                }`}
+              >
+                Interactive CAD
               </button>
             </div>
           </div>
 
-          {/* Main Image Stage (LCP candidate uses fetchpriority="high") */}
-          <div className={`relative h-[420px] sm:h-[480px] p-8 transition-colors duration-300 ${backdropClass}`}>
-            <img
-              src={galleryImages[activeImageIndex]}
-              alt={product.title}
-              fetchPriority="high"
-              width={760}
-              height={540}
-              className="w-full h-full object-contain"
-            />
-
-            {/* Dimension Overlay Pill */}
-            <div className="absolute bottom-4 left-4 bg-brand-navy/95 text-surface-white px-3.5 py-2 rounded-sm font-mono text-xs border border-white/15">
-              External: {product.externalLengthMm}(L) × {product.externalWidthMm}(W) ×{' '}
-              {product.externalHeightMm}(H) mm
-            </div>
-
-            <div className="absolute bottom-4 right-4 bg-white/95 text-steel-900 px-3 py-1.5 rounded-sm font-mono text-xs border border-steel-200 shadow-sm flex items-center gap-2">
-              <span
-                className="w-3 h-3 rounded-full border border-black/20"
-                style={{ backgroundColor: selectedFinish.swatchHex }}
+          {/* Main Image Stage */}
+          {backdropMode === 'blueprint' ? (
+            <div className="p-3 bg-brand-navyDark">
+              <ProductTechnicalDiagram
+                product={product}
+                finishCode={selectedFinish.code}
+                finishName={selectedFinish.name}
+                finishSwatchHex={selectedFinish.swatchHex}
+                mobilityName={selectedMobility.name}
+                compact
               />
-              <span>{selectedFinish.code}</span>
             </div>
-          </div>
+          ) : (
+            <div className={`relative h-[420px] sm:h-[460px] p-8 transition-colors duration-300 ${backdropClass}`}>
+              <img
+                src={currentMedia.src}
+                alt={currentMedia.label}
+                fetchPriority={safeActiveIndex === 0 ? 'high' : 'auto'}
+                width={760}
+                height={540}
+                className="w-full h-full object-contain"
+              />
 
-          {/* Thumbnail Switcher (Secondary images use fetchPriority="low") */}
-          <div className="p-4 border-t border-steel-200 bg-surface-sandLight flex items-center gap-4">
-            {galleryImages.map((imgSrc, idx) => (
+              {/* View Type Badge in Top Left */}
+              <div className="absolute top-4 left-4 bg-brand-navy/95 text-white px-2.5 py-1 rounded-sm font-mono text-[11px] uppercase tracking-wider flex items-center gap-1.5 shadow-xs border border-white/10">
+                {currentMedia.type === 'drawing' ? (
+                  <>
+                    <span className="w-2 h-2 rounded-full bg-accent-teal animate-pulse" />
+                    <span className="font-bold text-accent-teal">CAD Dimensional Blueprint</span>
+                  </>
+                ) : currentMedia.type === 'primary' ? (
+                  <span>Primary Product Elevation</span>
+                ) : (
+                  <span>{currentMedia.badge} (Supplemental Image)</span>
+                )}
+              </div>
+
+              {/* Dimension Overlay Pill */}
+              <div className="absolute bottom-4 left-4 bg-brand-navy/95 text-surface-white px-3.5 py-2 rounded-sm font-mono text-xs border border-white/15">
+                External: {product.externalLengthMm}(L) × {product.externalWidthMm}(W) ×{' '}
+                {product.externalHeightMm}(H) mm
+              </div>
+
+              <div className="absolute bottom-4 right-4 bg-surface-white/95 text-steel-900 px-3 py-1.5 rounded-sm font-mono text-xs border border-steel-200 shadow-xs flex items-center gap-2">
+                <span
+                  className="w-3 h-3 rounded-full border border-black/20"
+                  style={{ backgroundColor: selectedFinish.swatchHex }}
+                />
+                <span>{selectedFinish.code}</span>
+              </div>
+            </div>
+          )}
+
+          {/* Clean Thumbnail Switcher */}
+          <div className="p-4 border-t border-steel-200 bg-steel-50 flex flex-wrap items-center gap-3">
+            {mediaItems.map((item, idx) => (
               <button
                 key={idx}
                 type="button"
-                onClick={() => setActiveImageIndex(idx as 0 | 1)}
-                className={`w-24 h-20 p-2 rounded-sm border-2 transition-all ${
-                  activeImageIndex === idx
-                    ? 'border-stillage-blue bg-surface-sand'
-                    : 'border-steel-200 bg-white opacity-75 hover:opacity-100'
+                onClick={() => {
+                  setActiveImageIndex(idx);
+                  if (backdropMode === 'blueprint' && item.type !== 'drawing') {
+                    setBackdropMode('white');
+                  }
+                }}
+                className={`relative w-24 h-22 p-1.5 rounded-sm border-2 transition-all flex flex-col justify-between bg-surface-white ${
+                  backdropMode !== 'blueprint' && safeActiveIndex === idx
+                    ? 'border-stillage-blue shadow-xs ring-1 ring-stillage-blue'
+                    : 'border-steel-200 opacity-80 hover:opacity-100 hover:border-steel-400'
                 }`}
               >
-                <img
-                  src={imgSrc}
-                  alt={`${product.title} view ${idx + 1}`}
-                  fetchPriority="low"
-                  loading="lazy"
-                  width={96}
-                  height={80}
-                  className="w-full h-full object-contain"
-                />
+                <div className="w-full h-12 overflow-hidden flex items-center justify-center">
+                  <img
+                    src={item.src}
+                    alt={item.label}
+                    fetchPriority="low"
+                    loading="lazy"
+                    width={96}
+                    height={48}
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+                <span
+                  className={`text-[9px] font-mono uppercase px-1 py-0.5 rounded-xs text-center truncate w-full ${
+                    item.type === 'drawing'
+                      ? 'bg-brand-navy text-accent-teal font-bold'
+                      : item.type === 'primary'
+                      ? 'bg-stillage-blue text-white font-bold'
+                      : 'bg-steel-100 text-steel-800 font-medium'
+                  }`}
+                >
+                  {item.badge}
+                </span>
               </button>
             ))}
+            <button
+              type="button"
+              aria-pressed={backdropMode === 'blueprint'}
+              onClick={() => setBackdropMode('blueprint')}
+              className={`h-22 px-3.5 rounded-sm border-2 transition-all flex flex-col items-center justify-center gap-1 font-mono text-[11px] ${
+                backdropMode === 'blueprint'
+                  ? 'border-stillage-blue bg-brand-navy text-white font-bold'
+                  : 'border-steel-200 bg-brand-navy/90 text-surface-white hover:border-stillage-blue'
+              }`}
+            >
+              <Compass className="w-5 h-5 text-accent-teal" aria-hidden="true" />
+              <span>Interactive CAD</span>
+              <span className="text-[9px] text-stillage-sky">
+                {product.externalLengthMm}×{product.externalWidthMm}mm
+              </span>
+            </button>
             <div className="ml-auto text-xs text-steel-600 hidden sm:block">
-              <strong className="text-steel-900"> British Steel Construction:</strong>{' '}
-              {product.steelSpecification}
+              <strong className="text-steel-900">Steel Spec:</strong> {product.steelSpecification}
             </div>
           </div>
         </div>
 
         {/* Engineering Highlights & Description */}
-        <div className="border border-steel-200 bg-surface-white p-6 space-y-4">
-          <h2 className="font-display font-bold text-xl uppercase tracking-wider text-brand-navy">
-            Engineering Overview &amp; Construction
-          </h2>
+        <div className="border border-steel-200 bg-surface-white p-6 rounded-sm space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="font-display font-bold text-xl uppercase tracking-wider text-brand-navy">
+              Engineering Overview &amp; Construction
+            </h2>
+            <Link
+              href={`/workshop?sku=${product.sku}`}
+              className="px-3 py-1.5 rounded-sm bg-brand-navy hover:bg-stillage-blue text-white font-mono text-xs font-bold inline-flex items-center gap-1.5 transition-colors"
+            >
+              <Wrench className="w-3.5 h-3.5 text-accent-teal" />
+              <span>Open in Workshop Stack Builder</span>
+            </Link>
+          </div>
           <p className="text-sm text-steel-800 leading-relaxed">{product.fullDescription}</p>
           <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
             {product.highlights.map((item, i) => (
               <li
                 key={i}
-                className="flex items-start gap-2.5 text-xs text-steel-900 bg-surface-sandLight p-3 border border-steel-200"
+                className="flex items-start gap-2.5 text-xs text-steel-900 bg-steel-50 p-3 border border-steel-200 rounded-sm"
               >
                 <ShieldCheck className="w-4 h-4 text-stillage-blue shrink-0 mt-0.5" />
                 <span>{item}</span>
@@ -346,81 +451,13 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
             ))}
           </ul>
         </div>
-
-        {/* Modern Web Guidance: Responsive Specification Data Table */}
-        <div className="space-y-3">
-          <h2 className="font-display font-bold text-xl uppercase tracking-wider text-brand-navy">
-            Full Technical Specification Matrix
-          </h2>
-          <div
-            tabIndex={0}
-            role="region"
-            aria-labelledby="stillage-spec-table-caption"
-            className="table-wrapper"
-          >
-            <table className="responsive-data-table text-xs font-mono">
-              <caption id="stillage-spec-table-caption" className="sr-only">
-                Technical engineering specifications for {product.title} ({product.sku})
-              </caption>
-              <thead>
-                <tr>
-                  <th className="p-3 text-left">Parameter</th>
-                  <th className="p-3 text-left">Specification</th>
-                  <th className="p-3 text-left">Standard / Tolerance</th>
-                  <th className="p-3 text-left">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-steel-200">
-                <tr>
-                  <th className="p-3">Manufacturer SKU</th>
-                  <td className="p-3 font-bold text-brand-navy">{product.sku}</td>
-                  <td className="p-3 text-steel-600">ISO 9001 Traceable Batch</td>
-                  <td className="p-3 text-emerald-700 font-bold">Verified</td>
-                </tr>
-                <tr>
-                  <th className="p-3">Safe Working Load (SWL)</th>
-                  <td className="p-3 font-bold text-stillage-blue">{product.swlKg} kg UDL</td>
-                  <td className="p-3 text-steel-600">LOLER / UKCA Load Tested</td>
-                  <td className="p-3 text-emerald-700 font-bold">Certified</td>
-                </tr>
-                <tr>
-                  <th className="p-3">External Dimensions</th>
-                  <td className="p-3">
-                    {product.externalLengthMm} × {product.externalWidthMm} ×{' '}
-                    {product.externalHeightMm} mm
-                  </td>
-                  <td className="p-3 text-steel-600">±2mm Welded Jig Tolerance</td>
-                  <td className="p-3 text-emerald-700 font-bold">Standard</td>
-                </tr>
-                <tr>
-                  <th className="p-3">Steel Section Gauge</th>
-                  <td className="p-3">{product.steelSpecification}</td>
-                  <td className="p-3 text-steel-600">BS EN 10219 S275JR</td>
-                  <td className="p-3 text-emerald-700 font-bold">Heavy Duty</td>
-                </tr>
-                <tr>
-                  <th className="p-3">Stacking Capacity</th>
-                  <td className="p-3">{product.stackableHeight}</td>
-                  <td className="p-3 text-steel-600">Static Floor Level Stacking</td>
-                  <td className="p-3 text-emerald-700 font-bold">Rated</td>
-                </tr>
-                <tr>
-                  <th className="p-3">Unladen Tare Weight</th>
-                  <td className="p-3">{product.unitWeightKg} kg</td>
-                  <td className="p-3 text-steel-600">Excludes Optional Castors</td>
-                  <td className="p-3 text-steel-600">Nominal</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
       </div>
 
-      {/* Right Column: Interactive Stillage Configurator & Live Rust Pricing Engine */}
-      <div className="lg:col-span-5 border-2 border-brand-navy bg-surface-white shadow-lg sticky top-24">
+      {/* Right Column: Interactive Stillage Configurator & Live Quote */}
+      <div className="lg:col-span-5 border-2 border-brand-navy bg-surface-white rounded-sm shadow-lg sticky top-24 overflow-hidden">
         {/* Configurator Header */}
         <div className="bg-brand-navy text-surface-white p-5 border-b border-white/15">
-          <div className="flex items-center justify-between text-xs font-mono text-surface-sand">
+          <div className="flex items-center justify-between text-xs font-mono text-stillage-sky">
             <span>DIRECT FACTORY CONFIGURATOR</span>
             <span>{product.inStock ? 'IN STOCK' : 'MADE TO ORDER'}</span>
           </div>
@@ -428,7 +465,7 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
             {product.title}
           </h1>
           <div className="mt-3 flex items-baseline gap-3">
-            <span className="font-mono font-bold text-3xl text-surface-sand">
+            <span className="font-mono font-bold text-3xl text-white">
               {formatBothPrices(quote.discountedUnitExVatPence).primary}
             </span>
             <span className="font-mono text-xs text-steel-200">
@@ -474,8 +511,8 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
                     }}
                     className={`p-3 border text-left rounded-sm transition-all flex flex-col justify-between ${
                       isSelected
-                        ? 'border-2 border-stillage-blue bg-surface-sand/40'
-                        : 'border-steel-200 hover:border-steel-400 bg-white'
+                        ? 'border-2 border-stillage-blue bg-stillage-blue/5'
+                        : 'border-steel-200 hover:border-steel-400 bg-surface-white'
                     }`}
                   >
                     <div className="flex items-center justify-between gap-2">
@@ -516,8 +553,8 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
                     onClick={() => setMobilityOption(opt.id)}
                     className={`w-full p-3 border text-left rounded-sm transition-all ${
                       isSelected
-                        ? 'border-2 border-stillage-blue bg-surface-sand/40'
-                        : 'border-steel-200 hover:border-steel-400 bg-white'
+                        ? 'border-2 border-stillage-blue bg-stillage-blue/5'
+                        : 'border-steel-200 hover:border-steel-400 bg-surface-white'
                     }`}
                   >
                     <div className="flex items-center justify-between">
@@ -578,8 +615,8 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
                     }}
                     className={`p-2 border rounded-sm text-center transition-colors ${
                       active
-                        ? 'bg-brand-navy text-surface-sand border-brand-navy font-bold'
-                        : 'bg-surface-sandLight text-steel-800 border-steel-200 hover:border-stillage-blue'
+                        ? 'bg-brand-navy text-white border-brand-navy font-bold'
+                        : 'bg-steel-50 text-steel-800 border-steel-200 hover:border-stillage-blue'
                     }`}
                   >
                     <div>{tier.label}</div>
@@ -621,8 +658,8 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
               </div>
             </div>
 
-            {/* Smart HGV Pallet & Bulk Tier AI Optimizer */}
-            <div className="mt-3 bg-surface-sandLight border border-steel-200 border-l-4 border-l-stillage-blue p-2.5 text-xs flex items-center justify-between gap-2">
+            {/* Smart HGV Pallet & Bulk Tier Optimizer */}
+            <div className="mt-3 bg-steel-50 border border-steel-200 border-l-4 border-l-stillage-blue p-2.5 text-xs flex items-center justify-between gap-2">
               <div className="flex items-start gap-2">
                 <Sparkles className="w-4 h-4 text-stillage-blue shrink-0 mt-0.5" />
                 <div className="text-steel-800 leading-snug">
@@ -652,7 +689,7 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
                 <button
                   type="button"
                   onClick={() => setQuantity(quantity + (4 - (quantity % 4)))}
-                  className="shrink-0 bg-brand-navy hover:bg-stillage-blue text-surface-sand px-2.5 py-1 rounded-sm font-mono text-[11px] font-bold transition-colors"
+                  className="shrink-0 bg-brand-navy hover:bg-stillage-blue text-white px-2.5 py-1 rounded-sm font-mono text-[11px] font-bold transition-colors"
                 >
                   Fill Pallet ({quantity + (4 - (quantity % 4))})
                 </button>
@@ -660,7 +697,7 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
                 <button
                   type="button"
                   onClick={() => setQuantity(8)}
-                  className="shrink-0 bg-brand-navy hover:bg-stillage-blue text-surface-sand px-2.5 py-1 rounded-sm font-mono text-[11px] font-bold transition-colors"
+                  className="shrink-0 bg-brand-navy hover:bg-stillage-blue text-white px-2.5 py-1 rounded-sm font-mono text-[11px] font-bold transition-colors"
                 >
                   2 Pallets / -5% (8)
                 </button>
@@ -697,7 +734,7 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
                   className={`w-full px-3 py-2 border rounded-sm font-mono text-xs text-left flex items-center justify-between ${
                     requiresTailLift
                       ? 'bg-accent-amber/15 border-accent-amber text-brand-navy font-bold'
-                      : 'bg-white border-steel-200 text-steel-800'
+                      : 'bg-surface-white border-steel-200 text-steel-800'
                   }`}
                 >
                   <span>{requiresTailLift ? 'Tail-Lift Required (+£15)' : 'Forklift On-Site (£0)'}</span>
@@ -705,7 +742,7 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
                 </button>
               </div>
             </div>
-            <div className="flex items-start gap-2 text-[11px] text-steel-600 bg-surface-sandLight p-2.5 border border-steel-200">
+            <div className="flex items-start gap-2 text-[11px] text-steel-600 bg-steel-50 p-2.5 border border-steel-200 rounded-sm">
               <AlertTriangle className="w-4 h-4 text-accent-amber shrink-0 mt-0.5" />
               <span>
                 Stillages ship via HGV pallet network ({quote.deliveryZone}). Select{' '}
@@ -714,14 +751,14 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
             </div>
           </div>
 
-          {/* Live Rust API Quote Breakdown */}
-          <div className="bg-surface-sandLight border border-steel-200 p-4 space-y-2 font-mono text-xs">
+          {/* Live Quote Breakdown */}
+          <div className="bg-steel-50 border border-steel-200 p-4 rounded-sm space-y-2 font-mono text-xs">
             <div className="flex items-center justify-between text-[11px] text-steel-600 border-b border-steel-200 pb-2">
               <span className="inline-flex items-center gap-1.5 font-bold text-brand-navy">
                 <Calculator className="w-3.5 h-3.5 text-stillage-blue" />
                 LIVE QUOTE SUMMARY
               </span>
-              <span>{ showIncVat ? 'INC. VAT VIEW' : 'EX. VAT VIEW' }</span>
+              <span>{showIncVat ? 'INC. VAT VIEW' : 'EX. VAT VIEW'}</span>
             </div>
 
             <div className="flex justify-between pt-1">
@@ -791,7 +828,7 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
               type="button"
               disabled={submitting}
               onClick={() => handleCheckout('card')}
-              className="w-full bg-stillage-blue hover:bg-stillage-blueDark text-white font-display font-bold uppercase tracking-wider text-base py-3.5 px-5 rounded-sm flex items-center justify-center gap-2 shadow transition-colors"
+              className="w-full bg-stillage-blue hover:bg-stillage-blueDark text-white font-display font-bold uppercase tracking-wider text-base py-3.5 px-5 rounded-sm flex items-center justify-center gap-2 shadow-sm transition-colors"
             >
               <ShoppingBag className="w-4 h-4" />
               <span>
@@ -803,7 +840,7 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
               type="button"
               disabled={submitting}
               onClick={() => handleCheckout('b2b_proforma')}
-              className="w-full bg-brand-navy hover:bg-brand-navyLight text-surface-sand font-display font-bold uppercase tracking-wider text-sm py-3 px-5 rounded-sm flex items-center justify-center gap-2 transition-colors"
+              className="w-full bg-brand-navy hover:bg-brand-navyLight text-white font-display font-bold uppercase tracking-wider text-sm py-3 px-5 rounded-sm flex items-center justify-center gap-2 transition-colors"
             >
               <FileText className="w-4 h-4 text-accent-amber" />
               <span>Generate Official B2B VAT Proforma Invoice</span>
@@ -812,7 +849,7 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
             <button
               type="button"
               onClick={handleAddToBasketOnly}
-              className="w-full bg-surface-sandLight hover:bg-surface-sand text-brand-navy border border-steel-200 font-display font-bold uppercase tracking-wider text-xs py-2.5 px-4 rounded-sm flex items-center justify-center gap-2 transition-colors"
+              className="w-full bg-steel-50 hover:bg-steel-100 text-brand-navy border border-steel-200 font-display font-bold uppercase tracking-wider text-xs py-2.5 px-4 rounded-sm flex items-center justify-center gap-2 transition-colors"
             >
               <PlusCircle className="w-3.5 h-3.5 text-stillage-blue" />
               <span>Add Specification to Order Basket &amp; Keep Browsing</span>

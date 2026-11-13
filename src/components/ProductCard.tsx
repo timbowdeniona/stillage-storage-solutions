@@ -2,7 +2,6 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { ArrowRight, CheckCircle2, Shield } from 'lucide-react';
 import { Product } from '@/types/catalog';
 import { useVat } from '@/context/VatContext';
 
@@ -14,36 +13,17 @@ interface ProductCardProps {
 export function ProductCard({ product, priority = false }: ProductCardProps) {
   const { formatBothPrices } = useVat();
   const priceDisplay = formatBothPrices(product.basePriceExVatPence);
-  const bulkTenPlusPence = Math.round(product.basePriceExVatPence * 0.9);
-  const bulkDisplay = formatBothPrices(bulkTenPlusPence);
+  const hasDrawing = Boolean(product.technicalDrawing);
 
   return (
-    <article className="group bg-surface-white border border-steel-200 hover:border-stillage-blue transition-all duration-200 flex flex-col justify-between relative shadow-sm hover:shadow-md">
-      {/* Top Blueprint Metadata Bar */}
+    <article className="group bg-surface-white border border-steel-200 hover:border-stillage-blue rounded-xl p-5 transition-all duration-200 flex flex-col justify-between relative shadow-xs hover:shadow-md">
       <div>
-        <div className="px-4 py-2.5 border-b border-steel-200 bg-steel-100/70 flex items-center justify-between text-xs font-mono">
-          <span className="text-steel-600 font-bold">{product.sku}</span>
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-sm bg-brand-navy text-surface-sand font-bold text-[11px]">
-            <Shield className="w-3 h-3 text-accent-teal" />
-            {product.swlKg}kg SWL
-          </span>
-        </div>
-
-        {/* Dual-Surface Product Image Stage (White -> Warm Workshop Sand on Hover) */}
+        {/* Crisp White Image Stage with CAD Blueprint Hover Flick */}
         <Link
           href={`/products/${product.slug}`}
-          className={`block relative h-60 p-6 overflow-hidden transition-colors duration-300 ${
-            product.backdropStyle === 'sand'
-              ? 'bg-surface-sand/65 group-hover:bg-surface-sand'
-              : 'bg-surface-white group-hover:bg-surface-sand/75'
-          }`}
+          className="block relative h-48 p-2 overflow-hidden bg-surface-white flex items-center justify-center rounded-lg"
         >
-          {/* Subtle Blueprint Corner Brackets */}
-          <span className="absolute top-2.5 left-2.5 w-3 h-3 border-t-2 border-l-2 border-brand-navy/25 pointer-events-none" />
-          <span className="absolute top-2.5 right-2.5 w-3 h-3 border-t-2 border-r-2 border-brand-navy/25 pointer-events-none" />
-          <span className="absolute bottom-2.5 left-2.5 w-3 h-3 border-b-2 border-l-2 border-brand-navy/25 pointer-events-none" />
-          <span className="absolute bottom-2.5 right-2.5 w-3 h-3 border-b-2 border-r-2 border-brand-navy/25 pointer-events-none" />
-
+          {/* Primary Image */}
           {priority ? (
             <img
               src={product.primaryImage}
@@ -51,7 +31,11 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
               fetchPriority="high"
               width={480}
               height={360}
-              className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+              className={`w-full h-full object-contain transition-all duration-200 ${
+                hasDrawing
+                  ? 'group-hover:opacity-0 group-hover:scale-105'
+                  : 'group-hover:scale-105'
+              }`}
             />
           ) : (
             <img
@@ -60,86 +44,67 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
               loading="lazy"
               width={480}
               height={360}
-              className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+              className={`w-full h-full object-contain transition-all duration-200 ${
+                hasDrawing
+                  ? 'group-hover:opacity-0 group-hover:scale-105'
+                  : 'group-hover:scale-105'
+              }`}
             />
           )}
 
-          {product.ukcaCertified && (
-            <span className="absolute bottom-3 left-3 bg-brand-navy/90 text-white text-[10px] font-mono uppercase px-2 py-0.5 rounded-sm">
-              UKCA Tested
+          {/* Technical Drawing (Flicks on Mouseover/Hover) */}
+          {hasDrawing && product.technicalDrawing ? (
+            <img
+              src={product.technicalDrawing}
+              alt={`${product.title} Technical Drawing Blueprint`}
+              loading="lazy"
+              width={480}
+              height={360}
+              className="absolute inset-0 w-full h-full p-2 object-contain opacity-0 group-hover:opacity-100 group-hover:scale-105 transition-all duration-200 pointer-events-none"
+            />
+          ) : null}
+
+          {/* CAD Blueprint Badge on Hover */}
+          {hasDrawing ? (
+            <span className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-brand-navy/95 text-white border border-white/20 text-[10px] font-mono uppercase px-2 py-0.5 rounded flex items-center gap-1 shadow-sm pointer-events-none">
+              <span className="w-1.5 h-1.5 rounded-full bg-accent-teal animate-pulse" />
+              CAD Drawing
             </span>
-          )}
+          ) : null}
         </Link>
 
-        {/* Technical Spec 3-Column Strip */}
-        <div className="grid grid-cols-3 border-y border-steel-200 bg-surface-sandLight text-[11px] font-mono divide-x divide-steel-200 text-center">
-          <div className="py-2 px-1">
-            <div className="text-steel-600 text-[10px] uppercase">Footprint</div>
-            <div className="font-bold text-steel-900">
-              {product.externalLengthMm}×{product.externalWidthMm}
-            </div>
-          </div>
-          <div className="py-2 px-1">
-            <div className="text-steel-600 text-[10px] uppercase">Height</div>
-            <div className="font-bold text-steel-900">{product.externalHeightMm}mm</div>
-          </div>
-          <div className="py-2 px-1">
-            <div className="text-steel-600 text-[10px] uppercase">Stacking</div>
-            <div className="font-bold text-stillage-blue truncate px-1">
-              {product.stackableHeight}
-            </div>
-          </div>
-        </div>
+        {/* Product Title */}
+        <h3 className="font-display font-bold text-xl text-brand-navy mt-3 leading-tight group-hover:text-stillage-blue transition-colors line-clamp-2 min-h-[2.75rem]">
+          <Link href={`/products/${product.slug}`}>{product.title}</Link>
+        </h3>
 
-        {/* Title & Summary */}
-        <div className="p-4">
-          <div className="text-[11px] font-display uppercase tracking-wider text-stillage-blue font-bold">
-            {product.categoryName}
-          </div>
-          <h3 className="font-display font-bold text-lg text-steel-900 mt-0.5 leading-snug group-hover:text-stillage-blue transition-colors">
-            <Link href={`/products/${product.slug}`}>{product.title}</Link>
-          </h3>
-          <p className="text-xs text-steel-600 mt-2 line-clamp-2 leading-relaxed">
-            {product.shortDescription}
-          </p>
+        {/* Option 1 Spec Pill Badges: SWL & Dimensions */}
+        <div className="flex flex-wrap items-center gap-1.5 mt-3">
+          <span className="bg-steel-100 text-brand-navy font-display font-bold text-xs px-2.5 py-1 rounded">
+            {product.swlKg.toLocaleString('en-GB')}kg SWL
+          </span>
+          <span className="bg-steel-100 text-brand-navy font-display font-bold text-xs px-2.5 py-1 rounded">
+            {product.externalLengthMm}x{product.externalWidthMm}x{product.externalHeightMm}mm
+          </span>
         </div>
       </div>
 
-      {/* Bottom Pricing & CTA Block */}
-      <div className="p-4 pt-0 mt-2">
-        <div className="border-t border-steel-200 pt-3 flex items-baseline justify-between gap-2">
-          <div>
-            <div className="flex items-baseline gap-1.5">
-              <span className="font-mono font-bold text-xl text-brand-navy">
-                {priceDisplay.primary}
-              </span>
-              <span className="font-mono text-[11px] font-semibold text-steel-600">
-                {priceDisplay.label}
-              </span>
-            </div>
-            <div className="font-mono text-[11px] text-steel-600">{priceDisplay.secondary}</div>
-          </div>
-
-          <div className="text-right">
-            <span className="inline-block bg-accent-amber/15 text-accent-amber border border-accent-amber/30 font-mono text-[10px] font-bold px-2 py-0.5 rounded-sm">
-              10+ Rate: {bulkDisplay.primary}
-            </span>
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between text-[11px] text-emerald-700 font-medium mt-2.5 mb-3">
-          <span className="inline-flex items-center gap-1">
-            <CheckCircle2 className="w-3.5 h-3.5" />
-            {product.leadTimeText}
+      {/* Price & Full-Width Configure & Buy Button matching Option 1 */}
+      <div className="mt-4 pt-1">
+        <div className="flex items-baseline gap-1.5 mb-3">
+          <span className="font-display font-extrabold text-2xl text-brand-navy">
+            {priceDisplay.primary}
+          </span>
+          <span className="font-display font-bold text-xs text-brand-navy">
+            {priceDisplay.label.toLowerCase()}
           </span>
         </div>
 
         <Link
           href={`/products/${product.slug}`}
-          className="w-full bg-stillage-blue hover:bg-stillage-blueDark text-white font-display font-bold uppercase tracking-wider text-sm py-2.5 px-4 rounded-sm flex items-center justify-center gap-2 transition-colors"
+          className="w-full bg-stillage-blue hover:bg-stillage-blueLight text-white font-display font-bold text-base py-2.5 px-4 rounded-md text-center block transition-colors shadow-xs"
         >
-          <span>Configure &amp; Buy</span>
-          <ArrowRight className="w-4 h-4" />
+          Configure &amp; Buy
         </Link>
       </div>
     </article>

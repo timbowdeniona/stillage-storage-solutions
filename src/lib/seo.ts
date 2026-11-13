@@ -311,9 +311,14 @@ export function buildOrganizationSchema() {
 
 export function buildProductSchema(product: Product) {
   const priceGbp = (product.basePriceExVatPence / 100).toFixed(2);
-  const imageUrl = product.primaryImage.startsWith('http')
-    ? product.primaryImage
-    : absoluteUrl(product.primaryImage);
+  const toAbsUrl = (pathOrUrl: string) =>
+    pathOrUrl.startsWith('http') ? pathOrUrl : absoluteUrl(pathOrUrl);
+
+  const images = [
+    toAbsUrl(product.primaryImage),
+    ...(product.technicalDrawing ? [toAbsUrl(product.technicalDrawing)] : []),
+    ...(Array.isArray(product.gallery) ? product.gallery.map(toAbsUrl) : []),
+  ];
 
   return {
     '@context': 'https://schema.org',
@@ -323,7 +328,7 @@ export function buildProductSchema(product: Product) {
     sku: product.sku,
     mpn: product.sku,
     description: product.fullDescription,
-    image: [imageUrl],
+    image: Array.from(new Set(images)),
     category: product.categoryName,
     material: `British Structural Box-Section Steel (${product.steelSpecification})`,
     brand: {

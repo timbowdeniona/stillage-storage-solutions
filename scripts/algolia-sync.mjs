@@ -1,9 +1,12 @@
-// Algolia Index Settings, Synonyms & Product Catalog Seeder for Stillage Storage Solutions
+// Algolia Free-Tier Maximization Sync Script:
+// Configures Primary Index, Sorting Replicas, Synonyms, Programmable Query Rules,
+// Enriched Variant Pricing Attributes, and Federated Technical Articles Index.
 // Run with: npm run algolia:sync
 
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { SEED_BLOG_ENTRIES } from './contentful-sync.mjs';
 
 function loadEnvLocal() {
   const envPath = path.resolve(process.cwd(), '.env.local');
@@ -30,6 +33,14 @@ function loadEnvLocal() {
 
 loadEnvLocal();
 
+export function getReplicaIndexNames(baseIndexName = 'stillage_products') {
+  return {
+    priceAsc: `${baseIndexName}_price_asc`,
+    priceDesc: `${baseIndexName}_price_desc`,
+    swlDesc: `${baseIndexName}_swl_desc`,
+  };
+}
+
 export const ALGOLIA_INDEX_SETTINGS = {
   searchableAttributes: [
     'unordered(sku)',
@@ -42,6 +53,8 @@ export const ALGOLIA_INDEX_SETTINGS = {
     'unordered(footprintMm)',
     'unordered(useCases)',
     'unordered(environmentTags)',
+    'unordered(availableFinishes)',
+    'unordered(availableMobility)',
     'unordered(fullDescription)',
   ],
   attributesForFaceting: [
@@ -54,9 +67,12 @@ export const ALGOLIA_INDEX_SETTINGS = {
     'searchable(standardFinish)',
     'searchable(compatibleSkus)',
     'searchable(environmentTags)',
+    'searchable(availableFinishes)',
+    'searchable(availableMobility)',
     'filterOnly(inStock)',
     'filterOnly(ukcaCertified)',
     'filterOnly(swlKg)',
+    'filterOnly(basePriceExVatPence)',
   ],
   customRanking: ['desc(featured)', 'desc(inStock)', 'desc(swlKg)'],
   attributesToHighlight: [
@@ -64,8 +80,34 @@ export const ALGOLIA_INDEX_SETTINGS = {
     'sku',
     'shortDescription',
     'steelSpecification',
+    'footprintMm',
     'highlights',
   ],
+  highlightPreTag: '<mark>',
+  highlightPostTag: '</mark>',
+};
+
+export const ALGOLIA_ARTICLES_SETTINGS = {
+  searchableAttributes: [
+    'unordered(title)',
+    'unordered(tags)',
+    'unordered(keyTakeaways)',
+    'unordered(excerpt)',
+    'unordered(category)',
+    'unordered(relatedProductSkus)',
+    'unordered(body)',
+  ],
+  attributesForFaceting: [
+    'searchable(category)',
+    'searchable(tags)',
+    'searchable(relatedProductSkus)',
+    'filterOnly(featured)',
+  ],
+  customRanking: ['desc(featured)', 'desc(readingTimeMinutes)'],
+  attributesToHighlight: ['title', 'excerpt', 'tags', 'keyTakeaways'],
+  attributesToSnippet: ['excerpt:24', 'body:24'],
+  highlightPreTag: '<mark>',
+  highlightPostTag: '</mark>',
 };
 
 export const ALGOLIA_SYNONYMS = [
@@ -77,7 +119,14 @@ export const ALGOLIA_SYNONYMS = [
   {
     objectID: 'syn-cantilever-bar-rack',
     type: 'synonym',
-    synonyms: ['cantilever', 'bar rack', 'tube rack', 'pipe rack', 'extrusion rack'],
+    synonyms: [
+      'cantilever',
+      'bar rack',
+      'tube rack',
+      'pipe rack',
+      'extrusion rack',
+      'band saw rack',
+    ],
   },
   {
     objectID: 'syn-post-pallet',
@@ -114,6 +163,103 @@ export const ALGOLIA_SYNONYMS = [
   },
 ];
 
+export const ALGOLIA_QUERY_RULES = [
+  {
+    objectID: 'rule-outdoor-galvanised',
+    description:
+      'Surface BS EN ISO 1461 Hot-Dip Galvanised engineering banner on outdoor/corrosion queries',
+    conditions: [
+      { anchoring: 'contains', pattern: 'outdoor', alternatives: true },
+      { anchoring: 'contains', pattern: 'yard' },
+      { anchoring: 'contains', pattern: 'corrosion' },
+    ],
+    consequence: {
+      userData: {
+        bannerType: 'hdg-iso-1461',
+        badge: 'BS EN ISO 1461 CORROSION ADVISORY',
+        title: 'Outdoor & Yard Specification: Hot-Dip Galvanised (+£45/unit)',
+        description:
+          'Full-immersion molten zinc coating protects internal and external box-section walls for 25+ years of outdoor yard service.',
+        ctaText: 'Read Galvanised vs RAL 5010 Guide',
+        ctaHref: '/blog/hot-dip-galvanised-vs-ral-5010-painted-steel-stillages',
+        autoConfigFinish: 'galvanised',
+      },
+    },
+  },
+  {
+    objectID: 'rule-crane-loler-bespoke',
+    description:
+      'Surface LOLER 1998 crane lifting & bespoke CAD brief banner when crane/bespoke terms are searched',
+    conditions: [
+      { anchoring: 'contains', pattern: 'crane' },
+      { anchoring: 'contains', pattern: 'loler' },
+      { anchoring: 'contains', pattern: 'hoist' },
+      { anchoring: 'contains', pattern: 'bespoke' },
+      { anchoring: 'contains', pattern: 'custom' },
+    ],
+    consequence: {
+      userData: {
+        bannerType: 'loler-bespoke-cad',
+        badge: 'LOLER 1998 & BESPOKE CAD',
+        title: 'Overhead Crane-Lifting Lugs & Custom Footprint Fabrication',
+        description:
+          'Crane-slung stillages require certified top lifting eyes under LOLER 1998. Use our AI Steel Engineer above to generate an instant CAD specification sheet.',
+        ctaText: 'Open AI Bespoke CAD Engineer',
+        ctaAction: 'open-ai-advisor',
+      },
+    },
+  },
+  {
+    objectID: 'rule-saw-station-cantilever',
+    description:
+      'Promote 3-Bay and 2-Bay Cantilever Bar Racks on saw-station and bar/tube storage queries',
+    conditions: [{ anchoring: 'contains', pattern: 'cantilever', alternatives: true }],
+    consequence: {
+      promote: [
+        { objectID: 'prod-triple-cantilever-rack', position: 0 },
+        { objectID: 'prod-double-bay-cantilever-rack', position: 1 },
+      ],
+      userData: {
+        bannerType: 'cantilever-saw-station',
+        badge: 'SAW STATION & BAR STORAGE',
+        title: 'Double-Sided Cantilever Bar & Tube Racks (1,200kg–1,500kg SWL)',
+        description:
+          'Segregate up to 8 bar or extrusion grades on a single forklift-portable footprint with upturned anti-roll safety lugs.',
+        ctaText: 'Read Bar Storage Guide',
+        ctaHref: '/blog/optimising-long-bar-tube-storage-cantilever-stillage-racks',
+      },
+    },
+  },
+];
+
+// Algolia Free (Build) tier allows up to 3 Manual Query Rules per index.
+// Distributing federated merchandising rules onto `stillage_articles` unlocks up to 6 total server-side rules!
+export const ALGOLIA_ARTICLES_QUERY_RULES = [
+  {
+    objectID: 'rule-bulk-pallet-fleet',
+    description:
+      'Surface HGV 4-unit pallet consolidation and 5%-10% trade bulk discount banner',
+    conditions: [
+      { anchoring: 'contains', pattern: 'bulk' },
+      { anchoring: 'contains', pattern: 'discount' },
+      { anchoring: 'contains', pattern: 'trade' },
+      { anchoring: 'contains', pattern: 'fleet' },
+      { anchoring: 'contains', pattern: 'hgv' },
+    ],
+    consequence: {
+      userData: {
+        bannerType: 'bulk-pallet-fleet',
+        badge: 'TRADE FLEET ECONOMICS',
+        title: '4 Stillages per HGV Pallet Space + Up to 10% Automatic Trade Discount',
+        description:
+          'Up to 4 stillages stack on 1 oversized HGV pallet space. Unlock 5% Off on 5+ units and 10% Off on 10+ units automatically online.',
+        ctaText: 'View HGV Freight & Bulk Guide',
+        ctaHref: '/blog/hgv-pallet-delivery-tail-lift-offloading-guide',
+      },
+    },
+  },
+];
+
 export const SEED_ALGOLIA_PRODUCTS = [
   {
     id: 'prod-triple-cantilever-rack',
@@ -141,6 +287,12 @@ export const SEED_ALGOLIA_PRODUCTS = [
     featured: true,
     primaryImage: '/images/products/cantilever-rack-cutout.png',
     secondaryImage: '/images/products/cantilever-rack-sand.png',
+    technicalDrawing: '/images/products/sss-cant-3b8a-blueprint.jpg',
+    gallery: [
+      '/images/products/cantilever-rack-sand.png',
+      '/images/products/base-render-sss-cant-3b8a.jpg',
+      '/images/products/stacked-hopper-stillage.png',
+    ],
     backdropStyle: 'sand',
     highlights: [
       '3 Heavy-duty vertical stanchions with 4 double-sided arm tiers',
@@ -192,6 +344,12 @@ export const SEED_ALGOLIA_PRODUCTS = [
     featured: true,
     primaryImage: '/images/products/stacked-hopper-stillage.png',
     secondaryImage: '/images/products/cantilever-rack-cutout.png',
+    technicalDrawing: '/images/products/bbfh2-1-blueprint.jpg',
+    gallery: [
+      '/images/products/cantilever-rack-cutout.png',
+      '/images/products/cantilever-rack-sand.png',
+      '/images/products/base-render-bbfh2-1.jpg',
+    ],
     backdropStyle: 'white',
     highlights: [
       'Self-centring pressed steel pyramid stacking feet & receiver cups',
@@ -242,6 +400,12 @@ export const SEED_ALGOLIA_PRODUCTS = [
     featured: true,
     primaryImage: '/images/products/stacked-hopper-stillage.png',
     secondaryImage: '/images/products/cantilever-rack-sand.png',
+    technicalDrawing: '/images/products/sss-msh-1210hd-blueprint.jpg',
+    gallery: [
+      '/images/products/cantilever-rack-sand.png',
+      '/images/products/cantilever-rack-cutout.png',
+      '/images/products/base-render-sss-msh-1210hd.jpg',
+    ],
     backdropStyle: 'sand',
     highlights: [
       'Standard 1200 x 1000mm Euro/UK industrial footprint',
@@ -293,6 +457,12 @@ export const SEED_ALGOLIA_PRODUCTS = [
     featured: true,
     primaryImage: '/images/products/cantilever-rack-sand.png',
     secondaryImage: '/images/products/cantilever-rack-cutout.png',
+    technicalDrawing: '/images/products/sss-msh-1210hd-blueprint.jpg',
+    gallery: [
+      '/images/products/base-render-sss-msh-1210hd.jpg',
+      '/images/products/cantilever-rack-cutout.png',
+      '/images/products/stacked-hopper-stillage.png',
+    ],
     backdropStyle: 'white',
     highlights: [
       'Fold-down half front gate for accessible picking when stacked',
@@ -395,6 +565,12 @@ export const SEED_ALGOLIA_PRODUCTS = [
     featured: false,
     primaryImage: '/images/products/cantilever-rack-sand.png',
     secondaryImage: '/images/products/cantilever-rack-cutout.png',
+    technicalDrawing: '/images/products/sss-msh-1210hd-blueprint.jpg',
+    gallery: [
+      '/images/products/base-render-sss-msh-1210hd.jpg',
+      '/images/products/cantilever-rack-cutout.png',
+      '/images/products/stacked-hopper-stillage.png',
+    ],
     backdropStyle: 'sand',
     highlights: [
       'Compact 1800mm length fits workshop saw bays and flatbed transits',
@@ -427,6 +603,40 @@ export function buildAlgoliaProductRecord(product) {
     objectID: product.id,
     footprintMm: `${product.externalLengthMm}x${product.externalWidthMm}`,
     dimensionsText: `${product.externalLengthMm}x${product.externalWidthMm}x${product.externalHeightMm}mm`,
+    bulkPrice5PlusExVatPence: Math.round(product.basePriceExVatPence * 0.95),
+    bulkPrice10PlusExVatPence: Math.round(product.basePriceExVatPence * 0.9),
+    availableFinishes: [
+      'RAL 5010 Stillage Blue (Standard)',
+      'Raw Unpainted Mill Steel',
+      'Custom Corporate RAL Finish',
+      'Hot-Dip Galvanised (BS EN ISO 1461)',
+    ],
+    availableMobility: [
+      'Standard Pressed Steel Stacking Feet',
+      'Enclosed 4-Way Forklift Guide Pockets',
+      '4x Heavy-Duty Lockable Castors',
+      'Castors + Enclosed Forklift Guide Pockets',
+    ],
+    palletsPer4Units: 1,
+  };
+}
+
+export function buildAlgoliaArticleRecord(post) {
+  return {
+    objectID: post.id,
+    id: post.id,
+    title: post.title,
+    slug: post.slug,
+    excerpt: post.excerpt,
+    category: post.category,
+    author: post.author,
+    readingTimeMinutes: post.readingTimeMinutes,
+    publishedAt: post.publishedAt,
+    featured: Boolean(post.featured),
+    tags: post.tags || [],
+    keyTakeaways: post.keyTakeaways || [],
+    relatedProductSkus: post.relatedProductSkus || [],
+    body: post.body || '',
   };
 }
 
@@ -434,7 +644,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 async function waitForAlgoliaTask(appId, adminKey, indexName, taskID) {
   if (!taskID) return;
-  for (let i = 0; i < 20; i++) {
+  for (let i = 0; i < 25; i++) {
     const res = await fetch(
       `https://${appId}.algolia.net/1/indexes/${encodeURIComponent(indexName)}/task/${taskID}`,
       {
@@ -456,6 +666,7 @@ export async function syncAlgoliaIndex({
   appId = process.env.NEXT_PUBLIC_ALGOLIA_APP_ID,
   adminKey = process.env.ALGOLIA_ADMIN_API_KEY,
   indexName = process.env.NEXT_PUBLIC_ALGOLIA_INDEX_NAME || 'stillage_products',
+  articlesIndexName = process.env.NEXT_PUBLIC_ALGOLIA_ARTICLES_INDEX_NAME || 'stillage_articles',
 } = {}) {
   if (!appId || !adminKey) {
     throw new Error(
@@ -469,13 +680,20 @@ export async function syncAlgoliaIndex({
     'X-Algolia-API-Key': adminKey,
   };
 
-  // 1. Configure Index Settings (Searchable Attributes, Facets, Custom Ranking)
+  const replicas = getReplicaIndexNames(indexName);
+
+  // 1. Configure Primary Product Index Settings + Sorting Replicas
+  const primarySettings = {
+    ...ALGOLIA_INDEX_SETTINGS,
+    replicas: [replicas.priceAsc, replicas.priceDesc, replicas.swlDesc],
+  };
+
   const settingsRes = await fetch(
     `https://${appId}.algolia.net/1/indexes/${encodeURIComponent(indexName)}/settings`,
     {
       method: 'PUT',
       headers,
-      body: JSON.stringify(ALGOLIA_INDEX_SETTINGS),
+      body: JSON.stringify(primarySettings),
     }
   );
   if (!settingsRes.ok) {
@@ -484,11 +702,79 @@ export async function syncAlgoliaIndex({
   }
   const settingsTask = await settingsRes.json();
   await waitForAlgoliaTask(appId, adminKey, indexName, settingsTask.taskID);
-  console.log(`Configured Algolia index settings for "${indexName}"`);
+  console.log(`Configured Algolia primary index "${indexName}" + 3 sorting replicas`);
 
-  // 2. Configure Industrial Synonyms
+  // 2. Configure Replica Rankings (price-asc, price-desc, swl-desc)
+  const replicaConfigs = [
+    {
+      name: replicas.priceAsc,
+      ranking: [
+        'asc(basePriceExVatPence)',
+        'typo',
+        'geo',
+        'words',
+        'filters',
+        'proximity',
+        'attribute',
+        'exact',
+        'custom',
+      ],
+    },
+    {
+      name: replicas.priceDesc,
+      ranking: [
+        'desc(basePriceExVatPence)',
+        'typo',
+        'geo',
+        'words',
+        'filters',
+        'proximity',
+        'attribute',
+        'exact',
+        'custom',
+      ],
+    },
+    {
+      name: replicas.swlDesc,
+      ranking: [
+        'desc(swlKg)',
+        'typo',
+        'geo',
+        'words',
+        'filters',
+        'proximity',
+        'attribute',
+        'exact',
+        'custom',
+      ],
+    },
+  ];
+
+  for (const rep of replicaConfigs) {
+    const repRes = await fetch(
+      `https://${appId}.algolia.net/1/indexes/${encodeURIComponent(rep.name)}/settings`,
+      {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify({
+          searchableAttributes: ALGOLIA_INDEX_SETTINGS.searchableAttributes,
+          attributesForFaceting: ALGOLIA_INDEX_SETTINGS.attributesForFaceting,
+          attributesToHighlight: ALGOLIA_INDEX_SETTINGS.attributesToHighlight,
+          highlightPreTag: '<mark>',
+          highlightPostTag: '</mark>',
+          ranking: rep.ranking,
+        }),
+      }
+    );
+    if (repRes.ok) {
+      const repTask = await repRes.json();
+      await waitForAlgoliaTask(appId, adminKey, rep.name, repTask.taskID);
+    }
+  }
+
+  // 3. Sync Industrial Synonyms
   const synRes = await fetch(
-    `https://${appId}.algolia.net/1/indexes/${encodeURIComponent(indexName)}/synonyms/batch?replaceExistingSynonyms=true`,
+    `https://${appId}.algolia.net/1/indexes/${encodeURIComponent(indexName)}/synonyms/batch?replaceExistingSynonyms=true&forwardToReplicas=true`,
     {
       method: 'POST',
       headers,
@@ -498,22 +784,36 @@ export async function syncAlgoliaIndex({
   if (synRes.ok) {
     const synTask = await synRes.json();
     await waitForAlgoliaTask(appId, adminKey, indexName, synTask.taskID);
-    console.log(`Synced ${ALGOLIA_SYNONYMS.length} industrial synonyms to "${indexName}"`);
+    console.log(`Synced ${ALGOLIA_SYNONYMS.length} industrial synonyms to "${indexName}" (+ replicas)`);
   }
 
-  // 3. Batch Index Enriched Stillage Records
-  const records = SEED_ALGOLIA_PRODUCTS.map((p) => buildAlgoliaProductRecord(p));
-  const batchRequests = records.map((record) => ({
-    action: 'updateObject',
-    body: record,
-  }));
+  // 4. Sync Programmable Algolia Query Rules (Merchandising Banners & Pinning)
+  const rulesRes = await fetch(
+    `https://${appId}.algolia.net/1/indexes/${encodeURIComponent(indexName)}/rules/batch?clearExistingRules=true&forwardToReplicas=true`,
+    {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(ALGOLIA_QUERY_RULES),
+    }
+  );
+  if (!rulesRes.ok) {
+    const errText = await rulesRes.text();
+    throw new Error(`Algolia rules sync failed (${rulesRes.status}): ${errText}`);
+  }
+  const rulesTask = await rulesRes.json();
+  await waitForAlgoliaTask(appId, adminKey, indexName, rulesTask.taskID);
+  console.log(`Synced ${ALGOLIA_QUERY_RULES.length} programmable Query Rules to "${indexName}"`);
 
+  // 5. Batch Index Enriched Stillage Records
+  const records = SEED_ALGOLIA_PRODUCTS.map((p) => buildAlgoliaProductRecord(p));
   const batchRes = await fetch(
     `https://${appId}.algolia.net/1/indexes/${encodeURIComponent(indexName)}/batch`,
     {
       method: 'POST',
       headers,
-      body: JSON.stringify({ requests: batchRequests }),
+      body: JSON.stringify({
+        requests: records.map((record) => ({ action: 'updateObject', body: record })),
+      }),
     }
   );
   if (!batchRes.ok) {
@@ -522,11 +822,67 @@ export async function syncAlgoliaIndex({
   }
   const batchTask = await batchRes.json();
   await waitForAlgoliaTask(appId, adminKey, indexName, batchTask.taskID);
-
   console.log(
-    `Successfully indexed ${records.length} enriched stillage specifications into Algolia index "${indexName}".`
+    `Indexed ${records.length} enriched stillage specifications into "${indexName}".`
   );
-  return { indexName, indexedCount: records.length, objectIDs: batchTask.objectIDs };
+
+  // 6. Configure & Populate Federated Technical Articles Index (stillage_articles)
+  const artSettingsRes = await fetch(
+    `https://${appId}.algolia.net/1/indexes/${encodeURIComponent(articlesIndexName)}/settings`,
+    {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify(ALGOLIA_ARTICLES_SETTINGS),
+    }
+  );
+  if (artSettingsRes.ok) {
+    const artSettingsTask = await artSettingsRes.json();
+    await waitForAlgoliaTask(appId, adminKey, articlesIndexName, artSettingsTask.taskID);
+  }
+
+  const articleRecords = SEED_BLOG_ENTRIES.map((post) => buildAlgoliaArticleRecord(post));
+  const artBatchRes = await fetch(
+    `https://${appId}.algolia.net/1/indexes/${encodeURIComponent(articlesIndexName)}/batch`,
+    {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        requests: articleRecords.map((record) => ({ action: 'updateObject', body: record })),
+      }),
+    }
+  );
+  if (artBatchRes.ok) {
+    const artBatchTask = await artBatchRes.json();
+    await waitForAlgoliaTask(appId, adminKey, articlesIndexName, artBatchTask.taskID);
+    console.log(
+      `Indexed ${articleRecords.length} technical compliance guides into "${articlesIndexName}".`
+    );
+  }
+
+  // 7. Sync Federated Query Rules onto stillage_articles (expands 3-rule/index Free Tier ceiling across indexes)
+  const artRulesRes = await fetch(
+    `https://${appId}.algolia.net/1/indexes/${encodeURIComponent(articlesIndexName)}/rules/batch?clearExistingRules=true`,
+    {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(ALGOLIA_ARTICLES_QUERY_RULES),
+    }
+  );
+  if (artRulesRes.ok) {
+    const artRulesTask = await artRulesRes.json();
+    await waitForAlgoliaTask(appId, adminKey, articlesIndexName, artRulesTask.taskID);
+    console.log(
+      `Synced ${ALGOLIA_ARTICLES_QUERY_RULES.length} federated Query Rule(s) to "${articlesIndexName}"`
+    );
+  }
+
+  return {
+    indexName,
+    articlesIndexName,
+    indexedCount: records.length,
+    articlesIndexedCount: articleRecords.length,
+    rulesCount: ALGOLIA_QUERY_RULES.length + ALGOLIA_ARTICLES_QUERY_RULES.length,
+  };
 }
 
 const isMainModule =

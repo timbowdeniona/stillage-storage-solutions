@@ -16,12 +16,12 @@ export function ProductGeoSection({ product }: ProductGeoSectionProps) {
   return (
     <section
       aria-labelledby="geo-spec-sheet-heading"
-      className="mt-14 pt-12 border-t-2 border-steel-200 space-y-12"
+      className="mt-14 pt-12 border-t border-steel-200 space-y-12"
     >
       {/* Direct Answer & Technical Specification Table Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Left: Direct Entity Definition & Compliance Summary for AI / GEO */}
-        <div className="lg:col-span-5 bg-surface-sandLight border-l-4 border-stillage-blue border border-steel-200 p-6 rounded-sm space-y-4">
+        {/* Left: Direct Entity Definition & Compliance Summary */}
+        <div className="lg:col-span-5 bg-steel-50 border-l-4 border-stillage-blue border border-steel-200 p-6 rounded-sm space-y-4">
           <div className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-stillage-blue font-bold">
             <ShieldCheck className="w-4 h-4 text-accent-teal" />
             <span>UK Engineering Specification Summary</span>
@@ -38,7 +38,7 @@ export function ProductGeoSection({ product }: ProductGeoSectionProps) {
             The <strong>{product.title}</strong> (SKU: <code className="font-mono font-bold text-brand-navy">{product.sku}</code>) is a UK-manufactured industrial steel storage unit engineered from{' '}
             <strong>{product.steelSpecification}</strong> with a certified{' '}
             <strong>{product.swlKg.toLocaleString('en-GB')} kg Safe Working Load (SWL)</strong> and{' '}
-            <strong>{product.stackableHeight}</strong> rating. {product.fullDescription}
+            <strong>{product.stackableHeight}</strong> rating.
           </p>
 
           <div className="pt-2 border-t border-steel-200 space-y-2">
@@ -61,21 +61,21 @@ export function ProductGeoSection({ product }: ProductGeoSectionProps) {
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="w-4 h-4 text-stillage-blue shrink-0 mt-0.5" />
                 <span>
-                  <strong>LOLER 1998 Bespoke Option:</strong> Overhead crane lifting eyes available to order via our Wrexham &amp; Midlands fabrication desk.
+                  <strong>LOLER 1998 Bespoke Option:</strong> Overhead crane lifting eyes available to order via our UK fabrication desk.
                 </span>
               </li>
             </ul>
           </div>
         </div>
 
-        {/* Right: Machine-Readable Technical Data Sheet Table */}
-        <div className="lg:col-span-7 border border-steel-200 bg-surface-white rounded-sm overflow-hidden shadow-sm">
+        {/* Right: Technical Data Sheet Table */}
+        <div className="lg:col-span-7 border border-steel-200 bg-surface-white rounded-sm overflow-hidden shadow-xs">
           <div className="bg-brand-navy text-surface-white px-5 py-3.5 flex items-center justify-between">
             <div className="flex items-center gap-2 font-display font-bold uppercase tracking-wider text-sm">
-              <TableProperties className="w-4 h-4 text-surface-sand" />
+              <TableProperties className="w-4 h-4 text-stillage-sky" />
               <span>Technical Data Sheet — {product.sku}</span>
             </div>
-            <span className="font-mono text-xs text-surface-sand">
+            <span className="font-mono text-xs text-stillage-sky">
               {product.ukcaCertified ? 'UKCA / SWL Certified' : 'Industrial Grade'}
             </span>
           </div>
@@ -86,7 +86,7 @@ export function ProductGeoSection({ product }: ProductGeoSectionProps) {
               className="w-full text-left border-collapse text-xs sm:text-sm"
             >
               <tbody className="divide-y divide-steel-200">
-                <tr className="bg-surface-sandLight/40">
+                <tr className="bg-steel-50">
                   <th scope="row" className="py-3 px-4 font-mono text-xs uppercase text-steel-600 w-2/5">
                     Specification Code (SKU)
                   </th>
@@ -100,7 +100,7 @@ export function ProductGeoSection({ product }: ProductGeoSectionProps) {
                     {product.externalLengthMm}mm × {product.externalWidthMm}mm × {product.externalHeightMm}mm
                   </td>
                 </tr>
-                <tr className="bg-surface-sandLight/40">
+                <tr className="bg-steel-50">
                   <th scope="row" className="py-3 px-4 font-mono text-xs uppercase text-steel-600">
                     Safe Working Load (SWL)
                   </th>
@@ -114,7 +114,7 @@ export function ProductGeoSection({ product }: ProductGeoSectionProps) {
                   </th>
                   <td className="py-3 px-4 font-semibold text-brand-navy">{product.stackableHeight}</td>
                 </tr>
-                <tr className="bg-surface-sandLight/40">
+                <tr className="bg-steel-50">
                   <th scope="row" className="py-3 px-4 font-mono text-xs uppercase text-steel-600">
                     Unladen Tare Weight
                   </th>
@@ -126,7 +126,7 @@ export function ProductGeoSection({ product }: ProductGeoSectionProps) {
                   </th>
                   <td className="py-3 px-4 font-mono text-steel-900">{product.steelSpecification}</td>
                 </tr>
-                <tr className="bg-surface-sandLight/40">
+                <tr className="bg-steel-50">
                   <th scope="row" className="py-3 px-4 font-mono text-xs uppercase text-steel-600">
                     Protective Finish Options
                   </th>
@@ -143,7 +143,7 @@ export function ProductGeoSection({ product }: ProductGeoSectionProps) {
                     <strong>£{tier5Gbp}</strong> | 10+ Units (-10%): <strong>£{tier10Gbp}</strong>
                   </td>
                 </tr>
-                <tr className="bg-surface-sandLight/40">
+                <tr className="bg-steel-50">
                   <th scope="row" className="py-3 px-4 font-mono text-xs uppercase text-steel-600">
                     UK HGV Pallet Shipping
                   </th>
@@ -157,21 +157,16 @@ export function ProductGeoSection({ product }: ProductGeoSectionProps) {
         </div>
       </div>
 
-      {/* Buyer & Technical FAQ Accordion (Backed by FAQPage JSON-LD) */}
+      {/* Buyer & Technical FAQ Accordion */}
       <div className="border border-steel-200 bg-surface-white p-6 sm:p-8 rounded-sm">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-6 border-b border-steel-200">
-          <div>
-            <div className="inline-flex items-center gap-1.5 font-mono text-xs uppercase tracking-wider text-stillage-blue font-bold">
-              <HelpCircle className="w-4 h-4" />
-              <span>Frequently Asked Engineering &amp; Procurement Questions</span>
-            </div>
-            <h3 className="font-display font-extrabold text-2xl uppercase text-brand-navy mt-1">
-              Buyer Questions for {product.sku}
-            </h3>
+        <div className="pb-6 border-b border-steel-200">
+          <div className="inline-flex items-center gap-1.5 font-mono text-xs uppercase tracking-wider text-stillage-blue font-bold">
+            <HelpCircle className="w-4 h-4" />
+            <span>Frequently Asked Engineering &amp; Procurement Questions</span>
           </div>
-          <span className="font-mono text-xs text-steel-600 bg-surface-sandLight px-3 py-1.5 rounded-sm border border-steel-200">
-            Contentful Managed FAQs + Automatic Schema Fallback
-          </span>
+          <h3 className="font-display font-extrabold text-2xl uppercase text-brand-navy mt-1">
+            Buyer Questions for {product.sku}
+          </h3>
         </div>
 
         <div className="divide-y divide-steel-200 mt-2">
@@ -179,7 +174,7 @@ export function ProductGeoSection({ product }: ProductGeoSectionProps) {
             <details key={idx} className="group py-4" open={idx === 0}>
               <summary className="flex items-center justify-between cursor-pointer list-none font-display font-bold text-base sm:text-lg uppercase text-brand-navy group-hover:text-stillage-blue">
                 <span>{faq.question}</span>
-                <span className="ml-4 font-mono text-xs px-2 py-0.5 bg-surface-sandLight border border-steel-200 rounded-sm text-brand-navy">
+                <span className="ml-4 font-mono text-xs px-2 py-0.5 bg-steel-50 border border-steel-200 rounded-sm text-brand-navy">
                   Q{idx + 1}
                 </span>
               </summary>

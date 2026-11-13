@@ -11,14 +11,34 @@
   --color-brand-navy-dark: #09172c;
   --color-stillage-blue: #145da0;
   --color-stillage-blue-dark: #0d447a;
-  --color-surface-sand: #f2e3ce;
-  --color-surface-sand-light: #faf5ee;
+  --color-surface-slate: #f8fafc;
+  --color-surface-steel: #f1f4f7;
+  --color-surface-sand: #f1f5f9;
+  --color-surface-sand-light: #f8fafc;
   --color-surface-white: #ffffff;
   --color-steel-900: #1c2026;
   --color-steel-600: #4a525d;
   --color-steel-200: #dce1e7;
   --color-accent-teal: #00897b;
   --color-safety-amber: #d97706;
+}
+
+/* Modern Web Guidance (color): Forced Colors Mode system color fallbacks */
+@media (forced-colors: active) {
+  :root {
+    --color-brand-navy: Canvas;
+    --color-brand-navy-dark: Canvas;
+    --color-stillage-blue: Highlight;
+    --color-stillage-blue-dark: Highlight;
+    --color-surface-slate: Canvas;
+    --color-surface-steel: Canvas;
+    --color-surface-sand: Canvas;
+    --color-surface-sand-light: Canvas;
+    --color-surface-white: Canvas;
+    --color-steel-900: CanvasText;
+    --color-steel-600: GrayText;
+    --color-steel-200: CanvasText;
+  }
 }
 
 body {
@@ -94,7 +114,7 @@ body {
     position: sticky;
     inset-block-start: 0;
     z-index: 2;
-    background: var(--color-surface-sand-light);
+    background: var(--color-surface-slate);
     border-bottom: 1px solid var(--color-steel-200);
   }
 
@@ -139,4 +159,16 @@ body {
 .article-prose h3 {
   text-wrap: balance;
   line-height: 1.2;
+}
+
+/* Technical Blueprint SVG Stage */
+.cad-diagram-svg {
+  shape-rendering: geometricPrecision;
+}
+
+/* Modern Web Guidance (highlight-text-ranges): CSS Custom Highlight API for Algolia Search Matches */
+::highlight(algolia-search-match) {
+  background-color: #dbeafe;
+  color: #0f2342;
+  text-decoration: underline 2px solid #145da0;
 }

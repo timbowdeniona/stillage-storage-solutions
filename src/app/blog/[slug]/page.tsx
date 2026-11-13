@@ -23,6 +23,7 @@ import {
 } from '@/lib/seo';
 import { ProductCard } from '@/components/ProductCard';
 import { BlogCard } from '@/components/BlogCard';
+import { FEATURES } from '@/lib/features';
 
 interface BlogPostDetailPageProps {
   params: Promise<{ slug: string }>;
@@ -56,7 +57,7 @@ function renderInlineFormatting(text: string): React.ReactNode[] {
       return (
         <code
           key={idx}
-          className="font-mono text-xs bg-surface-sandLight border border-steel-200 px-1.5 py-0.5 rounded-sm text-brand-navy"
+          className="font-mono text-xs bg-steel-50 border border-steel-200 px-1.5 py-0.5 rounded-sm text-brand-navy"
         >
           {part.slice(1, -1)}
         </code>
@@ -112,6 +113,10 @@ function renderArticleBody(markdown: string) {
 
 export default async function BlogPostDetailPage({ params }: BlogPostDetailPageProps) {
   const { slug } = await params;
+  if (!FEATURES.enableBlogGuides) {
+    notFound();
+  }
+
   const [post, allPosts, allProducts] = await Promise.all([
     getBlogPostBySlug(slug),
     getBlogPosts(),
@@ -133,7 +138,7 @@ export default async function BlogPostDetailPage({ params }: BlogPostDetailPageP
   const faqJsonLd = buildFaqSchema(getBlogPostFaqs(post));
 
   return (
-    <div>
+    <div className="bg-surface-white min-h-screen">
       {/* Schema.org JSON-LD for Google Rich Results & AI Answer Engines */}
       <script
         type="application/ld+json"
@@ -148,8 +153,8 @@ export default async function BlogPostDetailPage({ params }: BlogPostDetailPageP
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
 
-      {/* Breadcrumb Bar */}
-      <div className="bg-surface-sandLight border-b border-steel-200">
+      {/* Clean Breadcrumb Bar */}
+      <div className="bg-steel-50 border-b border-steel-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
           <nav
             aria-label="Breadcrumb"
@@ -170,14 +175,14 @@ export default async function BlogPostDetailPage({ params }: BlogPostDetailPageP
 
       {/* Article Hero Header */}
       <header className="bg-brand-navy text-surface-white border-b-4 border-stillage-blue">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             <div className="lg:col-span-8 space-y-4">
               <div className="flex flex-wrap items-center gap-3 font-mono text-xs">
                 <span className="bg-stillage-blue text-white px-3 py-1 rounded-sm font-bold uppercase">
                   {post.category}
                 </span>
-                <span className="inline-flex items-center gap-1.5 text-surface-sand">
+                <span className="inline-flex items-center gap-1.5 text-stillage-sky">
                   <Calendar className="w-3.5 h-3.5" />
                   <time dateTime={post.publishedAt}>{post.publishedAt}</time>
                 </span>
@@ -195,7 +200,7 @@ export default async function BlogPostDetailPage({ params }: BlogPostDetailPageP
                 {post.excerpt}
               </p>
 
-              <div className="pt-2 flex flex-wrap items-center gap-4 text-xs font-mono text-surface-sand">
+              <div className="pt-2 flex flex-wrap items-center gap-4 text-xs font-mono text-white">
                 <span className="inline-flex items-center gap-1.5">
                   <User className="w-4 h-4 text-accent-teal" />
                   <strong>{post.author}</strong> — {post.authorRole}
@@ -204,17 +209,13 @@ export default async function BlogPostDetailPage({ params }: BlogPostDetailPageP
             </div>
 
             <div className="lg:col-span-4">
-              <div
-                className={`p-6 rounded-sm border-2 border-surface-sandDark flex flex-col items-center justify-center ${
-                  post.backdropStyle === 'sand' ? 'bg-surface-sand' : 'bg-surface-white'
-                }`}
-              >
+              <div className="p-6 rounded-sm border-2 border-stillage-blue/40 bg-surface-white flex flex-col items-center justify-center shadow-lg">
                 <img
                   src={post.heroImage}
                   alt={post.title}
                   width={340}
                   height={240}
-                  className="h-48 object-contain drop-shadow-md"
+                  className="h-48 object-contain"
                 />
               </div>
             </div>
@@ -231,7 +232,7 @@ export default async function BlogPostDetailPage({ params }: BlogPostDetailPageP
             {post.keyTakeaways.length > 0 && (
               <section
                 aria-label="Key Engineering Takeaways"
-                className="bg-surface-sandLight border-l-4 border-stillage-blue border border-steel-200 p-6 rounded-sm space-y-3"
+                className="bg-steel-50 border-l-4 border-stillage-blue border border-steel-200 p-6 rounded-sm space-y-3"
               >
                 <div className="flex items-center gap-2 font-display font-bold text-lg uppercase text-brand-navy">
                   <ShieldCheck className="w-5 h-5 text-accent-teal" />
@@ -261,7 +262,7 @@ export default async function BlogPostDetailPage({ params }: BlogPostDetailPageP
                 {post.tags.map((tag) => (
                   <span
                     key={tag}
-                    className="font-mono text-xs bg-surface-sandLight border border-steel-200 text-brand-navy px-3 py-1 rounded-sm"
+                    className="font-mono text-xs bg-steel-50 border border-steel-200 text-brand-navy px-3 py-1 rounded-sm"
                   >
                     {tag}
                   </span>
@@ -282,7 +283,7 @@ export default async function BlogPostDetailPage({ params }: BlogPostDetailPageP
 
           {/* Right Sidebar: Referenced Stillages & Trade Support */}
           <aside className="lg:col-span-4 space-y-6">
-            <div className="border border-steel-200 bg-surface-white p-5 space-y-4">
+            <div className="border border-steel-200 bg-surface-white p-5 rounded-sm space-y-4">
               <div className="font-mono text-xs uppercase text-stillage-blue font-bold">
                 REFERENCED STILLAGE SPECS
               </div>
@@ -294,11 +295,11 @@ export default async function BlogPostDetailPage({ params }: BlogPostDetailPageP
                   <Link
                     key={prod.id}
                     href={`/products/${prod.slug}`}
-                    className="block p-3 border border-steel-200 hover:border-stillage-blue bg-surface-sandLight/60 rounded-sm transition-colors group"
+                    className="block p-3.5 border border-steel-200 hover:border-stillage-blue bg-steel-50 rounded-sm transition-colors group"
                   >
                     <div className="flex items-center justify-between font-mono text-[11px] text-steel-600">
                       <span className="font-bold text-brand-navy">{prod.sku}</span>
-                      <span className="bg-brand-navy text-surface-sand px-2 py-0.5 rounded-sm font-bold">
+                      <span className="bg-brand-navy text-white px-2 py-0.5 rounded-sm font-bold">
                         {prod.swlKg}kg SWL
                       </span>
                     </div>
@@ -318,15 +319,15 @@ export default async function BlogPostDetailPage({ params }: BlogPostDetailPageP
               </div>
             </div>
 
-            <div className="bg-brand-navy text-surface-white p-6 border-l-4 border-stillage-blue space-y-3">
-              <div className="font-mono text-xs uppercase text-surface-sand">
+            <div className="bg-brand-navy text-surface-white p-6 rounded-sm border-l-4 border-stillage-blue space-y-3">
+              <div className="font-mono text-xs uppercase text-stillage-sky font-bold">
                 BESPOKE UK FABRICATION
               </div>
               <h3 className="font-display font-bold text-xl uppercase">
                 Need Custom Footprints or Crane-Lift LOLER Cages?
               </h3>
               <p className="text-xs text-steel-200 leading-relaxed">
-                Our Wrexham &amp; Midlands steel fabrication team builds custom sheet stillages, automotive racks, and hot-dip galvanised post pallets to your exact CAD drawing.
+                Our UK steel fabrication team builds custom sheet stillages, automotive racks, and hot-dip galvanised post pallets to your exact CAD drawing.
               </p>
               <div className="pt-2 space-y-2">
                 <Link
@@ -337,7 +338,7 @@ export default async function BlogPostDetailPage({ params }: BlogPostDetailPageP
                 </Link>
                 <a
                   href="mailto:sales@stillagestoragesolutions.co.uk"
-                  className="block w-full bg-surface-sand hover:bg-white text-brand-navy text-center font-display font-bold uppercase tracking-wider py-2.5 px-4 rounded-sm text-xs transition-colors"
+                  className="block w-full bg-surface-white hover:bg-steel-100 text-brand-navy text-center font-display font-bold uppercase tracking-wider py-2.5 px-4 rounded-sm text-xs transition-colors"
                 >
                   Email Engineering Desk
                 </a>
@@ -349,7 +350,7 @@ export default async function BlogPostDetailPage({ params }: BlogPostDetailPageP
         {/* Full Product Cards for Referenced Specifications */}
         {relatedProducts.length > 0 && (
           <section className="mt-16 pt-12 border-t border-steel-200">
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between mb-8">
               <div>
                 <div className="font-mono text-xs uppercase text-stillage-blue font-bold">
                   DIRECT ONLINE CONFIGURATION
@@ -366,7 +367,7 @@ export default async function BlogPostDetailPage({ params }: BlogPostDetailPageP
               </Link>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {relatedProducts.map((prod) => (
                 <ProductCard key={prod.id} product={prod} />
               ))}
@@ -377,10 +378,10 @@ export default async function BlogPostDetailPage({ params }: BlogPostDetailPageP
         {/* More Technical Guides */}
         {otherPosts.length > 0 && (
           <section className="mt-16 pt-12 border-t border-steel-200">
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between mb-8">
               <div>
                 <div className="font-mono text-xs uppercase text-stillage-blue font-bold">
-                  CONTENTFUL KNOWLEDGE BASE
+                  TECHNICAL LIBRARY
                 </div>
                 <h2 className="font-display font-bold text-2xl sm:text-3xl uppercase text-brand-navy mt-0.5">
                   More Stillage Engineering &amp; Buying Guides
@@ -394,7 +395,7 @@ export default async function BlogPostDetailPage({ params }: BlogPostDetailPageP
               </Link>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {otherPosts.map((other) => (
                 <BlogCard key={other.id} post={other} />
               ))}

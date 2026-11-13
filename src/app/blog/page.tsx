@@ -1,6 +1,8 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { notFound } from 'next/navigation';
+import { FEATURES } from '@/lib/features';
 import {
   ArrowRight,
   BookOpen,
@@ -21,34 +23,37 @@ export const metadata: Metadata = {
 };
 
 export default async function BlogIndexPage() {
+  if (!FEATURES.enableBlogGuides) {
+    notFound();
+  }
   const posts = await getBlogPosts();
   const leadPost = posts.find((p) => p.featured) || posts[0];
   const categories = Array.from(new Set(posts.map((p) => p.category)));
 
   return (
-    <div>
-      {/* Page Header Banner */}
+    <div className="bg-surface-white min-h-screen">
+      {/* Clean Page Header Banner */}
       <div className="bg-brand-navy text-surface-white border-b-4 border-stillage-blue">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <nav
             aria-label="Breadcrumb"
             className="flex items-center gap-2 text-xs font-mono text-steel-200 mb-4"
           >
-            <Link href="/" className="hover:text-surface-sand">
+            <Link href="/" className="hover:text-white">
               Home
             </Link>
             <ChevronRight className="w-3.5 h-3.5 text-steel-400" />
-            <span className="text-surface-sand font-bold">Technical Blog &amp; Engineering Guides</span>
+            <span className="text-stillage-sky font-bold">Technical Blog &amp; Engineering Guides</span>
           </nav>
 
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
-            <div className="max-w-3xl space-y-2">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-sm bg-stillage-blue/30 border border-stillage-blueLight text-surface-sand font-mono text-xs uppercase tracking-wider">
+            <div className="max-w-3xl space-y-3">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-sm bg-stillage-blue/30 border border-stillage-blueLight text-white font-mono text-xs uppercase tracking-wider">
                 <BookOpen className="w-3.5 h-3.5 text-accent-teal" />
-                <span>Contentful Managed Knowledge Base</span>
+                <span>UK Steel Fabrication Technical Library</span>
               </div>
-              <h1 className="heading-balance font-display font-extrabold text-3xl sm:text-5xl uppercase tracking-wide">
-                Stillage Engineering, Safety &amp; Warehouse Guides
+              <h1 className="heading-balance font-display font-extrabold text-3xl sm:text-5xl uppercase tracking-tight">
+                Stillage Engineering, Safety &amp; <span className="text-stillage-sky">Warehouse Guides</span>
               </h1>
               <p className="text-steel-200 text-sm sm:text-base leading-relaxed">
                 Practical technical guidance from our UK steel fabrication team covering Safe Working Loads (SWL), PUWER &amp; LOLER compliance, protective finishes, and high-density warehouse storage.
@@ -56,7 +61,7 @@ export default async function BlogIndexPage() {
             </div>
 
             <div className="bg-brand-navyDark border border-white/15 p-4 rounded-sm font-mono text-xs space-y-1 shrink-0">
-              <div className="text-surface-sand font-bold uppercase">
+              <div className="text-white font-bold uppercase">
                 {posts.length} Published Engineering Guides
               </div>
               <div className="text-steel-200">
@@ -70,54 +75,47 @@ export default async function BlogIndexPage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-14">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 space-y-16">
         {/* Featured Lead Article Stage */}
         {leadPost && (
           <section aria-labelledby="featured-guide-heading">
-            <div className="flex items-center justify-between mb-4">
+            <div className="mb-4">
               <div
                 id="featured-guide-heading"
                 className="font-mono text-xs uppercase tracking-widest text-stillage-blue font-bold"
               >
                 FEATURED ENGINEERING GUIDE
               </div>
-              <span className="font-mono text-xs text-steel-600">
-                Contentful Content Type: <code className="font-bold text-brand-navy">blogPost</code>
-              </span>
             </div>
 
-            <div className="border-2 border-brand-navy bg-surface-white grid grid-cols-1 lg:grid-cols-12 shadow-md">
-              {/* Left Image Showcase */}
-              <div
-                className={`lg:col-span-5 p-8 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-steel-200 ${
-                  leadPost.backdropStyle === 'sand' ? 'bg-surface-sand' : 'bg-surface-sandLight'
-                }`}
-              >
+            <div className="border border-steel-200 hover:border-stillage-blue bg-surface-white rounded-sm grid grid-cols-1 lg:grid-cols-12 shadow-xs overflow-hidden transition-colors">
+              {/* Left Image Showcase — Crisp Studio White / Cool Steel */}
+              <div className="lg:col-span-5 p-8 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-steel-200 bg-steel-50">
                 <div className="flex items-center justify-between font-mono text-xs">
-                  <span className="bg-brand-navy text-surface-sand px-2.5 py-1 font-bold uppercase rounded-sm">
+                  <span className="bg-brand-navy text-white px-2.5 py-1 font-bold uppercase rounded-sm">
                     {leadPost.category}
                   </span>
-                  <span className="inline-flex items-center gap-1 text-brand-navy font-bold">
+                  <span className="inline-flex items-center gap-1 text-steel-600 font-bold">
                     <Clock className="w-3.5 h-3.5" />
                     {leadPost.readingTimeMinutes} min read
                   </span>
                 </div>
 
-                <div className="my-6 h-60 flex items-center justify-center">
+                <div className="my-6 h-60 flex items-center justify-center bg-surface-white p-6 rounded-sm border border-steel-200">
                   <img
                     src={leadPost.heroImage}
                     alt={leadPost.title}
                     width={420}
                     height={300}
-                    className="max-h-full object-contain drop-shadow-md"
+                    className="max-h-full object-contain"
                   />
                 </div>
 
-                <div className="flex flex-wrap gap-1.5 pt-2 border-t border-brand-navy/15">
+                <div className="flex flex-wrap gap-1.5 pt-2">
                   {leadPost.tags.map((tag) => (
                     <span
                       key={tag}
-                      className="font-mono text-[10px] bg-surface-white/90 text-brand-navy font-bold px-2.5 py-0.5 rounded-sm border border-brand-navy/15"
+                      className="font-mono text-[10px] bg-surface-white text-brand-navy font-bold px-2.5 py-0.5 rounded-sm border border-steel-200"
                     >
                       {tag}
                     </span>
@@ -155,7 +153,7 @@ export default async function BlogIndexPage() {
                   </p>
 
                   {leadPost.keyTakeaways.length > 0 && (
-                    <div className="bg-surface-sandLight border border-steel-200 p-4 rounded-sm space-y-2">
+                    <div className="bg-steel-50 border border-steel-200 border-l-4 border-l-stillage-blue p-4 rounded-sm space-y-2">
                       <div className="font-mono text-xs font-bold uppercase text-brand-navy flex items-center gap-1.5">
                         <ShieldCheck className="w-4 h-4 text-accent-teal" />
                         Key Technical Takeaways
@@ -197,7 +195,7 @@ export default async function BlogIndexPage() {
 
         {/* All Blog Posts Grid */}
         <section aria-labelledby="all-guides-heading">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-6 gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4 pb-4 border-b border-steel-200">
             <div>
               <div className="font-mono text-xs uppercase tracking-widest text-stillage-blue font-bold">
                 ALL TECHNICAL ARTICLES ({posts.length})
@@ -214,7 +212,7 @@ export default async function BlogIndexPage() {
               {categories.map((cat) => (
                 <span
                   key={cat}
-                  className="font-mono text-xs bg-surface-sandLight border border-steel-200 text-brand-navy px-3 py-1.5 rounded-sm font-bold"
+                  className="font-mono text-xs bg-steel-50 border border-steel-200 text-brand-navy px-3 py-1.5 rounded-sm font-bold"
                 >
                   {cat}
                 </span>
@@ -222,7 +220,7 @@ export default async function BlogIndexPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {posts.map((post) => (
               <BlogCard key={post.id} post={post} />
             ))}
