@@ -19,6 +19,7 @@ import { SEED_PRODUCTS } from '@/data/seedCatalog';
 import { searchProductsWithAlgolia } from '@/lib/algolia';
 import { AlgoliaArticleRecord, ParsedSearchIntent, Product } from '@/types/catalog';
 import { AlgoliaHighlight } from '@/components/AlgoliaHighlight';
+import { FEATURES } from '@/lib/features';
 
 export function Header() {
   const { showIncVat, setShowIncVat, basket, formatPrice, formatBothPrices } = useVat();
@@ -62,7 +63,7 @@ export function Header() {
     let active = true;
     searchProductsWithAlgolia(SEED_PRODUCTS, {
       query: debouncedQuery,
-      includeArticles: true,
+      includeArticles: FEATURES.enableBlogGuides,
     }).then((res) => {
       if (active) {
         setInstantHits(res.hits.slice(0, 4));
@@ -198,12 +199,14 @@ export function Header() {
               Custom Fab
             </Link>
 
-            <Link
-              href="/blog"
-              className="font-display font-bold text-lg text-brand-navy hover:text-stillage-blue transition-colors"
-            >
-              About &amp; Guides
-            </Link>
+            {FEATURES.enableBlogGuides && (
+              <Link
+                href="/blog"
+                className="font-display font-bold text-lg text-brand-navy hover:text-stillage-blue transition-colors"
+              >
+                About &amp; Guides
+              </Link>
+            )}
 
             <a
               href="mailto:sales@stillagestoragesolutions.co.uk"
@@ -359,7 +362,7 @@ export function Header() {
                       </div>
                     )}
 
-                    {instantArticles.length > 0 && (
+                    {FEATURES.enableBlogGuides && instantArticles.length > 0 && (
                       <div className="border-t border-steel-200 bg-steel-50">
                         <div className="px-3.5 py-1.5 font-mono text-[10px] uppercase font-bold text-steel-600 flex items-center gap-1.5">
                           <BookOpen className="w-3 h-3 text-stillage-blue" />
@@ -519,13 +522,15 @@ export function Header() {
             >
               Custom Fab
             </Link>
-            <Link
-              href="/blog"
-              onClick={() => setMobileMenuOpen(false)}
-              className="py-2 px-3 rounded-md hover:bg-steel-50"
-            >
-              About &amp; Guides
-            </Link>
+            {FEATURES.enableBlogGuides && (
+              <Link
+                href="/blog"
+                onClick={() => setMobileMenuOpen(false)}
+                className="py-2 px-3 rounded-md hover:bg-steel-50"
+              >
+                About &amp; Guides
+              </Link>
+            )}
           </div>
         </div>
       )}

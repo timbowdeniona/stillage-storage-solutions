@@ -1,6 +1,8 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { notFound } from 'next/navigation';
+import { FEATURES } from '@/lib/features';
 import {
   ArrowRight,
   BookOpen,
@@ -21,6 +23,9 @@ export const metadata: Metadata = {
 };
 
 export default async function BlogIndexPage() {
+  if (!FEATURES.enableBlogGuides) {
+    notFound();
+  }
   const posts = await getBlogPosts();
   const leadPost = posts.find((p) => p.featured) || posts[0];
   const categories = Array.from(new Set(posts.map((p) => p.category)));

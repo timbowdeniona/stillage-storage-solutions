@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import { FEATURES } from '@/lib/features';
 
 export function Footer() {
   return (
@@ -54,7 +55,7 @@ export function Footer() {
 
         <div>
           <h4 className="font-display font-bold uppercase tracking-wider text-surface-white mb-3">
-            Engineering &amp; Guides
+            {FEATURES.enableBlogGuides ? 'Engineering & Guides' : 'Custom Engineering'}
           </h4>
           <ul className="space-y-2 text-xs text-steel-200">
             <li>
@@ -63,26 +64,35 @@ export function Footer() {
               </Link>
             </li>
             <li>
-              <Link href="/blog" className="hover:text-white">
-                Technical Guides &amp; Safety Standards
+              <Link href="/checkout" className="hover:text-white">
+                Quote Basket &amp; Proforma Checkout
               </Link>
             </li>
-            <li>
-              <Link
-                href="/blog/swl-puwer-ukca-stillage-stacking-safety-guide"
-                className="hover:text-white"
-              >
-                SWL, PUWER &amp; Stacking Guide
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/blog/hot-dip-galvanised-vs-ral-5010-painted-steel-stillages"
-                className="hover:text-white"
-              >
-                Galvanised vs RAL 5010 Finishes
-              </Link>
-            </li>
+            {FEATURES.enableBlogGuides && (
+              <>
+                <li>
+                  <Link href="/blog" className="hover:text-white">
+                    Technical Guides &amp; Safety Standards
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/blog/swl-puwer-ukca-stillage-stacking-safety-guide"
+                    className="hover:text-white"
+                  >
+                    SWL, PUWER &amp; Stacking Guide
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/blog/hot-dip-galvanised-vs-ral-5010-painted-steel-stillages"
+                    className="hover:text-white"
+                  >
+                    Galvanised vs RAL 5010 Finishes
+                  </Link>
+                </li>
+              </>
+            )}
           </ul>
         </div>
 

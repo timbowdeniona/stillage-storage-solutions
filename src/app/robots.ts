@@ -1,13 +1,22 @@
 import type { MetadataRoute } from 'next';
 import { SITE_URL } from '@/lib/seo';
+import { FEATURES } from '@/lib/features';
 
 export default function robots(): MetadataRoute.Robots {
+  const disallowLaunch = FEATURES.enableBlogGuides
+    ? ['/api/checkout', '/api/webhooks', '/checkout/return']
+    : ['/api/checkout', '/api/webhooks', '/checkout/return', '/blog'];
+
+  const aiAllow = FEATURES.enableBlogGuides
+    ? ['/', '/llms.txt', '/llms-full.txt', '/products', '/blog']
+    : ['/', '/llms.txt', '/llms-full.txt', '/products'];
+
   return {
     rules: [
       {
         userAgent: '*',
         allow: ['/', '/api/og'],
-        disallow: ['/api/checkout', '/api/webhooks', '/checkout/return'],
+        disallow: disallowLaunch,
       },
       {
         // Explicitly allow AI Search / Answer Engine crawlers for Generative Engine Optimisation (GEO)
@@ -22,7 +31,7 @@ export default function robots(): MetadataRoute.Robots {
           'Googlebot',
           'Bingbot',
         ],
-        allow: ['/', '/llms.txt', '/llms-full.txt', '/products', '/blog'],
+        allow: aiAllow,
       },
     ],
     sitemap: `${SITE_URL}/sitemap.xml`,

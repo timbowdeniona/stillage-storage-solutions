@@ -6,6 +6,7 @@ import { ArrowRight } from 'lucide-react';
 import { BlogPost, Product } from '@/types/catalog';
 import { ProductCard } from '@/components/ProductCard';
 import { BlogCard } from '@/components/BlogCard';
+import { FEATURES } from '@/lib/features';
 
 interface Approach1Props {
   products: Product[];
@@ -132,7 +133,7 @@ export function Approach1HomePage({ products, featuredPosts = [] }: Approach1Pro
       </section>
 
       {/* Clean Technical Guides Row */}
-      {featuredPosts.length > 0 && (
+      {FEATURES.enableBlogGuides && featuredPosts.length > 0 && (
         <section className="bg-surface-white border-t border-steel-200 py-14">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">

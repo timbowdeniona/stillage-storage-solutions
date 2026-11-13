@@ -24,6 +24,7 @@ import { searchProductsWithAlgolia, SearchFilterOptions } from '@/lib/algolia';
 import { ProductCard } from '@/components/ProductCard';
 import { AiSpecAdvisor } from '@/components/AiSpecAdvisor';
 import { AlgoliaHighlight } from '@/components/AlgoliaHighlight';
+import { FEATURES } from '@/lib/features';
 
 interface ProductListingClientProps {
   initialProducts: Product[];
@@ -98,13 +99,17 @@ export function ProductListingClient({
       footprintMm: selectedFootprint,
       inStockOnly,
       sortBy,
-      includeArticles: debouncedQuery.length > 0,
+      includeArticles: FEATURES.enableBlogGuides && debouncedQuery.length > 0,
       skipNetworkOnDefault: true,
     }).then((res) => {
       if (active) {
         setResults(res.hits);
-        setArticleHits(res.articleHits);
-        setRuleBanners(res.ruleBanners);
+        setArticleHits(FEATURES.enableBlogGuides ? res.articleHits : []);
+        setRuleBanners(
+          FEATURES.enableBlogGuides
+            ? res.ruleBanners
+            : res.ruleBanners.filter((b) => !b.ctaHref?.startsWith('/blog'))
+        );
         setParsedIntent(res.parsedIntent);
         if (res.facets) {
           setFacetCounts(res.facets);
@@ -467,7 +472,7 @@ export function ProductListingClient({
         </div>
 
         {/* Federated Technical Blog & Compliance Matches */}
-        {articleHits.length > 0 && (
+        {FEATURES.enableBlogGuides && articleHits.length > 0 && (
           <div className="border-t border-steel-200 pt-8">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">

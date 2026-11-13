@@ -23,6 +23,7 @@ import {
 } from '@/lib/seo';
 import { ProductCard } from '@/components/ProductCard';
 import { BlogCard } from '@/components/BlogCard';
+import { FEATURES } from '@/lib/features';
 
 interface BlogPostDetailPageProps {
   params: Promise<{ slug: string }>;
@@ -112,6 +113,10 @@ function renderArticleBody(markdown: string) {
 
 export default async function BlogPostDetailPage({ params }: BlogPostDetailPageProps) {
   const { slug } = await params;
+  if (!FEATURES.enableBlogGuides) {
+    notFound();
+  }
+
   const [post, allPosts, allProducts] = await Promise.all([
     getBlogPostBySlug(slug),
     getBlogPosts(),

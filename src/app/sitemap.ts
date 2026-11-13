@@ -1,12 +1,13 @@
 import type { MetadataRoute } from 'next';
 import { getBlogPosts, getCategories, getProducts } from '@/lib/contentful';
 import { SITE_URL } from '@/lib/seo';
+import { FEATURES } from '@/lib/features';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [products, categories, blogPosts] = await Promise.all([
     getProducts(),
     getCategories(),
-    getBlogPosts(),
+    FEATURES.enableBlogGuides ? getBlogPosts() : Promise.resolve([]),
   ]);
 
   const now = new Date();
@@ -24,12 +25,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'daily',
       priority: 0.9,
     },
-    {
-      url: `${SITE_URL}/blog`,
-      lastModified: now,
-      changeFrequency: 'weekly',
-      priority: 0.8,
-    },
+    ...(FEATURES.enableBlogGuides
+      ? [
+          {
+            url: `${SITE_URL}/blog`,
+            lastModified: now,
+            changeFrequency: 'weekly' as const,
+            priority: 0.8,
+          },
+        ]
+      : []),
   ];
 
   const categoryRoutes: MetadataRoute.Sitemap = categories.map((cat) => ({
