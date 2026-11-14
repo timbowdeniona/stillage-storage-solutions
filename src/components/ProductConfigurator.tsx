@@ -311,53 +311,41 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
       <div className="lg:col-span-7 space-y-8">
         {/* Product Image Viewer */}
         <div className="border border-steel-200 bg-surface-white rounded-sm shadow-xs overflow-hidden">
-          <div className="px-5 py-3 border-b border-steel-200 bg-steel-50 flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center gap-2 font-mono text-xs">
-              <span className="bg-brand-navy text-white px-2.5 py-0.5 font-bold rounded-sm">
-                SKU: {product.sku}
+          {/* Product Header (moved from right-hand configurator) */}
+          <div className="bg-brand-navy text-surface-white px-5 py-3.5 border-b border-white/15">
+            <div className="flex items-center justify-between gap-2 text-[11px] font-mono">
+              <div className="flex items-center gap-2">
+                <span className="bg-white/10 text-white px-2 py-0.5 font-bold rounded-sm">
+                  SKU: {product.sku}
+                </span>
+                <span className="text-white/30">|</span>
+                <span className="font-bold text-stillage-sky">{product.swlKg} kg SWL Rated</span>
+              </div>
+              <span
+                className={`shrink-0 px-2 py-0.5 rounded-full font-bold text-[10px] tracking-wide ${
+                  product.inStock
+                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/40'
+                    : 'bg-accent-amber/20 text-amber-200 border border-accent-amber/40'
+                }`}
+              >
+                {product.inStock ? 'IN STOCK' : 'MADE TO ORDER'}
               </span>
-              <span className="text-steel-400">|</span>
-              <span className="font-bold text-stillage-blue">{product.swlKg} kg SWL Rated</span>
             </div>
-
-            {/* Clean Surface Switcher (Studio White / Cool Steel / Interactive CAD) */}
-            <div className="flex items-center gap-1.5 text-[11px] font-mono">
-              <button
-                type="button"
-                aria-pressed={backdropMode === 'white'}
-                onClick={() => setBackdropMode('white')}
-                className={`px-2.5 py-1 rounded-sm border transition-colors ${
-                  backdropMode === 'white'
-                    ? 'bg-brand-navy border-brand-navy text-white font-bold'
-                    : 'bg-surface-white border-steel-200 text-steel-600 hover:border-steel-400'
-                }`}
-              >
-                Studio White
-              </button>
-              <button
-                type="button"
-                aria-pressed={backdropMode === 'steel'}
-                onClick={() => setBackdropMode('steel')}
-                className={`px-2.5 py-1 rounded-sm border transition-colors ${
-                  backdropMode === 'steel'
-                    ? 'bg-brand-navy border-brand-navy text-white font-bold'
-                    : 'bg-surface-white border-steel-200 text-steel-600 hover:border-steel-400'
-                }`}
-              >
-                Cool Steel
-              </button>
-              <button
-                type="button"
-                aria-pressed={backdropMode === 'blueprint'}
-                onClick={() => setBackdropMode('blueprint')}
-                className={`px-2.5 py-1 rounded-sm border transition-colors ${
-                  backdropMode === 'blueprint'
-                    ? 'bg-stillage-blue border-stillage-blue text-white font-bold'
-                    : 'bg-surface-white border-steel-200 text-steel-600 hover:border-steel-400'
-                }`}
-              >
-                Interactive CAD
-              </button>
+            <h1 className="font-display font-bold text-xl sm:text-2xl uppercase tracking-wide mt-1.5 leading-tight">
+              {product.title}
+            </h1>
+            <div className="mt-2 flex items-baseline gap-2.5 flex-wrap">
+              <span className="font-mono font-bold text-2xl text-white">
+                {formatBothPrices(quote.discountedUnitExVatPence).primary}
+              </span>
+              <span className="font-mono text-xs text-steel-200">
+                / unit ({formatBothPrices(quote.discountedUnitExVatPence).label})
+              </span>
+              {quote.discountPercentage > 0 && (
+                <span className="ml-auto bg-accent-amber text-white font-mono text-[11px] font-bold px-2 py-0.5 rounded-sm">
+                  {quote.discountPercentage}% Bulk Off
+                </span>
+              )}
             </div>
           </div>
 
@@ -509,37 +497,6 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
 
       {/* Right Column: Interactive Stillage Configurator & Live Quote */}
       <div className="lg:col-span-5 border-2 border-brand-navy bg-surface-white rounded-sm shadow-lg sticky top-20 overflow-hidden">
-        {/* Slim Configurator Header */}
-        <div className="bg-brand-navy text-surface-white px-4 py-2.5 border-b border-white/15">
-          <div className="flex items-start justify-between gap-2">
-            <h1 className="font-display font-bold text-base sm:text-lg uppercase tracking-wide leading-snug line-clamp-2">
-              {product.title}
-            </h1>
-            <span
-              className={`shrink-0 mt-0.5 px-2 py-0.5 rounded-full font-mono font-bold text-[10px] tracking-wide ${
-                product.inStock
-                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/40'
-                  : 'bg-accent-amber/20 text-amber-200 border border-accent-amber/40'
-              }`}
-            >
-              {product.inStock ? 'IN STOCK' : 'MADE TO ORDER'}
-            </span>
-          </div>
-          <div className="mt-1 flex items-baseline gap-2 flex-wrap">
-            <span className="font-mono font-bold text-xl text-white">
-              {formatBothPrices(quote.discountedUnitExVatPence).primary}
-            </span>
-            <span className="font-mono text-[11px] text-steel-200">
-              / unit ({formatBothPrices(quote.discountedUnitExVatPence).label})
-            </span>
-            {quote.discountPercentage > 0 && (
-              <span className="ml-auto bg-accent-amber text-white font-mono text-[10px] font-bold px-2 py-0.5 rounded-sm">
-                {quote.discountPercentage}% Bulk Off
-              </span>
-            )}
-          </div>
-        </div>
-
         {/* Two-Step Segmented Tab Bar */}
         <div className="bg-steel-100 px-4 py-2 border-b border-steel-200">
           <div
