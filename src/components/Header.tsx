@@ -558,6 +558,7 @@ export function Header() {
           ) : (
             <Link
               href="/login"
+              prefetch={false}
               className="hidden md:inline-flex items-center gap-1.5 border border-steel-200 bg-steel-50 hover:bg-steel-100 text-brand-navy px-3.5 py-2 rounded-md font-display font-bold text-sm transition-colors whitespace-nowrap shrink-0"
             >
               <User className="w-4 h-4" />
@@ -731,6 +732,7 @@ export function Header() {
             ) : (
               <Link
                 href="/login"
+                prefetch={false}
                 onClick={() => setMobileMenuOpen(false)}
                 className="flex items-center justify-center gap-2 border border-steel-200 bg-steel-50 hover:bg-steel-100 text-brand-navy py-2.5 px-4 rounded-md font-display font-bold text-base transition-colors"
               >

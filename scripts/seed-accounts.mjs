@@ -424,7 +424,7 @@ export async function runSeed() {
   const pool = new pg.Pool({ connectionString });
   const initSqlPath = path.resolve(
     process.cwd(),
-    'netlify/database/migrations/20261119145000_init_auth_orders_analytics.sql'
+    'db/migrations/20261119145000_init_auth_orders_analytics.sql'
   );
 
   try {

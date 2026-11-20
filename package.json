@@ -16,7 +16,6 @@
     "ga4:setup": "node scripts/setup-ga4.mjs"
   },
   "dependencies": {
-    "@netlify/database": "^2.0.3",
     "drizzle-orm": "^1.0.0-beta.22",
     "lucide-react": "^0.468.0",
     "next": "^15.1.0",

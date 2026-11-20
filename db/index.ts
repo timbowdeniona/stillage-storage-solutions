@@ -1,4 +1,3 @@
-import { drizzle as drizzleNetlify } from 'drizzle-orm/netlify-db';
 import { drizzle as drizzlePg, type NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 import * as schema from './schema';
@@ -20,51 +19,32 @@ function warnDbInitOnce(message: string, err: unknown): void {
 }
 
 /**
- * Returns a typed Drizzle Postgres database instance when NETLIFY_DB_URL or
- * DATABASE_URL is configured, or null when running offline / during build / tests.
+ * Returns a typed Drizzle Postgres database instance when DATABASE_URL or
+ * NETLIFY_DB_URL is configured, or null when running offline / during build / tests.
  */
 export function getDb(): AppDatabase | null {
-  const netlifyDbUrl = process.env.NETLIFY_DB_URL?.trim();
-  const databaseUrl = process.env.DATABASE_URL?.trim();
+  const connectionUrl = (process.env.DATABASE_URL || process.env.NETLIFY_DB_URL || '').trim();
 
-  if (netlifyDbUrl) {
-    if (globalForDb.__sssDb && globalForDb.__sssDbUrl === netlifyDbUrl) {
-      return globalForDb.__sssDb;
-    }
-
-    try {
-      // drizzle-orm/netlify-db returns a union (NetlifyDbDatabase | NodePgDatabase) in beta.22;
-      // normalize to a single NodePgDatabase<typeof schema> type for clean downstream queries.
-      const db = drizzleNetlify({ schema }) as unknown as AppDatabase;
-      globalForDb.__sssDb = db;
-      globalForDb.__sssDbUrl = netlifyDbUrl;
-      return db;
-    } catch (err) {
-      warnDbInitOnce('Failed to initialize Netlify Database client; using in-memory fallback', err);
-      return null;
-    }
+  if (!connectionUrl) {
+    return null;
   }
 
-  if (databaseUrl) {
-    if (globalForDb.__sssDb && globalForDb.__sssDbUrl === databaseUrl) {
-      return globalForDb.__sssDb;
-    }
-
-    try {
-      const pool =
-        globalForDb.__sssPgPool && globalForDb.__sssDbUrl === databaseUrl
-          ? globalForDb.__sssPgPool
-          : new Pool({ connectionString: databaseUrl });
-      const db = drizzlePg({ client: pool, schema });
-      globalForDb.__sssPgPool = pool;
-      globalForDb.__sssDb = db;
-      globalForDb.__sssDbUrl = databaseUrl;
-      return db;
-    } catch (err) {
-      warnDbInitOnce('Failed to initialize node-postgres client; using in-memory fallback', err);
-      return null;
-    }
+  if (globalForDb.__sssDb && globalForDb.__sssDbUrl === connectionUrl) {
+    return globalForDb.__sssDb;
   }
 
-  return null;
+  try {
+    const pool =
+      globalForDb.__sssPgPool && globalForDb.__sssDbUrl === connectionUrl
+        ? globalForDb.__sssPgPool
+        : new Pool({ connectionString: connectionUrl });
+    const db = drizzlePg({ client: pool, schema });
+    globalForDb.__sssPgPool = pool;
+    globalForDb.__sssDb = db;
+    globalForDb.__sssDbUrl = connectionUrl;
+    return db;
+  } catch (err) {
+    warnDbInitOnce('Failed to initialize Postgres client; using in-memory fallback', err);
+    return null;
+  }
 }

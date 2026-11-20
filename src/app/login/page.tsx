@@ -58,7 +58,12 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const rawError = resolvedParams.error;
   const errorCode = Array.isArray(rawError) ? rawError[0] : rawError ?? null;
 
-  const session = await auth();
+  let session = null;
+  try {
+    session = await auth();
+  } catch (err) {
+    console.warn('[login] Ignoring stale/invalid session cookie:', err instanceof Error ? err.message : err);
+  }
   if (session?.user) {
     const isAdmin = session.user.role === 'admin';
     if (safeCallbackUrl) {
