@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
+import { auth } from '@/auth';
 import { calculateBasketSummary, calculateQuote } from '@/lib/pricing';
+import { createOrder, type CreateOrderInput } from '@/lib/repository';
+import { normalizeEmail } from '@/lib/roles';
 import { CheckoutLineItemInput, QuoteRequest } from '@/types/catalog';
 import {
   createStripeB2BProformaInvoice,
@@ -7,6 +10,7 @@ import {
   getStripePublishableKey,
   getStripeSecretKey,
 } from '@/lib/stripe';
+import type { OrderItemRecord } from '../../../../db/schema';
 
 interface CheckoutBody {
   items?: CheckoutLineItemInput[];
@@ -20,12 +24,53 @@ interface CheckoutBody {
   purchaseOrderNumber?: string;
 }
 
+function parsePositiveInt(value: unknown): number | null {
+  if (typeof value === 'number') {
+    return Number.isSafeInteger(value) && value > 0 && value <= 2147483647 ? value : null;
+  }
+  if (typeof value !== 'string') return null;
+  const trimmed = value.trim();
+  if (!/^\d+$/.test(trimmed)) return null;
+  const parsed = Number(trimmed);
+  return Number.isSafeInteger(parsed) && parsed > 0 && parsed <= 2147483647 ? parsed : null;
+}
+
+async function persistOrderSafely(input: CreateOrderInput): Promise<void> {
+  try {
+    await createOrder(input);
+  } catch (err) {
+    console.error('[checkout] Failed to persist order record:', err);
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as CheckoutBody;
-    if (!body) {
+    if (!body || typeof body !== 'object' || Array.isArray(body)) {
       return NextResponse.json({ error: 'Invalid checkout request payload' }, { status: 400 });
     }
+
+    let session = null;
+    try {
+      session = await auth();
+    } catch (authErr) {
+      console.warn('[checkout] Auth session lookup failed; continuing as guest:', authErr);
+    }
+
+    const numericUserId = parsePositiveInt(session?.user?.id);
+    const explicitCustomerEmail = normalizeEmail(body.customerEmail);
+    const sessionCustomerEmail = normalizeEmail(session?.user?.email);
+    const effectiveCustomerEmail =
+      explicitCustomerEmail || sessionCustomerEmail || 'guest@stillagestoragesolutions.co.uk';
+
+    const normalizedCompanyName =
+      typeof body.companyName === 'string' && body.companyName.trim()
+        ? body.companyName.trim()
+        : null;
+    const normalizedPoNumber =
+      typeof body.purchaseOrderNumber === 'string' && body.purchaseOrderNumber.trim()
+        ? body.purchaseOrderNumber.trim()
+        : null;
 
     // Normalize single-item quoteRequest or multi-item basket array
     let rawItems: CheckoutLineItemInput[] = [];
@@ -58,6 +103,38 @@ export async function POST(request: Request) {
     const primarySku = summary.items[0]?.sku || 'ORDER';
     const orderReference = `SSS-${primarySku}-${Date.now().toString().slice(-5)}`;
 
+    const itemsJson: OrderItemRecord[] = summary.items.map((item) => ({
+      sku: item.sku,
+      title: item.title,
+      slug: item.slug,
+      quantity: item.quantity,
+      basePriceExVatPence: item.basePriceExVatPence,
+      finishOption: item.finishOption,
+      finishName: item.finishName,
+      mobilityOption: item.mobilityOption,
+      mobilityName: item.mobilityName,
+      primaryImage: item.primaryImage,
+      discountedUnitExVatPence: item.discountedUnitExVatPence,
+      lineSubtotalExVatPence: item.lineSubtotalExVatPence,
+    }));
+
+    const baseOrderInput = {
+      orderReference,
+      userId: numericUserId,
+      customerEmail: effectiveCustomerEmail,
+      companyName: normalizedCompanyName,
+      purchaseOrderNumber: normalizedPoNumber,
+      itemsJson,
+      totalUnits: summary.totalUnits,
+      subtotalExVatPence: summary.goodsSubtotalExVatPence,
+      deliveryExVatPence: summary.deliveryExVatPence,
+      vatPence: summary.vatAmountPence,
+      totalIncVatPence: summary.totalIncVatPence,
+      postcode: summary.postcode,
+      deliveryZone: summary.deliveryZone,
+      requiresTailLift: summary.requiresTailLift,
+    };
+
     // Determine request origin for Stripe return_url
     const reqUrl = new URL(request.url);
     const forwardedHost = request.headers.get('x-forwarded-host');
@@ -87,9 +164,22 @@ export async function POST(request: Request) {
         const invoiceResult = await createStripeB2BProformaInvoice({
           orderReference,
           summary,
-          companyName: body.companyName || 'UK Trade Buyer',
-          customerEmail: body.customerEmail || 'accounts@stillagestoragesolutions.co.uk',
-          purchaseOrderNumber: body.purchaseOrderNumber,
+          companyName: normalizedCompanyName || 'UK Trade Buyer',
+          customerEmail:
+            explicitCustomerEmail ||
+            sessionCustomerEmail ||
+            'accounts@stillagestoragesolutions.co.uk',
+          purchaseOrderNumber: normalizedPoNumber || undefined,
+        });
+
+        await persistOrderSafely({
+          ...baseOrderInput,
+          paymentMode: 'b2b_proforma',
+          status: 'invoiced',
+          stripeInvoiceId: invoiceResult.invoiceId,
+          invoiceNumber: invoiceResult.invoiceNumber,
+          hostedInvoiceUrl: invoiceResult.hostedInvoiceUrl,
+          invoicePdfUrl: invoiceResult.invoicePdfUrl,
         });
 
         return NextResponse.json({
@@ -109,6 +199,16 @@ export async function POST(request: Request) {
           } (${summary.totalUnits} unit${summary.totalUnits > 1 ? 's' : ''}).`,
         });
       }
+
+      await persistOrderSafely({
+        ...baseOrderInput,
+        paymentMode: 'b2b_proforma',
+        status: 'invoiced',
+        stripeInvoiceId: null,
+        invoiceNumber: orderReference,
+        hostedInvoiceUrl: null,
+        invoicePdfUrl: null,
+      });
 
       return NextResponse.json({
         status: 'invoice_ready',
@@ -138,9 +238,16 @@ export async function POST(request: Request) {
       orderReference,
       summary,
       origin,
-      customerEmail: body.customerEmail,
-      companyName: body.companyName,
-      purchaseOrderNumber: body.purchaseOrderNumber,
+      customerEmail: explicitCustomerEmail || sessionCustomerEmail || undefined,
+      companyName: normalizedCompanyName || undefined,
+      purchaseOrderNumber: normalizedPoNumber || undefined,
+    });
+
+    await persistOrderSafely({
+      ...baseOrderInput,
+      paymentMode: 'card',
+      status: 'pending',
+      stripeSessionId: embeddedSession.sessionId,
     });
 
     return NextResponse.json({

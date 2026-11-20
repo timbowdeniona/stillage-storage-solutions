@@ -553,7 +553,16 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
                   <button
                     key={opt.id}
                     type="button"
-                    onClick={() => setMobilityOption(opt.id)}
+                    onClick={() => {
+                      setMobilityOption(opt.id);
+                      trackB2BEvent({
+                        event: 'configurator_option_select',
+                        sku: product.sku,
+                        productTitle: product.title,
+                        optionType: 'mobility',
+                        optionValue: opt.id,
+                      });
+                    }}
                     className={`w-full p-3 border text-left rounded-sm transition-all ${
                       isSelected
                         ? 'border-2 border-stillage-blue bg-stillage-blue/5'

@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from 
 import Script from 'next/script';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import {
   ShieldCheck,
   Truck,
@@ -95,6 +96,28 @@ export function CheckoutClient() {
   const embeddedMountRef = useRef<HTMLDivElement | null>(null);
   const embeddedInstanceRef = useRef<{ destroy: () => void } | null>(null);
 
+  const sessionResult = useSession();
+  const session = sessionResult?.data ?? null;
+  const sessionStatus = sessionResult?.status;
+
+  const hasPrefilledFromAccountRef = useRef<boolean>(false);
+  const hasUserEditedCompanyRef = useRef<boolean>(false);
+  const hasUserEditedEmailRef = useRef<boolean>(false);
+  const hasUserEditedPostcodeRef = useRef<boolean>(false);
+  const hasUserTouchedTailLiftRef = useRef<boolean>(false);
+  const latestFieldsRef = useRef({
+    companyName,
+    customerEmail,
+    deliveryPostcode,
+    requiresTailLift,
+  });
+  latestFieldsRef.current = {
+    companyName,
+    customerEmail,
+    deliveryPostcode,
+    requiresTailLift,
+  };
+
   const formIdPrefix = useId();
   const basketTableCaptionId = `${formIdPrefix}-basket-caption`;
   const proformaTableCaptionId = `${formIdPrefix}-proforma-caption`;
@@ -124,6 +147,82 @@ export function CheckoutClient() {
       }
     }
   }, []);
+
+  // Pre-fill trade account details once when signed in without overwriting user edits
+  useEffect(() => {
+    const authEmail = session?.user?.email;
+    if (hasPrefilledFromAccountRef.current) {
+      return;
+    }
+    if ((sessionStatus && sessionStatus !== 'authenticated') || !authEmail) {
+      return;
+    }
+
+    if (!hasUserEditedEmailRef.current && !latestFieldsRef.current.customerEmail.trim()) {
+      setCustomerEmail(authEmail);
+    }
+
+    let cancelled = false;
+    const controller = new AbortController();
+
+    fetch('/api/account/profile', { signal: controller.signal })
+      .then(async (res) => {
+        if (!res.ok) {
+          if (!cancelled) {
+            hasPrefilledFromAccountRef.current = true;
+          }
+          return;
+        }
+        const data = (await res.json()) as {
+          profile?: {
+            companyName?: string | null;
+            defaultPostcode?: string | null;
+            defaultTailLift?: boolean;
+          };
+        };
+        if (cancelled) return;
+
+        hasPrefilledFromAccountRef.current = true;
+        const profile = data.profile;
+        if (!profile) return;
+
+        if (
+          profile.companyName &&
+          !hasUserEditedCompanyRef.current &&
+          !latestFieldsRef.current.companyName.trim()
+        ) {
+          setCompanyName(profile.companyName);
+        }
+
+        if (profile.defaultPostcode && !hasUserEditedPostcodeRef.current) {
+          const currentPostcode = latestFieldsRef.current.deliveryPostcode.trim().toUpperCase();
+          if (!currentPostcode || currentPostcode === 'B1 1AA') {
+            setDeliveryPostcode(profile.defaultPostcode);
+          }
+        }
+
+        if (
+          typeof profile.defaultTailLift === 'boolean' &&
+          !hasUserTouchedTailLiftRef.current &&
+          !latestFieldsRef.current.requiresTailLift
+        ) {
+          setRequiresTailLift(profile.defaultTailLift);
+        }
+      })
+      .catch((err) => {
+        if (err instanceof DOMException && err.name === 'AbortError') {
+          return;
+        }
+        if (!cancelled) {
+          hasPrefilledFromAccountRef.current = true;
+        }
+      });
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [session?.user?.email, sessionStatus, setDeliveryPostcode, setRequiresTailLift]);
 
   // Deterministic live summary of basket items + UK postcode HGV pallet freight + 20% VAT
   const summary = useMemo(() => {
@@ -649,7 +748,10 @@ export function CheckoutClient() {
                   autoCorrect="off"
                   spellCheck={false}
                   value={deliveryPostcode}
-                  onChange={(e) => setDeliveryPostcode(e.target.value)}
+                  onChange={(e) => {
+                    hasUserEditedPostcodeRef.current = true;
+                    setDeliveryPostcode(e.target.value);
+                  }}
                   placeholder="e.g. B1 1AA, LL13, M1, IV1"
                   className="w-full px-3.5 py-2.5 border border-steel-200 rounded-sm font-mono text-sm uppercase focus:outline-none focus:border-stillage-blue"
                 />
@@ -676,7 +778,10 @@ export function CheckoutClient() {
                         type="radio"
                         name="offloading-facility"
                         checked={!requiresTailLift}
-                        onChange={() => setRequiresTailLift(false)}
+                        onChange={() => {
+                          hasUserTouchedTailLiftRef.current = true;
+                          setRequiresTailLift(false);
+                        }}
                         className="accent-stillage-blue"
                       />
                       <span>Forklift On-Site</span>
@@ -696,7 +801,10 @@ export function CheckoutClient() {
                         type="radio"
                         name="offloading-facility"
                         checked={requiresTailLift}
-                        onChange={() => setRequiresTailLift(true)}
+                        onChange={() => {
+                          hasUserTouchedTailLiftRef.current = true;
+                          setRequiresTailLift(true);
+                        }}
                         className="accent-stillage-blue"
                       />
                       <span>Tail-Lift Offloading + Pump Truck</span>
@@ -733,7 +841,10 @@ export function CheckoutClient() {
                   name="organization"
                   autoComplete="organization"
                   value={companyName}
-                  onChange={(e) => setCompanyName(e.target.value)}
+                  onChange={(e) => {
+                    hasUserEditedCompanyRef.current = true;
+                    setCompanyName(e.target.value);
+                  }}
                   placeholder="e.g. Severn Valley Fabrications Ltd"
                   className="w-full px-3 py-2.5 border border-steel-200 rounded-sm text-xs focus:outline-none focus:border-stillage-blue"
                 />
@@ -758,6 +869,7 @@ export function CheckoutClient() {
                   required={paymentMode === 'b2b_proforma'}
                   value={customerEmail}
                   onChange={(e) => {
+                    hasUserEditedEmailRef.current = true;
                     setCustomerEmail(e.target.value);
                     if (emailError) setEmailError(null);
                   }}

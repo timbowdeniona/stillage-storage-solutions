@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useSession, signOut } from 'next-auth/react';
 import {
   Search,
   Phone,
@@ -13,6 +14,11 @@ import {
   Sparkles,
   BookOpen,
   ChevronDown,
+  User,
+  LogOut,
+  Package,
+  BarChart3,
+  LineChart,
 } from 'lucide-react';
 import { useVat } from '@/context/VatContext';
 import { useSiteContent } from '@/context/SiteContentContext';
@@ -24,6 +30,7 @@ import { AlgoliaHighlight } from '@/components/AlgoliaHighlight';
 import { FEATURES } from '@/lib/features';
 
 export function Header() {
+  const { data: session, status } = useSession();
   const { showIncVat, setShowIncVat, basket, formatPrice, formatBothPrices } = useVat();
   const { navigation, microtexts } = useSiteContent();
   const headerCopy = microtexts.header;
@@ -34,6 +41,7 @@ export function Header() {
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [productsMenuOpen, setProductsMenuOpen] = useState(false);
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [autocompleteOpen, setAutocompleteOpen] = useState(false);
   const [instantHits, setInstantHits] = useState<Product[]>([]);
@@ -44,7 +52,12 @@ export function Header() {
   });
   const searchContainerRef = useRef<HTMLFormElement>(null);
   const productsMenuRef = useRef<HTMLDivElement>(null);
+  const accountMenuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+
+  const isAuthenticated = status === 'authenticated' && Boolean(session?.user);
+  const isAdmin = session?.user?.role === 'admin';
+  const accountDisplayName = session?.user?.name || session?.user?.email || 'Account';
 
   // 180ms keystroke debounce
   useEffect(() => {
@@ -98,9 +111,26 @@ export function Header() {
       ) {
         setProductsMenuOpen(false);
       }
+      if (
+        accountMenuRef.current &&
+        !accountMenuRef.current.contains(e.target as Node)
+      ) {
+        setAccountMenuOpen(false);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setAccountMenuOpen(false);
+        setProductsMenuOpen(false);
+        setAutocompleteOpen(false);
+      }
     };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
   }, []);
 
   const handleSearch = (e: React.FormEvent) => {
@@ -133,9 +163,9 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-40 bg-surface-white text-brand-navy border-b border-steel-200 shadow-xs">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4 xl:gap-6">
         {/* Left: Brand Icon + Stacked Brand Wordmark + Navigation Links */}
-        <div className="flex items-center gap-10">
+        <div className="flex items-center gap-6 xl:gap-10 min-w-0">
           <Link href="/" className="flex items-center gap-3 shrink-0 group">
             <BrandIcon size={40} className="w-10 h-10 shrink-0 transition-transform group-hover:scale-105" />
             <span className="flex flex-col">
@@ -149,7 +179,7 @@ export function Header() {
           </Link>
 
           {/* Contentful-Managed Navigation Links */}
-          <nav aria-label="Main navigation" className="hidden lg:flex items-center gap-7">
+          <nav aria-label="Main navigation" className="hidden lg:flex items-center gap-5 xl:gap-7">
             {headerNavItems.map((item) => {
               const visibleChildren = (item.children || []).filter(
                 (child) => !child.requiresBlogFeature || FEATURES.enableBlogGuides
@@ -162,7 +192,7 @@ export function Header() {
                       type="button"
                       onClick={() => setProductsMenuOpen((prev) => !prev)}
                       aria-expanded={productsMenuOpen}
-                      className="inline-flex items-center gap-1 font-display font-bold text-lg text-brand-navy hover:text-stillage-blue transition-colors"
+                      className="inline-flex items-center gap-1 font-display font-bold text-base xl:text-lg text-brand-navy hover:text-stillage-blue transition-colors whitespace-nowrap"
                     >
                       <span>{item.label}</span>
                       <ChevronDown className="w-4 h-4 text-brand-navy" />
@@ -195,7 +225,7 @@ export function Header() {
                   <a
                     key={`${item.label}-${item.href}`}
                     href={item.href}
-                    className="font-display font-bold text-lg text-brand-navy hover:text-stillage-blue transition-colors"
+                    className="font-display font-bold text-base xl:text-lg text-brand-navy hover:text-stillage-blue transition-colors whitespace-nowrap"
                   >
                     {item.label}
                   </a>
@@ -206,7 +236,7 @@ export function Header() {
                 <Link
                   key={`${item.label}-${item.href}`}
                   href={item.href}
-                  className="font-display font-bold text-lg text-brand-navy hover:text-stillage-blue transition-colors"
+                  className="font-display font-bold text-base xl:text-lg text-brand-navy hover:text-stillage-blue transition-colors whitespace-nowrap"
                 >
                   {item.label}
                 </Link>
@@ -215,8 +245,8 @@ export function Header() {
           </nav>
         </div>
 
-        {/* Right: Search, Phone, VAT Toggle & Quote Basket Button */}
-        <div className="flex items-center gap-4 sm:gap-5">
+        {/* Right: Search, Phone, VAT Toggle, Account & Quote Basket Button */}
+        <div className="flex items-center gap-2.5 sm:gap-3.5 xl:gap-4 shrink-0">
           {/* Compact Instant Search */}
           <form
             ref={searchContainerRef}
@@ -412,9 +442,9 @@ export function Header() {
           {/* Phone Number */}
           <a
             href={headerCopy.phoneHref}
-            className="hidden sm:inline-flex items-center gap-2 font-display font-bold text-lg text-brand-navy hover:text-stillage-blue transition-colors"
+            className="hidden sm:inline-flex items-center gap-1.5 font-display font-bold text-base xl:text-lg text-brand-navy hover:text-stillage-blue transition-colors whitespace-nowrap shrink-0"
           >
-            <Phone className="w-4 h-4 text-brand-navy fill-brand-navy" />
+            <Phone className="w-4 h-4 text-brand-navy fill-brand-navy shrink-0" />
             <span>{headerCopy.phoneDisplay}</span>
           </a>
 
@@ -422,18 +452,125 @@ export function Header() {
           <button
             type="button"
             onClick={() => setShowIncVat(!showIncVat)}
-            className="hidden xl:inline-flex items-center px-2.5 py-1 rounded border border-steel-200 bg-steel-50 hover:bg-steel-100 text-[11px] font-mono font-bold text-brand-navy transition-colors"
+            className="hidden xl:inline-flex items-center px-2.5 py-1 rounded border border-steel-200 bg-steel-50 hover:bg-steel-100 text-[11px] font-mono font-bold text-brand-navy transition-colors whitespace-nowrap shrink-0"
             title={headerCopy.vatToggleTitle}
           >
             {showIncVat ? headerCopy.vatToggleIncLabel : headerCopy.vatToggleExLabel}
           </button>
 
+          {/* Desktop Auth Control (Always visible on md+ desktop, never hidden behind xl:) */}
+          {isAuthenticated ? (
+            <div ref={accountMenuRef} className="relative hidden md:block shrink-0">
+              <button
+                type="button"
+                onClick={() => setAccountMenuOpen((prev) => !prev)}
+                aria-expanded={accountMenuOpen}
+                aria-haspopup="menu"
+                aria-controls="header-account-menu"
+                className="inline-flex items-center gap-2 border border-steel-200 bg-steel-50 hover:bg-steel-100 text-brand-navy px-3 py-2 rounded-md font-display font-bold text-sm transition-colors whitespace-nowrap"
+              >
+                <User className="w-4 h-4 text-stillage-blue shrink-0" />
+                <span className="max-w-[100px] xl:max-w-[140px] truncate">
+                  {accountDisplayName}
+                </span>
+                <span
+                  className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider ${
+                    isAdmin
+                      ? 'bg-accent-teal text-white'
+                      : 'bg-steel-100 text-brand-navy border border-steel-200'
+                  }`}
+                >
+                  {isAdmin ? 'ADMIN' : 'ACCOUNT'}
+                </span>
+                <ChevronDown className="w-3.5 h-3.5 text-steel-600 shrink-0" />
+              </button>
+
+              {accountMenuOpen && (
+                <div
+                  id="header-account-menu"
+                  role="menu"
+                  aria-label="Account menu"
+                  className="absolute right-0 top-full mt-2 w-64 bg-surface-white border border-steel-200 rounded-lg shadow-xl py-1.5 z-50"
+                >
+                  <div className="px-4 py-2.5 border-b border-steel-200 bg-steel-50/70">
+                    <div className="font-display font-bold text-sm text-brand-navy truncate">
+                      {accountDisplayName}
+                    </div>
+                    {session?.user?.email && (
+                      <div className="font-mono text-[11px] text-steel-600 truncate">
+                        {session.user.email}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="py-1">
+                    <Link
+                      href="/account"
+                      role="menuitem"
+                      onClick={() => setAccountMenuOpen(false)}
+                      className="flex items-center gap-2.5 px-4 py-2 text-sm font-medium text-brand-navy hover:bg-steel-50 hover:text-stillage-blue transition-colors"
+                    >
+                      <Package className="w-4 h-4 text-stillage-blue shrink-0" />
+                      <span>My Account &amp; Orders</span>
+                    </Link>
+
+                    {isAdmin && (
+                      <>
+                        <Link
+                          href="/admin/analytics"
+                          role="menuitem"
+                          onClick={() => setAccountMenuOpen(false)}
+                          className="flex items-center gap-2.5 px-4 py-2 text-sm font-medium text-brand-navy hover:bg-steel-50 hover:text-stillage-blue transition-colors"
+                        >
+                          <BarChart3 className="w-4 h-4 text-accent-teal shrink-0" />
+                          <span>Admin Analytics</span>
+                        </Link>
+                        <Link
+                          href="/analytics-report"
+                          role="menuitem"
+                          onClick={() => setAccountMenuOpen(false)}
+                          className="flex items-center gap-2.5 px-4 py-2 text-sm font-medium text-brand-navy hover:bg-steel-50 hover:text-stillage-blue transition-colors"
+                        >
+                          <LineChart className="w-4 h-4 text-stillage-blue shrink-0" />
+                          <span>SEO &amp; GEO Monitor</span>
+                        </Link>
+                      </>
+                    )}
+                  </div>
+
+                  <div className="border-t border-steel-200 pt-1">
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        setAccountMenuOpen(false);
+                        void signOut({ callbackUrl: '/' });
+                      }}
+                      className="w-full flex items-center gap-2.5 px-4 py-2 text-sm font-medium text-steel-800 hover:bg-steel-50 hover:text-red-700 transition-colors text-left"
+                    >
+                      <LogOut className="w-4 h-4 shrink-0" />
+                      <span>Sign Out</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <Link
+              href="/login"
+              className="hidden md:inline-flex items-center gap-1.5 border border-steel-200 bg-steel-50 hover:bg-steel-100 text-brand-navy px-3.5 py-2 rounded-md font-display font-bold text-sm transition-colors whitespace-nowrap shrink-0"
+            >
+              <User className="w-4 h-4" />
+              <span>Sign In</span>
+            </Link>
+          )}
+
           {/* Quote Basket Button */}
           <Link
             href="/checkout"
-            className="inline-flex items-center gap-2 bg-stillage-blue hover:bg-stillage-blueLight text-white px-5 py-2.5 rounded-md font-display font-bold text-base transition-colors shadow-xs"
+            className="inline-flex items-center gap-2 bg-stillage-blue hover:bg-stillage-blueLight text-white px-3.5 sm:px-4 xl:px-5 py-2 xl:py-2.5 rounded-md font-display font-bold text-sm xl:text-base transition-colors shadow-xs whitespace-nowrap shrink-0"
           >
-            <ShoppingCart className="w-4 h-4" />
+            <ShoppingCart className="w-4 h-4 shrink-0" />
             <span>
               {totalUnits > 0
                 ? `${headerCopy.basketLabel} (${totalUnits} • ${formatPrice(totalExVat)})`
@@ -521,6 +658,86 @@ export function Header() {
                 </Link>,
               ];
             })}
+          </div>
+
+          {/* Mobile Drawer Auth Controls */}
+          <div className="border-t border-steel-200 pt-3 space-y-1.5">
+            {isAuthenticated ? (
+              <>
+                <div className="px-3 py-2 rounded-md bg-steel-50 border border-steel-200 flex items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <div className="font-display font-bold text-sm text-brand-navy truncate">
+                      {accountDisplayName}
+                    </div>
+                    {session?.user?.email && (
+                      <div className="font-mono text-[11px] text-steel-600 truncate">
+                        {session.user.email}
+                      </div>
+                    )}
+                  </div>
+                  <span
+                    className={`shrink-0 px-1.5 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider ${
+                      isAdmin
+                        ? 'bg-accent-teal text-white'
+                        : 'bg-steel-100 text-brand-navy border border-steel-200'
+                    }`}
+                  >
+                    {isAdmin ? 'ADMIN' : 'ACCOUNT'}
+                  </span>
+                </div>
+
+                <Link
+                  href="/account"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-2.5 py-2 px-3 rounded-md font-display font-bold text-base text-brand-navy hover:bg-steel-50"
+                >
+                  <Package className="w-4 h-4 text-stillage-blue shrink-0" />
+                  <span>My Account &amp; Orders</span>
+                </Link>
+
+                {isAdmin && (
+                  <>
+                    <Link
+                      href="/admin/analytics"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center gap-2.5 py-2 px-3 rounded-md font-display font-bold text-base text-brand-navy hover:bg-steel-50"
+                    >
+                      <BarChart3 className="w-4 h-4 text-accent-teal shrink-0" />
+                      <span>Admin Analytics</span>
+                    </Link>
+                    <Link
+                      href="/analytics-report"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center gap-2.5 py-2 px-3 rounded-md font-display font-bold text-base text-brand-navy hover:bg-steel-50"
+                    >
+                      <LineChart className="w-4 h-4 text-stillage-blue shrink-0" />
+                      <span>SEO &amp; GEO Monitor</span>
+                    </Link>
+                  </>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    void signOut({ callbackUrl: '/' });
+                  }}
+                  className="w-full flex items-center gap-2.5 py-2 px-3 rounded-md font-display font-bold text-base text-steel-800 hover:bg-steel-50 hover:text-red-700 text-left"
+                >
+                  <LogOut className="w-4 h-4 shrink-0" />
+                  <span>Sign Out</span>
+                </button>
+              </>
+            ) : (
+              <Link
+                href="/login"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center justify-center gap-2 border border-steel-200 bg-steel-50 hover:bg-steel-100 text-brand-navy py-2.5 px-4 rounded-md font-display font-bold text-base transition-colors"
+              >
+                <User className="w-4 h-4" />
+                <span>Sign In</span>
+              </Link>
+            )}
           </div>
         </div>
       )}

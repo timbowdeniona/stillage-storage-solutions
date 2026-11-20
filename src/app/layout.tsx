@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { VatProvider } from '@/context/VatContext';
 import { SiteContentProvider } from '@/context/SiteContentContext';
+import { AuthProvider } from '@/components/AuthProvider';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { AnalyticsTracker } from '@/components/AnalyticsTracker';
@@ -111,11 +112,13 @@ export default async function RootLayout({
       <body className="font-sans antialiased min-h-screen flex flex-col bg-surface-white text-steel-900">
         <AnalyticsTracker />
         <SiteContentProvider navigation={navigation} microtexts={microtexts}>
-          <VatProvider>
-            <Header />
-            <main className="flex-1">{children}</main>
-            <Footer />
-          </VatProvider>
+          <AuthProvider>
+            <VatProvider>
+              <Header />
+              <main className="flex-1">{children}</main>
+              <Footer />
+            </VatProvider>
+          </AuthProvider>
         </SiteContentProvider>
       </body>
     </html>
