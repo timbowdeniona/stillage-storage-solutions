@@ -1,9 +1,13 @@
-export type B2BAnalyticsEventName =
-  | 'configurator_option_select'
-  | 'bulk_tier_unlocked'
-  | 'quote_or_proforma_submitted'
-  | 'trade_contact_click'
-  | 'ai_spec_advisor_query';
+export const B2B_ANALYTICS_EVENT_NAMES = [
+  'page_view',
+  'configurator_option_select',
+  'bulk_tier_unlocked',
+  'quote_or_proforma_submitted',
+  'trade_contact_click',
+  'ai_spec_advisor_query',
+] as const;
+
+export type B2BAnalyticsEventName = (typeof B2B_ANALYTICS_EVENT_NAMES)[number];
 
 export interface B2BAnalyticsEventPayload {
   event: B2BAnalyticsEventName;
@@ -17,6 +21,8 @@ export interface B2BAnalyticsEventPayload {
   contactMethod?: 'phone' | 'email';
   paymentMethod?: 'proforma_invoice' | 'stripe_card' | 'basket_add';
   searchQuery?: string;
+  path?: string;
+  sessionId?: string;
   timestamp?: string;
 }
 
@@ -32,16 +38,83 @@ declare global {
 }
 
 const LOCAL_EVENT_STORAGE_KEY = 'sss_b2b_analytics_events';
+const SESSION_STORAGE_ID_KEY = 'sss_b2b_session_id';
+const GA4_MEASUREMENT_ID_RE = /^G-[A-Z0-9]+$/i;
+const GTM_CONTAINER_ID_RE = /^GTM-[A-Z0-9]+$/i;
+
+export function isValidGaMeasurementId(raw?: string | null): boolean {
+  if (typeof raw !== 'string') return false;
+  const trimmed = raw.trim();
+  if (!trimmed || trimmed.toUpperCase() === 'G-XXXXXXXXXX') return false;
+  return GA4_MEASUREMENT_ID_RE.test(trimmed);
+}
+
+export function isValidGtmId(raw?: string | null): boolean {
+  if (typeof raw !== 'string') return false;
+  const trimmed = raw.trim();
+  if (!trimmed || trimmed.toUpperCase() === 'GTM-XXXXXXXX') return false;
+  return GTM_CONTAINER_ID_RE.test(trimmed);
+}
+
+function isGoogleTagConfigured(): boolean {
+  return (
+    isValidGaMeasurementId(process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || '') ||
+    isValidGtmId(process.env.NEXT_PUBLIC_GTM_ID || '')
+  );
+}
+
+function ensureGtagFunction(): ((...args: unknown[]) => void) | null {
+  if (typeof window === 'undefined') return null;
+  if (typeof window.gtag === 'function') {
+    return window.gtag;
+  }
+  if (!isGoogleTagConfigured()) {
+    return null;
+  }
+  window.dataLayer = window.dataLayer || [];
+  window.gtag = function gtagProxy() {
+    // eslint-disable-next-line prefer-rest-params
+    window.dataLayer?.push(arguments);
+  };
+  return window.gtag;
+}
+
+function getOrCreateBrowserSessionId(): string | undefined {
+  if (typeof window === 'undefined') {
+    return undefined;
+  }
+  try {
+    const existing = window.sessionStorage.getItem(SESSION_STORAGE_ID_KEY);
+    if (existing) {
+      return existing;
+    }
+    const generated =
+      typeof window.crypto?.randomUUID === 'function'
+        ? window.crypto.randomUUID()
+        : `sss-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+    window.sessionStorage.setItem(SESSION_STORAGE_ID_KEY, generated);
+    return generated;
+  } catch {
+    return undefined;
+  }
+}
 
 /**
  * Tracks a high-value B2B commercial action across:
  * 1. Google Analytics 4 (feeding the client's 1-page Looker Studio Monthly PDF Email)
  * 2. Plausible Analytics (optional cookie-less 1-page live dashboard)
  * 3. Local session log (powering the interactive Client Executive Dashboard preview at /analytics-report)
+ * 4. First-party Postgres/repository ingestion (/api/analytics/event) at £0/mo
  */
 export function trackB2BEvent(payload: B2BAnalyticsEventPayload): B2BAnalyticsEventPayload {
   const enriched: B2BAnalyticsEventPayload = {
     ...payload,
+    path:
+      payload.path ??
+      (typeof window !== 'undefined' && window.location?.pathname
+        ? window.location.pathname
+        : undefined),
+    sessionId: payload.sessionId ?? getOrCreateBrowserSessionId(),
     timestamp: payload.timestamp || new Date().toISOString(),
   };
 
@@ -49,9 +122,10 @@ export function trackB2BEvent(payload: B2BAnalyticsEventPayload): B2BAnalyticsEv
     return enriched;
   }
 
-  // 1. Send to Google Analytics 4 (GA4) if configured
-  if (typeof window.gtag === 'function') {
-    window.gtag('event', enriched.event, {
+  // 1. Send to Google Analytics 4 (GA4) if configured (queues onto dataLayer if gtag.js is still loading)
+  const gtagFn = ensureGtagFunction();
+  if (gtagFn) {
+    gtagFn('event', enriched.event, {
       item_id: enriched.sku,
       item_name: enriched.productTitle,
       option_type: enriched.optionType,
@@ -65,6 +139,24 @@ export function trackB2BEvent(payload: B2BAnalyticsEventPayload): B2BAnalyticsEv
       currency: 'GBP',
       contact_method: enriched.contactMethod,
       payment_method: enriched.paymentMethod,
+      page_path: enriched.path,
+      ...(enriched.event === 'page_view' && typeof document !== 'undefined'
+        ? {
+            page_title: document.title || undefined,
+            page_location: window.location?.href || undefined,
+          }
+        : {}),
+      ...(enriched.sku
+        ? {
+            items: [
+              {
+                item_id: enriched.sku,
+                item_name: enriched.productTitle || enriched.sku,
+                quantity: enriched.quantity ?? 1,
+              },
+            ],
+          }
+        : {}),
     });
   }
 
@@ -78,6 +170,7 @@ export function trackB2BEvent(payload: B2BAnalyticsEventPayload): B2BAnalyticsEv
         quantity: enriched.quantity,
         paymentMethod: enriched.paymentMethod,
         contactMethod: enriched.contactMethod,
+        path: enriched.path,
       },
     });
   }
@@ -91,6 +184,18 @@ export function trackB2BEvent(payload: B2BAnalyticsEventPayload): B2BAnalyticsEv
     window.dispatchEvent(new CustomEvent('sss-analytics-event', { detail: enriched }));
   } catch {
     // Ignore storage errors in private browsing
+  }
+
+  // 4. Send non-blocking first-party analytics event to Postgres/repository
+  if (typeof window.fetch === 'function') {
+    window
+      .fetch('/api/analytics/event', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(enriched),
+        keepalive: true,
+      })
+      .catch(() => {});
   }
 
   return enriched;

@@ -1,7 +1,9 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import {
+  ArrowLeft,
   BarChart3,
   Bot,
   CheckCircle2,
@@ -14,10 +16,14 @@ import {
   Search,
   ShieldCheck,
 } from 'lucide-react';
+import { auth } from '@/auth';
 import { getBlogPosts, getProducts } from '@/lib/contentful';
 import { resolveBlogPostSeo, resolveProductSeo } from '@/lib/seo';
 import { EXECUTIVE_MONTHLY_REPORT_SAMPLE } from '@/lib/analytics';
+import { getAdminAnalyticsData } from '@/lib/analyticsProvider';
 import { AnalyticsReportClient } from '@/components/AnalyticsReportClient';
+
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'Executive SEO, GEO & Monthly Analytics Report (Client Dashboard)',
@@ -26,8 +32,108 @@ export const metadata: Metadata = {
 };
 
 export default async function AnalyticsReportPage() {
-  const [products, blogPosts] = await Promise.all([getProducts(), getBlogPosts()]);
-  const report = EXECUTIVE_MONTHLY_REPORT_SAMPLE;
+  const session = await auth();
+
+  if (!session?.user) {
+    redirect('/login?callbackUrl=/analytics-report');
+  }
+
+  if (session.user.role !== 'admin') {
+    redirect('/account?notice=admin_required');
+  }
+
+  const [products, blogPosts, liveAnalytics] = await Promise.all([
+    getProducts(),
+    getBlogPosts(),
+    getAdminAnalyticsData('30d').catch(() => null),
+  ]);
+
+  const sampleReport = EXECUTIVE_MONTHLY_REPORT_SAMPLE;
+  const gaLive = Boolean(
+    liveAnalytics?.summary.sources &&
+      !liveAnalytics.summary.sources.googleAnalytics.usingFallback
+  );
+  const stripeLive = Boolean(
+    liveAnalytics?.summary.sources && !liveAnalytics.summary.sources.stripe.usingFallback
+  );
+  const usingLiveData = Boolean(liveAnalytics && (gaLive || stripeLive));
+
+  const formatGbpWhole = (pence: number) =>
+    new Intl.NumberFormat('en-GB', {
+      style: 'currency',
+      currency: 'GBP',
+      maximumFractionDigits: 0,
+    }).format((Number.isFinite(pence) ? pence : 0) / 100);
+
+  const formatDeltaText = (pct: number | null | undefined, fallback: string) => {
+    if (typeof pct !== 'number' || !Number.isFinite(pct)) return fallback;
+    return `${pct >= 0 ? '+' : ''}${pct.toFixed(1)}% vs prior 30 days`;
+  };
+
+  const summary = liveAnalytics?.summary;
+  const report = usingLiveData && summary
+    ? {
+        periodLabel: `Live Rolling 30-Day Executive Summary (${gaLive ? 'GA4' : 'Local'} + ${stripeLive ? 'Stripe' : 'Local'})`,
+        scheduledDelivery: sampleReport.scheduledDelivery,
+        kpis: [
+          {
+            label: 'Total UK Trade Visitors',
+            value: summary.kpis.siteVisitors.toLocaleString('en-GB'),
+            change: formatDeltaText(
+              summary.kpis.visitorsChangePct,
+              `${summary.kpis.siteSessions.toLocaleString('en-GB')} sessions · ${summary.kpis.pageViews.toLocaleString('en-GB')} views`
+            ),
+            explanation:
+              'Unique warehouse, construction, and manufacturing buyers tracked via Google Analytics 4.',
+          },
+          {
+            label: 'Proforma Invoices & Orders',
+            value: summary.kpis.totalOrders.toLocaleString('en-GB'),
+            change: formatDeltaText(
+              summary.kpis.ordersChangePct,
+              `${summary.kpis.cardOrders} card · ${summary.kpis.proformaOrders} proforma`
+            ),
+            explanation:
+              'Completed online Stripe checkouts and official UK 20% VAT Proforma requests.',
+          },
+          {
+            label: 'Trade Desk Phone & Email Clicks',
+            value: summary.kpis.tradeContactClicks.toLocaleString('en-GB'),
+            change:
+              typeof summary.kpis.engagementRatePct === 'number'
+                ? `${summary.kpis.engagementRatePct}% GA4 engagement rate`
+                : 'Tracked via GA4 trade_contact_click',
+            explanation:
+              'Direct clicks on 01978 800 500 or sales@stillagestoragesolutions.co.uk.',
+          },
+          {
+            label: 'Pipeline Value Configured',
+            value: formatGbpWhole(summary.kpis.quotePipelineExVatPence),
+            change: `${summary.kpis.quoteCount.toLocaleString('en-GB')} quotes & proformas`,
+            explanation:
+              'Total Ex. VAT value of stillage fleets configured in the online calculator.',
+          },
+        ],
+        topProducts:
+          summary.topProducts.length > 0
+            ? summary.topProducts.map((p) => ({
+                sku: p.sku,
+                title: p.title,
+                views: p.views,
+                quotes: p.quotes,
+                mostPopularConfig: p.popularConfig,
+              }))
+            : sampleReport.topProducts,
+        topSearchTerms: sampleReport.topSearchTerms,
+        topUkRegions:
+          summary.topRegions && summary.topRegions.length > 0
+            ? summary.topRegions.map((r) => ({
+                region: r.label,
+                sharePercent: Math.round(r.sharePct),
+              }))
+            : sampleReport.topUkRegions,
+      }
+    : sampleReport;
 
   return (
     <div>
@@ -36,15 +142,29 @@ export default async function AnalyticsReportPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
           <nav
             aria-label="Breadcrumb"
-            className="flex items-center gap-2 text-xs font-mono text-steel-200 mb-4"
+            className="flex flex-wrap items-center justify-between gap-3 text-xs font-mono text-steel-200 mb-4"
           >
-            <Link href="/" className="hover:text-surface-sand">
-              Home
+            <div className="flex flex-wrap items-center gap-2">
+              <Link href="/" className="hover:text-surface-sand">
+                Home
+              </Link>
+              <ChevronRight className="w-3.5 h-3.5 text-steel-400" />
+              <Link href="/admin/analytics" className="hover:text-surface-sand">
+                Executive Analytics Dashboard
+              </Link>
+              <ChevronRight className="w-3.5 h-3.5 text-steel-400" />
+              <span className="text-surface-sand font-bold">
+                Client SEO, GEO &amp; Monthly Analytics Dashboard
+              </span>
+            </div>
+
+            <Link
+              href="/admin/analytics"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-brand-navyLight hover:bg-stillage-blue text-surface-white border border-white/15 transition-colors font-semibold"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Executive Analytics Dashboard</span>
             </Link>
-            <ChevronRight className="w-3.5 h-3.5 text-steel-400" />
-            <span className="text-surface-sand font-bold">
-              Client SEO, GEO &amp; Monthly Analytics Dashboard
-            </span>
           </nav>
 
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
@@ -63,9 +183,11 @@ export default async function AnalyticsReportPage() {
 
             <div className="bg-brand-navyDark border border-white/15 p-4 rounded-sm font-mono text-xs space-y-1.5 shrink-0">
               <div className="text-surface-sand font-bold uppercase">
-                Delivery Schedule: 1st of Every Month
+                {usingLiveData
+                  ? `Data Source: ${gaLive ? 'Live GA4' : 'Local Events'} · ${stripeLive ? 'Live Stripe' : 'Local Orders'}`
+                  : 'Mode: Sample Preview (Run npm run ga4:setup)'}
               </div>
-              <div className="text-steel-200">Format: 1-Page Looker Studio PDF + Live Link</div>
+              <div className="text-steel-200">Format: 1-Page Executive View + Looker Studio PDF</div>
               <div className="text-accent-teal">Status: 100% Contentful Pages Indexed &amp; Optimized</div>
             </div>
           </div>
