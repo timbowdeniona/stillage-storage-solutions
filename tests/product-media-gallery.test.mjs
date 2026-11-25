@@ -69,5 +69,11 @@ test('ProductConfigurator.tsx manages media items (Primary, CAD Drawing, Gallery
   assert.ok(confSrc.includes('mediaItems'), 'ProductConfigurator must define mediaItems array');
   assert.ok(confSrc.includes('product.technicalDrawing'), 'ProductConfigurator must check product.technicalDrawing');
   assert.ok(confSrc.includes('product.gallery'), 'ProductConfigurator must inspect product.gallery');
-  assert.ok(confSrc.includes('CAD Dimensional Blueprint'), 'ProductConfigurator must display CAD Blueprint badge on active drawing view');
+  assert.ok(confSrc.includes('<span>{product.title}</span>'), 'Top-left badge must persistently display product.title across all views');
+  assert.ok(!confSrc.includes('Primary Product Elevation'), 'Primary badge must show product.title instead of Primary Product Elevation');
+  assert.ok(!confSrc.includes('CAD Dimensional Blueprint'), 'Top-left badge must not switch to CAD Dimensional Blueprint');
+  assert.ok(!confSrc.includes('(Supplemental Image)'), 'Top-left badge must not switch to Supplemental Image');
+  assert.ok(!confSrc.includes('SKU: {product.sku}'), 'SKU header bar in ProductConfigurator must be removed');
+  assert.ok(!confSrc.includes('Select Surface Finish / RAL Coating'), 'Surface finish / RAL coating selector must be removed');
+  assert.ok(!confSrc.includes('Interactive CAD'), 'Interactive CAD buttons must be removed from ProductConfigurator');
 });
