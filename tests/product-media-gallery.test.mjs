@@ -76,4 +76,8 @@ test('ProductConfigurator.tsx manages media items (Primary, CAD Drawing, Gallery
   assert.ok(!confSrc.includes('SKU: {product.sku}'), 'SKU header bar in ProductConfigurator must be removed');
   assert.ok(!confSrc.includes('Select Surface Finish / RAL Coating'), 'Surface finish / RAL coating selector must be removed');
   assert.ok(!confSrc.includes('Interactive CAD'), 'Interactive CAD buttons must be removed from ProductConfigurator');
+  assert.ok(confSrc.includes('2. Order Quantity'), 'Step 2 must be titled 2. Order Quantity');
+  assert.ok(!confSrc.includes('2. Order Quantity &amp; Bulk Tiers'), 'Bulk Tiers must be removed from Step 2 heading');
+  assert.ok(!confSrc.includes('Bulk Tier Alert'), 'Bulk Tier Alert box must be removed');
+  assert.ok(!confSrc.includes('Save 5%'), 'Bulk tier quick-select buttons must be removed');
 });

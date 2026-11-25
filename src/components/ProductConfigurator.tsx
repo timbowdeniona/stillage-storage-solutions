@@ -14,7 +14,6 @@ import {
   AlertTriangle,
   PlusCircle,
   ArrowRight,
-  Sparkles,
   Wrench,
 } from 'lucide-react';
 import { FINISH_OPTIONS, MOBILITY_OPTIONS } from '@/data/seedCatalog';
@@ -364,11 +363,6 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
             <span className="font-mono text-xs text-steel-200">
               per unit ({formatBothPrices(quote.discountedUnitExVatPence).label})
             </span>
-            {quote.discountPercentage > 0 && (
-              <span className="ml-auto bg-accent-amber text-white font-mono text-xs font-bold px-2.5 py-0.5 rounded-sm">
-                {quote.discountPercentage}% Bulk Discount Active
-              </span>
-            )}
           </div>
         </div>
 
@@ -421,57 +415,18 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
             </div>
           </div>
 
-          {/* Step 2: Quantity & Interactive Bulk Tier Selector */}
+          {/* Step 2: Order Quantity */}
           <div>
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between mb-2.5">
               <label
                 htmlFor="qty-input"
                 className="font-display font-bold uppercase tracking-wider text-sm text-brand-navy"
               >
-                2. Order Quantity &amp; Bulk Tiers
+                2. Order Quantity
               </label>
               <span className="font-mono text-xs text-steel-600">
                 Up to 4 units per HGV pallet
               </span>
-            </div>
-
-            <div className="grid grid-cols-3 gap-2 mb-3 font-mono text-xs">
-              {[
-                { label: '1–4 Units', minQty: 1, pct: 'Standard' },
-                { label: '5–9 Units', minQty: 5, pct: 'Save 5%' },
-                { label: '10+ Units', minQty: 10, pct: 'Save 10%' },
-              ].map((tier) => {
-                const active =
-                  (tier.minQty === 1 && quantity < 5) ||
-                  (tier.minQty === 5 && quantity >= 5 && quantity < 10) ||
-                  (tier.minQty === 10 && quantity >= 10);
-                return (
-                  <button
-                    key={tier.label}
-                    type="button"
-                    onClick={() => {
-                      setQuantity(tier.minQty);
-                      if (tier.minQty >= 5) {
-                        trackB2BEvent({
-                          event: 'bulk_tier_unlocked',
-                          sku: product.sku,
-                          productTitle: product.title,
-                          quantity: tier.minQty,
-                          discountPercentage: tier.minQty >= 10 ? 10 : 5,
-                        });
-                      }
-                    }}
-                    className={`p-2 border rounded-sm text-center transition-colors ${
-                      active
-                        ? 'bg-brand-navy text-white border-brand-navy font-bold'
-                        : 'bg-steel-50 text-steel-800 border-steel-200 hover:border-stillage-blue'
-                    }`}
-                  >
-                    <div>{tier.label}</div>
-                    <div className="text-[10px] text-accent-amber font-bold">{tier.pct}</div>
-                  </button>
-                );
-              })}
             </div>
 
             <div className="flex items-center gap-3">
@@ -504,52 +459,6 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
                 <div>Total Weight: {product.unitWeightKg * quantity} kg</div>
                 <div>Pallets Required: {quote.palletCount}</div>
               </div>
-            </div>
-
-            {/* Smart HGV Pallet & Bulk Tier Optimizer */}
-            <div className="mt-3 bg-steel-50 border border-steel-200 border-l-4 border-l-stillage-blue p-2.5 text-xs flex items-center justify-between gap-2">
-              <div className="flex items-start gap-2">
-                <Sparkles className="w-4 h-4 text-stillage-blue shrink-0 mt-0.5" />
-                <div className="text-steel-800 leading-snug">
-                  {quantity % 4 !== 0 ? (
-                    <>
-                      <strong className="text-brand-navy">Unused HGV Pallet Space:</strong>{' '}
-                      {4 - (quantity % 4)} more unit{4 - (quantity % 4) > 1 ? 's' : ''} can stack on
-                      Pallet #{quote.palletCount} for <strong>£0 extra freight</strong>.
-                    </>
-                  ) : quantity === 4 ? (
-                    <>
-                      <strong className="text-brand-navy">Bulk Tier Alert:</strong> Stepping to{' '}
-                      <strong>5+ units</strong> (or 8 units on 2 full pallets) unlocks{' '}
-                      <strong>5% Off</strong> every configured stillage.
-                    </>
-                  ) : (
-                    <>
-                      <strong className="text-brand-navy">Optimal Pallet Load:</strong>{' '}
-                      {quote.palletCount} full HGV pallet space{quote.palletCount > 1 ? 's' : ''}{' '}
-                      ({quantity} units) with{' '}
-                      <strong>{quote.discountPercentage}% Bulk Trade Discount</strong> active.
-                    </>
-                  )}
-                </div>
-              </div>
-              {quantity % 4 !== 0 ? (
-                <button
-                  type="button"
-                  onClick={() => setQuantity(quantity + (4 - (quantity % 4)))}
-                  className="shrink-0 bg-brand-navy hover:bg-stillage-blue text-white px-2.5 py-1 rounded-sm font-mono text-[11px] font-bold transition-colors"
-                >
-                  Fill Pallet ({quantity + (4 - (quantity % 4))})
-                </button>
-              ) : quantity === 4 ? (
-                <button
-                  type="button"
-                  onClick={() => setQuantity(8)}
-                  className="shrink-0 bg-brand-navy hover:bg-stillage-blue text-white px-2.5 py-1 rounded-sm font-mono text-[11px] font-bold transition-colors"
-                >
-                  2 Pallets / -5% (8)
-                </button>
-              ) : null}
             </div>
           </div>
 
@@ -617,13 +526,6 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
                 {formatGBP(quote.lineSubtotalExVatPence)}
               </span>
             </div>
-
-            {quote.bulkSavingsExVatPence > 0 && (
-              <div className="flex justify-between text-emerald-700 font-bold">
-                <span>Bulk Tier Discount ({quote.discountPercentage}% Off)</span>
-                <span>-{formatGBP(quote.bulkSavingsExVatPence)}</span>
-              </div>
-            )}
 
             <div className="flex justify-between">
               <span className="text-steel-600">
