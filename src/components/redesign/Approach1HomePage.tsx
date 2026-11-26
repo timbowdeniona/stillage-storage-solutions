@@ -53,16 +53,18 @@ export function Approach1HomePage({
     },
   ];
 
-  const filteredProducts = products.filter((product) => {
-    if (selectedCategory === 'all') return true;
-    if (selectedCategory === 'sheet-mesh') {
-      return (
-        product.categorySlug.includes('sheet') ||
-        product.categorySlug.includes('mesh')
-      );
-    }
-    return product.categorySlug.includes(selectedCategory);
-  });
+  const filteredProducts = FEATURES.enableProductFilters
+    ? products.filter((product) => {
+        if (selectedCategory === 'all') return true;
+        if (selectedCategory === 'sheet-mesh') {
+          return (
+            product.categorySlug.includes('sheet') ||
+            product.categorySlug.includes('mesh')
+          );
+        }
+        return product.categorySlug.includes(selectedCategory);
+      })
+    : products;
 
   return (
     <div className="bg-steel-50 min-h-screen text-steel-900">
@@ -111,29 +113,31 @@ export function Approach1HomePage({
 
       {/* Option 1 Pill Filter Bar & Direct Catalog Grid */}
       <section id="catalog" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        {/* Rounded-Full Category Filter Pills */}
-        <div
-          role="tablist"
-          aria-label="Filter stillages by category"
-          className="flex flex-wrap items-center gap-3 mb-8"
-        >
-          {categories.map((cat) => (
-            <button
-              key={cat.id}
-              type="button"
-              role="tab"
-              aria-selected={selectedCategory === cat.id}
-              onClick={() => setSelectedCategory(cat.id)}
-              className={`px-6 py-2 rounded-full font-display font-bold text-base transition-all ${
-                selectedCategory === cat.id
-                  ? 'bg-stillage-blue text-surface-white shadow-xs'
-                  : 'bg-surface-white text-brand-navy border border-steel-200 hover:border-stillage-blue'
-              }`}
-            >
-              {cat.label} ({cat.count})
-            </button>
-          ))}
-        </div>
+        {/* Rounded-Full Category Filter Pills (hidden while FEATURES.enableProductFilters is false) */}
+        {FEATURES.enableProductFilters && (
+          <div
+            role="tablist"
+            aria-label="Filter stillages by category"
+            className="flex flex-wrap items-center gap-3 mb-8"
+          >
+            {categories.map((cat) => (
+              <button
+                key={cat.id}
+                type="button"
+                role="tab"
+                aria-selected={selectedCategory === cat.id}
+                onClick={() => setSelectedCategory(cat.id)}
+                className={`px-6 py-2 rounded-full font-display font-bold text-base transition-all ${
+                  selectedCategory === cat.id
+                    ? 'bg-stillage-blue text-surface-white shadow-xs'
+                    : 'bg-surface-white text-brand-navy border border-steel-200 hover:border-stillage-blue'
+                }`}
+              >
+                {cat.label} ({cat.count})
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Clean 4-Column Product Card Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">

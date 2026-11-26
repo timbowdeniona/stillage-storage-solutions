@@ -53,13 +53,47 @@ test('Next.js seedCatalog.ts has primaryImage, technicalDrawing, and gallery con
   assert.ok(catalogSrc.includes('gallery: ['), 'seedCatalog.ts must configure gallery arrays');
 });
 
-test('ProductCard.tsx renders technicalDrawing hover flick image and CAD Drawing badge', () => {
+test('ProductCard.tsx renders technicalDrawing hover flick image without CAD Drawing badge', () => {
   const cardPath = path.resolve(process.cwd(), 'src/components/ProductCard.tsx');
   const cardSrc = fs.readFileSync(cardPath, 'utf8');
 
   assert.ok(cardSrc.includes('product.technicalDrawing'), 'ProductCard must reference product.technicalDrawing');
   assert.ok(cardSrc.includes('group-hover:opacity-100'), 'ProductCard must use group-hover:opacity-100 for hover flick');
-  assert.ok(cardSrc.includes('CAD Drawing'), 'ProductCard must display CAD Drawing badge on hover');
+  assert.ok(!cardSrc.includes('cadBadgeLabel'), 'ProductCard must not display cadBadgeLabel on hover');
+  assert.ok(!cardSrc.includes('CAD Drawing'), 'ProductCard must not display CAD Drawing badge on hover');
+});
+
+test('Product filters on home and listing pages are hidden behind FEATURES.enableProductFilters while keeping filtering logic intact', () => {
+  const featuresSrc = fs.readFileSync(path.resolve(process.cwd(), 'src/lib/features.ts'), 'utf8');
+  const homeSrc = fs.readFileSync(
+    path.resolve(process.cwd(), 'src/components/redesign/Approach1HomePage.tsx'),
+    'utf8'
+  );
+  const listingSrc = fs.readFileSync(
+    path.resolve(process.cwd(), 'src/components/ProductListingClient.tsx'),
+    'utf8'
+  );
+
+  assert.ok(
+    featuresSrc.includes("enableProductFilters: process.env.NEXT_PUBLIC_ENABLE_PRODUCT_FILTERS === 'true'"),
+    'FEATURES.enableProductFilters must default to false unless NEXT_PUBLIC_ENABLE_PRODUCT_FILTERS=true'
+  );
+  assert.ok(
+    homeSrc.includes('FEATURES.enableProductFilters'),
+    'Approach1HomePage must gate category filter pills behind FEATURES.enableProductFilters'
+  );
+  assert.ok(
+    homeSrc.includes('selectedCategory'),
+    'Approach1HomePage must preserve category filtering state to restore later'
+  );
+  assert.ok(
+    listingSrc.includes('FEATURES.enableProductFilters'),
+    'ProductListingClient must gate filter controls behind FEATURES.enableProductFilters'
+  );
+  assert.ok(
+    listingSrc.includes('searchProductsWithAlgolia'),
+    'ProductListingClient must preserve filtering functionality to restore later'
+  );
 });
 
 test('ProductConfigurator.tsx manages media items (Primary, CAD Drawing, Gallery) with badges and thumbnails', () => {

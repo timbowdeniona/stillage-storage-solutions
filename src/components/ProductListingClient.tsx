@@ -223,162 +223,167 @@ export function ProductListingClient({
         </div>
       )}
 
-      {/* Approach 1 Rounded-Full Category Filter Pills */}
-      <div
-        role="tablist"
-        aria-label="Stillage categories"
-        className="flex flex-wrap items-center gap-3"
-      >
-        <button
-          type="button"
-          role="tab"
-          aria-selected={selectedCategory === 'all'}
-          onClick={() => setSelectedCategory('all')}
-          className={`px-6 py-2 rounded-full font-display font-bold text-base transition-all ${
-            selectedCategory === 'all'
-              ? 'bg-stillage-blue text-surface-white shadow-xs'
-              : 'bg-surface-white text-brand-navy border border-steel-200 hover:border-stillage-blue'
-          }`}
-        >
-          All ({initialProducts.length})
-        </button>
-        {categories.map((cat) => {
-          const count =
-            facetCounts.categorySlug?.[cat.slug] ??
-            initialProducts.filter((p) => p.categorySlug === cat.slug).length;
-          return (
+      {/* Product Filter Controls (hidden while FEATURES.enableProductFilters is false) */}
+      {FEATURES.enableProductFilters && (
+        <>
+          {/* Approach 1 Rounded-Full Category Filter Pills */}
+          <div
+            role="tablist"
+            aria-label="Stillage categories"
+            className="flex flex-wrap items-center gap-3"
+          >
             <button
-              key={cat.id}
               type="button"
               role="tab"
-              aria-selected={selectedCategory === cat.slug}
-              onClick={() => setSelectedCategory(cat.slug)}
+              aria-selected={selectedCategory === 'all'}
+              onClick={() => setSelectedCategory('all')}
               className={`px-6 py-2 rounded-full font-display font-bold text-base transition-all ${
-                selectedCategory === cat.slug
+                selectedCategory === 'all'
                   ? 'bg-stillage-blue text-surface-white shadow-xs'
                   : 'bg-surface-white text-brand-navy border border-steel-200 hover:border-stillage-blue'
               }`}
             >
-              {cat.title} ({count})
+              All ({initialProducts.length})
             </button>
-          );
-        })}
-      </div>
-
-      {/* Streamlined Horizontal Filter & Search Bar */}
-      <div className="bg-steel-50 border border-steel-200 p-4 rounded-sm space-y-3">
-        <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
-          {/* Search Input */}
-          <div className="relative flex-1">
-            <label htmlFor="catalog-algolia-search" className="sr-only">
-              Filter stillage catalog by keyword, footprint, SWL, or SKU
-            </label>
-            <Search className="w-4 h-4 text-steel-600 absolute left-3.5 top-1/2 -translate-y-1/2" />
-            <input
-              id="catalog-algolia-search"
-              type="search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              autoComplete="off"
-              autoCorrect="off"
-              autoCapitalize="off"
-              spellCheck={false}
-              data-form-type="other"
-              placeholder="Filter by keyword, SKU, SWL (e.g. 1500kg), or footprint (e.g. 1200x1000)..."
-              className="w-full pl-10 pr-4 py-2 bg-surface-white border border-steel-200 rounded-sm text-sm focus:outline-none focus:border-stillage-blue"
-            />
-          </div>
-
-          {/* Inline SWL, Footprint & Sort Controls */}
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Min SWL Pills */}
-            <div className="inline-flex items-center bg-surface-white border border-steel-200 rounded-sm p-0.5 font-mono text-xs">
-              {[0, 1000, 1500].map((swl) => (
+            {categories.map((cat) => {
+              const count =
+                facetCounts.categorySlug?.[cat.slug] ??
+                initialProducts.filter((p) => p.categorySlug === cat.slug).length;
+              return (
                 <button
-                  key={swl}
+                  key={cat.id}
                   type="button"
-                  onClick={() => setMinSwlKg(swl)}
-                  className={`px-2.5 py-1.5 rounded-xs transition-colors ${
-                    minSwlKg === swl
-                      ? 'bg-brand-navy text-white font-bold'
-                      : 'text-steel-600 hover:text-brand-navy'
+                  role="tab"
+                  aria-selected={selectedCategory === cat.slug}
+                  onClick={() => setSelectedCategory(cat.slug)}
+                  className={`px-6 py-2 rounded-full font-display font-bold text-base transition-all ${
+                    selectedCategory === cat.slug
+                      ? 'bg-stillage-blue text-surface-white shadow-xs'
+                      : 'bg-surface-white text-brand-navy border border-steel-200 hover:border-stillage-blue'
                   }`}
                 >
-                  {swl === 0 ? 'Any SWL' : `${swl}kg+`}
+                  {cat.title} ({count})
                 </button>
-              ))}
+              );
+            })}
+          </div>
+
+          {/* Streamlined Horizontal Filter & Search Bar */}
+          <div className="bg-steel-50 border border-steel-200 p-4 rounded-sm space-y-3">
+            <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
+              {/* Search Input */}
+              <div className="relative flex-1">
+                <label htmlFor="catalog-algolia-search" className="sr-only">
+                  Filter stillage catalog by keyword, footprint, SWL, or SKU
+                </label>
+                <Search className="w-4 h-4 text-steel-600 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  id="catalog-algolia-search"
+                  type="search"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  autoComplete="off"
+                  autoCorrect="off"
+                  autoCapitalize="off"
+                  spellCheck={false}
+                  data-form-type="other"
+                  placeholder="Filter by keyword, SKU, SWL (e.g. 1500kg), or footprint (e.g. 1200x1000)..."
+                  className="w-full pl-10 pr-4 py-2 bg-surface-white border border-steel-200 rounded-sm text-sm focus:outline-none focus:border-stillage-blue"
+                />
+              </div>
+
+              {/* Inline SWL, Footprint & Sort Controls */}
+              <div className="flex flex-wrap items-center gap-3">
+                {/* Min SWL Pills */}
+                <div className="inline-flex items-center bg-surface-white border border-steel-200 rounded-sm p-0.5 font-mono text-xs">
+                  {[0, 1000, 1500].map((swl) => (
+                    <button
+                      key={swl}
+                      type="button"
+                      onClick={() => setMinSwlKg(swl)}
+                      className={`px-2.5 py-1.5 rounded-xs transition-colors ${
+                        minSwlKg === swl
+                          ? 'bg-brand-navy text-white font-bold'
+                          : 'text-steel-600 hover:text-brand-navy'
+                      }`}
+                    >
+                      {swl === 0 ? 'Any SWL' : `${swl}kg+`}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Footprint Select */}
+                <div className="flex items-center gap-1.5 text-xs font-mono">
+                  <label htmlFor="footprint-select" className="text-steel-600 uppercase sr-only">
+                    Footprint
+                  </label>
+                  <select
+                    id="footprint-select"
+                    value={selectedFootprint}
+                    onChange={(e) => setSelectedFootprint(e.target.value)}
+                    className="bg-surface-white border border-steel-200 px-3 py-2 rounded-sm font-sans text-xs font-medium text-steel-900"
+                  >
+                    {FOOTPRINT_OPTIONS.map((fp) => (
+                      <option key={fp.value} value={fp.value}>
+                        {fp.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Sort Select */}
+                <div className="flex items-center gap-1.5 text-xs font-mono">
+                  <SlidersHorizontal className="w-3.5 h-3.5 text-brand-navy" />
+                  <label htmlFor="sort-select" className="text-steel-600 uppercase sr-only">
+                    Sort
+                  </label>
+                  <select
+                    id="sort-select"
+                    name="sort"
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value as SearchFilterOptions['sortBy'])}
+                    className="bg-surface-white border border-steel-200 px-3 py-2 rounded-sm font-sans text-xs font-medium text-steel-900"
+                  >
+                    <option value="featured">Sort: Featured</option>
+                    <option value="price-asc">Price: Low to High</option>
+                    <option value="price-desc">Price: High to Low</option>
+                    <option value="swl-desc">Highest SWL Rating</option>
+                  </select>
+                </div>
+
+                {hasActiveFilters && (
+                  <button
+                    type="button"
+                    onClick={resetFilters}
+                    className="inline-flex items-center gap-1 text-xs font-mono text-stillage-blue hover:underline font-bold px-2 py-1"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    Reset
+                  </button>
+                )}
+              </div>
             </div>
 
-            {/* Footprint Select */}
-            <div className="flex items-center gap-1.5 text-xs font-mono">
-              <label htmlFor="footprint-select" className="text-steel-600 uppercase sr-only">
-                Footprint
-              </label>
-              <select
-                id="footprint-select"
-                value={selectedFootprint}
-                onChange={(e) => setSelectedFootprint(e.target.value)}
-                className="bg-surface-white border border-steel-200 px-3 py-2 rounded-sm font-sans text-xs font-medium text-steel-900"
-              >
-                {FOOTPRINT_OPTIONS.map((fp) => (
-                  <option key={fp.value} value={fp.value}>
-                    {fp.label}
-                  </option>
+            {/* Smart Natural-Language Query Intent Badges */}
+            {parsedIntent.intentBadges.length > 0 && (
+              <div className="pt-2 border-t border-steel-200 flex flex-wrap items-center gap-2 font-mono text-xs">
+                <span className="inline-flex items-center gap-1 text-brand-navy font-bold">
+                  <Sparkles className="w-3.5 h-3.5 text-stillage-blue" />
+                  Detected Filters:
+                </span>
+                {parsedIntent.intentBadges.map((badge) => (
+                  <span
+                    key={badge}
+                    className="bg-brand-navy text-white px-2.5 py-0.5 rounded-sm text-[11px] font-bold"
+                  >
+                    {badge}
+                  </span>
                 ))}
-              </select>
-            </div>
-
-            {/* Sort Select */}
-            <div className="flex items-center gap-1.5 text-xs font-mono">
-              <SlidersHorizontal className="w-3.5 h-3.5 text-brand-navy" />
-              <label htmlFor="sort-select" className="text-steel-600 uppercase sr-only">
-                Sort
-              </label>
-              <select
-                id="sort-select"
-                name="sort"
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as SearchFilterOptions['sortBy'])}
-                className="bg-surface-white border border-steel-200 px-3 py-2 rounded-sm font-sans text-xs font-medium text-steel-900"
-              >
-                <option value="featured">Sort: Featured</option>
-                <option value="price-asc">Price: Low to High</option>
-                <option value="price-desc">Price: High to Low</option>
-                <option value="swl-desc">Highest SWL Rating</option>
-              </select>
-            </div>
-
-            {hasActiveFilters && (
-              <button
-                type="button"
-                onClick={resetFilters}
-                className="inline-flex items-center gap-1 text-xs font-mono text-stillage-blue hover:underline font-bold px-2 py-1"
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-                Reset
-              </button>
+              </div>
             )}
           </div>
-        </div>
-
-        {/* Smart Natural-Language Query Intent Badges */}
-        {parsedIntent.intentBadges.length > 0 && (
-          <div className="pt-2 border-t border-steel-200 flex flex-wrap items-center gap-2 font-mono text-xs">
-            <span className="inline-flex items-center gap-1 text-brand-navy font-bold">
-              <Sparkles className="w-3.5 h-3.5 text-stillage-blue" />
-              Detected Filters:
-            </span>
-            {parsedIntent.intentBadges.map((badge) => (
-              <span
-                key={badge}
-                className="bg-brand-navy text-white px-2.5 py-0.5 rounded-sm text-[11px] font-bold"
-              >
-                {badge}
-              </span>
-            ))}
-          </div>
-        )}
-      </div>
+        </>
+      )}
 
       {/* Collapsible AI Steel Stillage Engineer & Load Advisor */}
       <AiSpecAdvisor
@@ -441,6 +446,16 @@ export function ProductListingClient({
             <span>
               Showing <strong className="text-steel-900">{results.length}</strong> engineered stillage model{results.length === 1 ? '' : 's'}
             </span>
+            {!FEATURES.enableProductFilters && hasActiveFilters && (
+              <Link
+                href="/products"
+                onClick={resetFilters}
+                className="inline-flex items-center gap-1 text-stillage-blue hover:underline font-bold"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                Show all {initialProducts.length} models
+              </Link>
+            )}
           </div>
 
           {results.length === 0 ? (
@@ -451,13 +466,13 @@ export function ProductListingClient({
               <p className="text-sm text-steel-600 mt-2 max-w-md mx-auto">
                 Try clearing your SWL, footprint, or keyword filters, or use the AI Steel Stillage Engineer above to generate a bespoke CAD quote.
               </p>
-              <button
-                type="button"
+              <Link
+                href="/products"
                 onClick={resetFilters}
-                className="mt-5 bg-stillage-blue text-white font-display font-bold uppercase tracking-wider text-xs px-5 py-2.5 rounded-sm"
+                className="mt-5 inline-block bg-stillage-blue text-white font-display font-bold uppercase tracking-wider text-xs px-5 py-2.5 rounded-sm"
               >
                 Reset All Filters
-              </button>
+              </Link>
             </div>
           ) : (
             <div
