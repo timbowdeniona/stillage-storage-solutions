@@ -59,6 +59,21 @@ test('Contentful homePage content type and seed entry define editable hero, filt
   assert.equal(SEED_HOME_PAGE_ENTRY.heroImage.sys.linkType, 'Asset');
 });
 
+test('Approach1HomePage omits the Explore All Models hero CTA button (PLA-18)', () => {
+  const homeSrc = fs.readFileSync(
+    path.resolve(process.cwd(), 'src/components/redesign/Approach1HomePage.tsx'),
+    'utf8'
+  );
+  assert.ok(
+    !homeSrc.includes('homeContent.heroCtaLabel'),
+    'Approach1HomePage must not render the Explore All Models hero CTA button'
+  );
+  assert.ok(
+    !homeSrc.includes('homeContent.heroCtaHref'),
+    'Approach1HomePage must not render the hero CTA anchor link'
+  );
+});
+
 test('Contentful navigationMenu content type and seed entries cover header and footer menus', () => {
   assert.equal(NAVIGATION_MENU_CONTENT_TYPE.id, 'navigationMenu');
   const menuKeys = SEED_NAVIGATION_ENTRIES.map((m) => m.menuKey);
