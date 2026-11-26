@@ -72,7 +72,7 @@ export function Approach1HomePage({
       <section className="bg-brand-navy text-surface-white py-12 lg:py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-            {/* Left Headline & Single Focused CTA */}
+            {/* Left Headline & Subtitle */}
             <div className="lg:col-span-7">
               <h1 className="font-display font-bold text-4xl sm:text-5xl lg:text-[56px] tracking-tight leading-[1.06] text-surface-white">
                 {homeContent.heroHeadlineLine1}
@@ -83,15 +83,6 @@ export function Approach1HomePage({
               <p className="font-display text-xl sm:text-2xl text-steel-100 mt-4 font-normal">
                 {interpolateCount(homeContent.heroSubtitleTemplate, products.length)}
               </p>
-
-              <div className="mt-7">
-                <a
-                  href={homeContent.heroCtaHref}
-                  className="inline-flex items-center justify-center bg-stillage-blue hover:bg-stillage-blueLight text-surface-white font-display font-bold text-lg px-7 py-3 rounded-md shadow-sm transition-colors"
-                >
-                  {interpolateCount(homeContent.heroCtaLabel, products.length)}
-                </a>
-              </div>
             </div>
 
             {/* Right Hero Stillage Showcase */}

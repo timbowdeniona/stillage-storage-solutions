@@ -77,9 +77,9 @@ export const WORKSHOP_MODULE_CATALOG: WorkshopModuleDef[] = [
     swlKg: 1000,
     maxStackTiers: 2,
     basePriceExVatPence: 24500,
-    primaryImage: '/images/products/base-render-bbfh2-1.jpg',
+    primaryImage: '/images/products/base-render-bbfh2-1-stand.jpg',
     description:
-      '1250mm tall heavy-duty 50x50mm box-section stand with 1080mm foot centres, bag loop hooks, and self-centring receiver cups.',
+      '1250mm tall heavy-duty 50x50mm box-section stand with 1080mm foot centres, inward-facing bag loop hooks, and open post tops.',
     highlights: [
       '1250mm discharge clearance for standard FIBC bulk bags',
       '1080mm centre-to-centre stacking cup receivers',
@@ -103,7 +103,7 @@ export const WORKSHOP_MODULE_CATALOG: WorkshopModuleDef[] = [
     swlKg: 1000,
     maxStackTiers: 2,
     basePriceExVatPence: 22000,
-    primaryImage: '/images/products/base-render-bbfh2-1.jpg',
+    primaryImage: '/images/products/base-render-bbfh2-1-hopper.jpg',
     description:
       'Two-stage hopper unit (450mm funnel cone + 150mm upper collar) tapering to a flush 200x200mm gravity discharge aperture.',
     highlights: [

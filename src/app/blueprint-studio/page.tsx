@@ -21,6 +21,20 @@ export default async function BlueprintStudioPage({ searchParams }: BlueprintStu
 
   const standaloneFiles = [
     {
+      sku: 'BBFH2-1-HOPPER',
+      title: 'Bulk Bag Filling Hopper (Modular Top Unit)',
+      svgHref: '/images/blueprints/bbfh2-1-hopper-editable.svg',
+      jpgHref: '/images/products/bbfh2-1-hopper-blueprint.jpg',
+      dims: '1120 × 1120 × 600 mm (200 × 200 mm Bottom Opening)',
+    },
+    {
+      sku: 'BBFH2-1-STAND',
+      title: 'Bulk Bag Filling Stand (1250mm Support Frame)',
+      svgHref: '/images/blueprints/bbfh2-1-stand-editable.svg',
+      jpgHref: '/images/products/bbfh2-1-stand-blueprint.jpg',
+      dims: '1120 × 1120 × 1250 mm (Inward FIBC Bag Loop Hooks)',
+    },
+    {
       sku: 'BBFH2-1',
       title: 'Free Standing Bulk Bag Filling Hopper with Stand',
       svgHref: '/images/blueprints/bbfh2-1-editable.svg',
@@ -40,6 +54,20 @@ export default async function BlueprintStudioPage({ searchParams }: BlueprintStu
       svgHref: '/images/blueprints/sss-msh-1210hd-editable.svg',
       jpgHref: '/images/products/sss-msh-1210hd-blueprint.jpg',
       dims: '1200 × 1000 × 900 mm (1,000 kg SWL)',
+    },
+    {
+      sku: 'SSS-IBC-1012',
+      title: 'Heavy-Duty Steel IBC Stand',
+      svgHref: '/images/blueprints/sss-ibc-1012-editable.svg',
+      jpgHref: '/images/products/sss-ibc-1012-blueprint.jpg',
+      dims: '1000 × 1200 × 920 mm (+80 mm Corner Lugs)',
+    },
+    {
+      sku: 'SSS-MSH-0940SQ',
+      title: 'Square Stillage with Mesh Sides',
+      svgHref: '/images/blueprints/sss-msh-0940sq-editable.svg',
+      jpgHref: '/images/products/sss-msh-0940sq-blueprint.jpg',
+      dims: '940 × 940 × 650 mm (Fixed 4-Sided 50×50 Mesh)',
     },
   ];
 
