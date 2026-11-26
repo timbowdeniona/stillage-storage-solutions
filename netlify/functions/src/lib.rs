@@ -55,14 +55,8 @@ pub fn mobility_modifier_pence(mobility_option: &str) -> i64 {
     }
 }
 
-pub fn bulk_discount_percentage(quantity: u32) -> u8 {
-    if quantity >= 10 {
-        10
-    } else if quantity >= 5 {
-        5
-    } else {
-        0
-    }
+pub fn bulk_discount_percentage(_quantity: u32) -> u8 {
+    0
 }
 
 pub fn calculate_pallet_delivery(postcode: Option<&str>, quantity: u32, requires_tail_lift: bool) -> (u32, String, i64, i64) {
@@ -157,8 +151,8 @@ mod tests {
         };
         let res = calculate_quote(&req);
         assert_eq!(res.configured_unit_ex_vat_pence, 44000);
-        assert_eq!(res.discount_percentage, 5);
-        assert_eq!(res.discounted_unit_ex_vat_pence, 41800);
+        assert_eq!(res.discount_percentage, 0);
+        assert_eq!(res.discounted_unit_ex_vat_pence, 44000);
         assert_eq!(res.pallet_count, 2);
         assert_eq!(res.tail_lift_surcharge_pence, 1500);
     }

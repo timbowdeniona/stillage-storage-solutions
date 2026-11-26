@@ -10,8 +10,6 @@ interface ProductGeoSectionProps {
 export function ProductGeoSection({ product }: ProductGeoSectionProps) {
   const faqs: FaqItem[] = getProductFaqs(product);
   const basePriceGbp = (product.basePriceExVatPence / 100).toFixed(2);
-  const tier5Gbp = ((product.basePriceExVatPence * 0.95) / 100).toFixed(2);
-  const tier10Gbp = ((product.basePriceExVatPence * 0.9) / 100).toFixed(2);
 
   return (
     <section
@@ -136,11 +134,10 @@ export function ProductGeoSection({ product }: ProductGeoSectionProps) {
                 </tr>
                 <tr>
                   <th scope="row" className="py-3 px-4 font-mono text-xs uppercase text-steel-600">
-                    Online Trade Pricing Tiers (Ex. VAT)
+                    Online Trade Price (Ex. VAT)
                   </th>
                   <td className="py-3 px-4 font-mono text-brand-navy">
-                    1–4 Units: <strong>£{basePriceGbp}</strong> | 5–9 Units (-5%):{' '}
-                    <strong>£{tier5Gbp}</strong> | 10+ Units (-10%): <strong>£{tier10Gbp}</strong>
+                    <strong>£{basePriceGbp}</strong> per unit
                   </td>
                 </tr>
                 <tr className="bg-steel-50">
