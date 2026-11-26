@@ -35,9 +35,7 @@ export function getMobilityModifierPence(mobilityOption: string): number {
   }
 }
 
-export function getBulkDiscountPercentage(quantity: number): number {
-  if (quantity >= 10) return 10;
-  if (quantity >= 5) return 5;
+export function getBulkDiscountPercentage(_quantity: number): number {
   return 0;
 }
 

@@ -75,8 +75,8 @@ export function getProductFaqs(product: Product): FaqItem[] {
       answer: `It is supplied as standard in ${product.standardFinish} (£${priceExVat} Ex. VAT), and can be configured online in Raw Unpainted Mill Steel (-£10/unit), Custom Corporate RAL (+£25/unit), or Hot-Dip Galvanised to BS EN ISO 1461 (+£45/unit), with optional enclosed 4-way forklift pockets or heavy-duty castors.`,
     },
     {
-      question: `What are the UK pallet delivery lead times and bulk trade discounts for ${product.sku}?`,
-      answer: `${product.leadTimeText}. Up to 4 units ship per oversized HGV pallet space nationwide across the UK, with automatic online bulk discounts of 5% on 5+ units and 10% on 10+ units.`,
+      question: `What are the UK pallet delivery lead times for ${product.sku}?`,
+      answer: `${product.leadTimeText}. Up to 4 units ship per oversized HGV pallet space nationwide across the UK.`,
     },
   ];
 }

@@ -14,8 +14,6 @@ import {
   AlertTriangle,
   PlusCircle,
   ArrowRight,
-  Sparkles,
-  Compass,
   Wrench,
 } from 'lucide-react';
 import { FINISH_OPTIONS, MOBILITY_OPTIONS } from '@/data/seedCatalog';
@@ -25,7 +23,6 @@ import { trackAlgoliaEvent } from '@/lib/algolia';
 import { trackB2BEvent } from '@/lib/analytics';
 import { formatGBP, useVat } from '@/context/VatContext';
 import { useSiteContent } from '@/context/SiteContentContext';
-import { ProductTechnicalDiagram } from '@/components/ProductTechnicalDiagram';
 
 interface ProductConfiguratorProps {
   product: Product;
@@ -46,15 +43,11 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
     setRequiresTailLift: setCtxTailLift,
   } = useVat();
 
-  // Stage visual controls — crisp Studio White default (cream removed)
-  const [backdropMode, setBackdropMode] = useState<'white' | 'steel' | 'blueprint'>('white');
+  // Stage visual controls
   const [activeImageIndex, setActiveImageIndex] = useState<number>(0);
 
-  // Configurator state
-  const [finishOption, setFinishOption] = useState<string>(() => {
-    const param = searchParams.get('finish');
-    return FINISH_OPTIONS.some((f) => f.id === param) ? (param as string) : 'standard-blue';
-  });
+  // Configurator state (standard finish used now that finish selector is removed from PDP)
+  const finishOption = 'standard-blue';
   const [mobilityOption, setMobilityOption] = useState<string>(() => {
     const param = searchParams.get('mobility');
     return MOBILITY_OPTIONS.some((m) => m.id === param) ? (param as string) : 'standard-feet';
@@ -67,10 +60,6 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
   const [requiresTailLift, setRequiresTailLift] = useState<boolean>(ctxTailLift);
 
   useEffect(() => {
-    const fin = searchParams.get('finish');
-    if (fin && FINISH_OPTIONS.some((f) => f.id === fin)) {
-      setFinishOption(fin);
-    }
     const mob = searchParams.get('mobility');
     if (mob && MOBILITY_OPTIONS.some((m) => m.id === mob)) {
       setMobilityOption(mob);
@@ -247,121 +236,42 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
   const safeActiveIndex = Math.min(activeImageIndex, Math.max(0, mediaItems.length - 1));
   const currentMedia = mediaItems[safeActiveIndex] || mediaItems[0];
 
-  const backdropClass =
-    backdropMode === 'white'
-      ? 'bg-surface-white'
-      : backdropMode === 'steel'
-      ? 'bg-steel-50'
-      : 'bg-steel-50 bg-blueprint-grid';
-
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
-      {/* Left Column: Clean Visual Stage, CAD Diagram & Engineering Overview */}
+      {/* Left Column: Clean Visual Stage & Engineering Overview */}
       <div className="lg:col-span-7 space-y-8">
         {/* Product Image Viewer */}
         <div className="border border-steel-200 bg-surface-white rounded-sm shadow-xs overflow-hidden">
-          <div className="px-5 py-3 border-b border-steel-200 bg-steel-50 flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center gap-2 font-mono text-xs">
-              <span className="bg-brand-navy text-white px-2.5 py-0.5 font-bold rounded-sm">
-                SKU: {product.sku}
-              </span>
-              <span className="text-steel-400">|</span>
-              <span className="font-bold text-stillage-blue">{product.swlKg} kg SWL Rated</span>
+          {/* Main Image Stage */}
+          <div className="relative h-[420px] sm:h-[460px] p-8 bg-surface-white">
+            <img
+              src={currentMedia.src}
+              alt={currentMedia.label}
+              fetchPriority={safeActiveIndex === 0 ? 'high' : 'auto'}
+              width={760}
+              height={540}
+              className="w-full h-full object-contain"
+            />
+
+            {/* Product Title Badge in Top Left */}
+            <div className="absolute top-4 left-4 bg-brand-navy/95 text-white px-2.5 py-1 rounded-sm font-mono text-[11px] uppercase tracking-wider flex items-center gap-1.5 shadow-xs border border-white/10">
+              <span>{product.title}</span>
             </div>
 
-            {/* Clean Surface Switcher (Studio White / Cool Steel / Interactive CAD) */}
-            <div className="flex items-center gap-1.5 text-[11px] font-mono">
-              <button
-                type="button"
-                aria-pressed={backdropMode === 'white'}
-                onClick={() => setBackdropMode('white')}
-                className={`px-2.5 py-1 rounded-sm border transition-colors ${
-                  backdropMode === 'white'
-                    ? 'bg-brand-navy border-brand-navy text-white font-bold'
-                    : 'bg-surface-white border-steel-200 text-steel-600 hover:border-steel-400'
-                }`}
-              >
-                Studio White
-              </button>
-              <button
-                type="button"
-                aria-pressed={backdropMode === 'steel'}
-                onClick={() => setBackdropMode('steel')}
-                className={`px-2.5 py-1 rounded-sm border transition-colors ${
-                  backdropMode === 'steel'
-                    ? 'bg-brand-navy border-brand-navy text-white font-bold'
-                    : 'bg-surface-white border-steel-200 text-steel-600 hover:border-steel-400'
-                }`}
-              >
-                Cool Steel
-              </button>
-              <button
-                type="button"
-                aria-pressed={backdropMode === 'blueprint'}
-                onClick={() => setBackdropMode('blueprint')}
-                className={`px-2.5 py-1 rounded-sm border transition-colors ${
-                  backdropMode === 'blueprint'
-                    ? 'bg-stillage-blue border-stillage-blue text-white font-bold'
-                    : 'bg-surface-white border-steel-200 text-steel-600 hover:border-steel-400'
-                }`}
-              >
-                Interactive CAD
-              </button>
+            {/* Dimension Overlay Pill */}
+            <div className="absolute bottom-4 left-4 bg-brand-navy/95 text-surface-white px-3.5 py-2 rounded-sm font-mono text-xs border border-white/15">
+              External: {product.externalLengthMm}(L) × {product.externalWidthMm}(W) ×{' '}
+              {product.externalHeightMm}(H) mm
+            </div>
+
+            <div className="absolute bottom-4 right-4 bg-surface-white/95 text-steel-900 px-3 py-1.5 rounded-sm font-mono text-xs border border-steel-200 shadow-xs flex items-center gap-2">
+              <span
+                className="w-3 h-3 rounded-full border border-black/20"
+                style={{ backgroundColor: selectedFinish.swatchHex }}
+              />
+              <span>{selectedFinish.code}</span>
             </div>
           </div>
-
-          {/* Main Image Stage */}
-          {backdropMode === 'blueprint' ? (
-            <div className="p-3 bg-brand-navyDark">
-              <ProductTechnicalDiagram
-                product={product}
-                finishCode={selectedFinish.code}
-                finishName={selectedFinish.name}
-                finishSwatchHex={selectedFinish.swatchHex}
-                mobilityName={selectedMobility.name}
-                compact
-              />
-            </div>
-          ) : (
-            <div className={`relative h-[420px] sm:h-[460px] p-8 transition-colors duration-300 ${backdropClass}`}>
-              <img
-                src={currentMedia.src}
-                alt={currentMedia.label}
-                fetchPriority={safeActiveIndex === 0 ? 'high' : 'auto'}
-                width={760}
-                height={540}
-                className="w-full h-full object-contain"
-              />
-
-              {/* View Type Badge in Top Left */}
-              <div className="absolute top-4 left-4 bg-brand-navy/95 text-white px-2.5 py-1 rounded-sm font-mono text-[11px] uppercase tracking-wider flex items-center gap-1.5 shadow-xs border border-white/10">
-                {currentMedia.type === 'drawing' ? (
-                  <>
-                    <span className="w-2 h-2 rounded-full bg-accent-teal animate-pulse" />
-                    <span className="font-bold text-accent-teal">CAD Dimensional Blueprint</span>
-                  </>
-                ) : currentMedia.type === 'primary' ? (
-                  <span>Primary Product Elevation</span>
-                ) : (
-                  <span>{currentMedia.badge} (Supplemental Image)</span>
-                )}
-              </div>
-
-              {/* Dimension Overlay Pill */}
-              <div className="absolute bottom-4 left-4 bg-brand-navy/95 text-surface-white px-3.5 py-2 rounded-sm font-mono text-xs border border-white/15">
-                External: {product.externalLengthMm}(L) × {product.externalWidthMm}(W) ×{' '}
-                {product.externalHeightMm}(H) mm
-              </div>
-
-              <div className="absolute bottom-4 right-4 bg-surface-white/95 text-steel-900 px-3 py-1.5 rounded-sm font-mono text-xs border border-steel-200 shadow-xs flex items-center gap-2">
-                <span
-                  className="w-3 h-3 rounded-full border border-black/20"
-                  style={{ backgroundColor: selectedFinish.swatchHex }}
-                />
-                <span>{selectedFinish.code}</span>
-              </div>
-            </div>
-          )}
 
           {/* Clean Thumbnail Switcher */}
           <div className="p-4 border-t border-steel-200 bg-steel-50 flex flex-wrap items-center gap-3">
@@ -369,14 +279,9 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
               <button
                 key={idx}
                 type="button"
-                onClick={() => {
-                  setActiveImageIndex(idx);
-                  if (backdropMode === 'blueprint' && item.type !== 'drawing') {
-                    setBackdropMode('white');
-                  }
-                }}
+                onClick={() => setActiveImageIndex(idx)}
                 className={`relative w-24 h-22 p-1.5 rounded-sm border-2 transition-all flex flex-col justify-between bg-surface-white ${
-                  backdropMode !== 'blueprint' && safeActiveIndex === idx
+                  safeActiveIndex === idx
                     ? 'border-stillage-blue shadow-xs ring-1 ring-stillage-blue'
                     : 'border-steel-200 opacity-80 hover:opacity-100 hover:border-steel-400'
                 }`}
@@ -405,22 +310,6 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
                 </span>
               </button>
             ))}
-            <button
-              type="button"
-              aria-pressed={backdropMode === 'blueprint'}
-              onClick={() => setBackdropMode('blueprint')}
-              className={`h-22 px-3.5 rounded-sm border-2 transition-all flex flex-col items-center justify-center gap-1 font-mono text-[11px] ${
-                backdropMode === 'blueprint'
-                  ? 'border-stillage-blue bg-brand-navy text-white font-bold'
-                  : 'border-steel-200 bg-brand-navy/90 text-surface-white hover:border-stillage-blue'
-              }`}
-            >
-              <Compass className="w-5 h-5 text-accent-teal" aria-hidden="true" />
-              <span>Interactive CAD</span>
-              <span className="text-[9px] text-stillage-sky">
-                {product.externalLengthMm}×{product.externalWidthMm}mm
-              </span>
-            </button>
             <div className="ml-auto text-xs text-steel-600 hidden sm:block">
               <strong className="text-steel-900">Steel Spec:</strong> {product.steelSpecification}
             </div>
@@ -474,73 +363,14 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
             <span className="font-mono text-xs text-steel-200">
               per unit ({formatBothPrices(quote.discountedUnitExVatPence).label})
             </span>
-            {quote.discountPercentage > 0 && (
-              <span className="ml-auto bg-accent-amber text-white font-mono text-xs font-bold px-2.5 py-0.5 rounded-sm">
-                {quote.discountPercentage}% Bulk Discount Active
-              </span>
-            )}
           </div>
         </div>
 
         <div className="p-6 space-y-6">
-          {/* Step 1: Finish Option */}
+          {/* Step 1: Base Feet, Castors & Forklift Guides */}
           <div>
             <label className="block font-display font-bold uppercase tracking-wider text-sm text-brand-navy mb-2.5">
-              1. Select Surface Finish / RAL Coating
-            </label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-              {FINISH_OPTIONS.map((opt) => {
-                const isSelected = finishOption === opt.id;
-                const modText =
-                  opt.priceModifierPence === 0
-                    ? 'Included'
-                    : opt.priceModifierPence > 0
-                    ? `+${formatGBP(opt.priceModifierPence)}`
-                    : `-${formatGBP(Math.abs(opt.priceModifierPence))}`;
-
-                return (
-                  <button
-                    key={opt.id}
-                    type="button"
-                    onClick={() => {
-                      setFinishOption(opt.id);
-                      trackB2BEvent({
-                        event: 'configurator_option_select',
-                        sku: product.sku,
-                        productTitle: product.title,
-                        optionType: 'finish',
-                        optionValue: opt.id,
-                      });
-                    }}
-                    className={`p-3 border text-left rounded-sm transition-all flex flex-col justify-between ${
-                      isSelected
-                        ? 'border-2 border-stillage-blue bg-stillage-blue/5'
-                        : 'border-steel-200 hover:border-steel-400 bg-surface-white'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="inline-flex items-center gap-2 font-bold text-xs text-steel-900">
-                        <span
-                          className="w-3.5 h-3.5 rounded-full border border-black/20 shrink-0"
-                          style={{ backgroundColor: opt.swatchHex }}
-                        />
-                        {opt.code}
-                      </span>
-                      <span className="font-mono text-[11px] font-bold text-stillage-blue">
-                        {modText}
-                      </span>
-                    </div>
-                    <div className="text-[11px] text-steel-600 mt-1.5 leading-snug">{opt.name}</div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Step 2: Base Feet, Castors & Forklift Guides */}
-          <div>
-            <label className="block font-display font-bold uppercase tracking-wider text-sm text-brand-navy mb-2.5">
-              2. Base Handling, Feet &amp; Castor Options
+              1. Base Handling, Feet &amp; Castor Options
             </label>
             <div className="space-y-2">
               {MOBILITY_OPTIONS.map((opt) => {
@@ -585,57 +415,18 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
             </div>
           </div>
 
-          {/* Step 3: Quantity & Interactive Bulk Tier Selector */}
+          {/* Step 2: Order Quantity */}
           <div>
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between mb-2.5">
               <label
                 htmlFor="qty-input"
                 className="font-display font-bold uppercase tracking-wider text-sm text-brand-navy"
               >
-                3. Order Quantity &amp; Bulk Tiers
+                2. Order Quantity
               </label>
               <span className="font-mono text-xs text-steel-600">
                 Up to 4 units per HGV pallet
               </span>
-            </div>
-
-            <div className="grid grid-cols-3 gap-2 mb-3 font-mono text-xs">
-              {[
-                { label: '1–4 Units', minQty: 1, pct: 'Standard' },
-                { label: '5–9 Units', minQty: 5, pct: 'Save 5%' },
-                { label: '10+ Units', minQty: 10, pct: 'Save 10%' },
-              ].map((tier) => {
-                const active =
-                  (tier.minQty === 1 && quantity < 5) ||
-                  (tier.minQty === 5 && quantity >= 5 && quantity < 10) ||
-                  (tier.minQty === 10 && quantity >= 10);
-                return (
-                  <button
-                    key={tier.label}
-                    type="button"
-                    onClick={() => {
-                      setQuantity(tier.minQty);
-                      if (tier.minQty >= 5) {
-                        trackB2BEvent({
-                          event: 'bulk_tier_unlocked',
-                          sku: product.sku,
-                          productTitle: product.title,
-                          quantity: tier.minQty,
-                          discountPercentage: tier.minQty >= 10 ? 10 : 5,
-                        });
-                      }
-                    }}
-                    className={`p-2 border rounded-sm text-center transition-colors ${
-                      active
-                        ? 'bg-brand-navy text-white border-brand-navy font-bold'
-                        : 'bg-steel-50 text-steel-800 border-steel-200 hover:border-stillage-blue'
-                    }`}
-                  >
-                    <div>{tier.label}</div>
-                    <div className="text-[10px] text-accent-amber font-bold">{tier.pct}</div>
-                  </button>
-                );
-              })}
             </div>
 
             <div className="flex items-center gap-3">
@@ -669,58 +460,12 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
                 <div>Pallets Required: {quote.palletCount}</div>
               </div>
             </div>
-
-            {/* Smart HGV Pallet & Bulk Tier Optimizer */}
-            <div className="mt-3 bg-steel-50 border border-steel-200 border-l-4 border-l-stillage-blue p-2.5 text-xs flex items-center justify-between gap-2">
-              <div className="flex items-start gap-2">
-                <Sparkles className="w-4 h-4 text-stillage-blue shrink-0 mt-0.5" />
-                <div className="text-steel-800 leading-snug">
-                  {quantity % 4 !== 0 ? (
-                    <>
-                      <strong className="text-brand-navy">Unused HGV Pallet Space:</strong>{' '}
-                      {4 - (quantity % 4)} more unit{4 - (quantity % 4) > 1 ? 's' : ''} can stack on
-                      Pallet #{quote.palletCount} for <strong>£0 extra freight</strong>.
-                    </>
-                  ) : quantity === 4 ? (
-                    <>
-                      <strong className="text-brand-navy">Bulk Tier Alert:</strong> Stepping to{' '}
-                      <strong>5+ units</strong> (or 8 units on 2 full pallets) unlocks{' '}
-                      <strong>5% Off</strong> every configured stillage.
-                    </>
-                  ) : (
-                    <>
-                      <strong className="text-brand-navy">Optimal Pallet Load:</strong>{' '}
-                      {quote.palletCount} full HGV pallet space{quote.palletCount > 1 ? 's' : ''}{' '}
-                      ({quantity} units) with{' '}
-                      <strong>{quote.discountPercentage}% Bulk Trade Discount</strong> active.
-                    </>
-                  )}
-                </div>
-              </div>
-              {quantity % 4 !== 0 ? (
-                <button
-                  type="button"
-                  onClick={() => setQuantity(quantity + (4 - (quantity % 4)))}
-                  className="shrink-0 bg-brand-navy hover:bg-stillage-blue text-white px-2.5 py-1 rounded-sm font-mono text-[11px] font-bold transition-colors"
-                >
-                  Fill Pallet ({quantity + (4 - (quantity % 4))})
-                </button>
-              ) : quantity === 4 ? (
-                <button
-                  type="button"
-                  onClick={() => setQuantity(8)}
-                  className="shrink-0 bg-brand-navy hover:bg-stillage-blue text-white px-2.5 py-1 rounded-sm font-mono text-[11px] font-bold transition-colors"
-                >
-                  2 Pallets / -5% (8)
-                </button>
-              ) : null}
-            </div>
           </div>
 
-          {/* Step 4: UK Postcode Pallet Freight & Offloading Method */}
+          {/* Step 3: UK Postcode Pallet Freight & Offloading Method */}
           <div className="border-t border-steel-200 pt-5 space-y-3">
             <label className="block font-display font-bold uppercase tracking-wider text-sm text-brand-navy">
-              4. UK Pallet Delivery &amp; Site Offloading
+              3. UK Pallet Delivery &amp; Site Offloading
             </label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
@@ -781,13 +526,6 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
                 {formatGBP(quote.lineSubtotalExVatPence)}
               </span>
             </div>
-
-            {quote.bulkSavingsExVatPence > 0 && (
-              <div className="flex justify-between text-emerald-700 font-bold">
-                <span>Bulk Tier Discount ({quote.discountPercentage}% Off)</span>
-                <span>-{formatGBP(quote.bulkSavingsExVatPence)}</span>
-              </div>
-            )}
 
             <div className="flex justify-between">
               <span className="text-steel-600">
