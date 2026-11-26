@@ -225,6 +225,36 @@
         "swlSummary": "FIXED 4-SIDED 50 x 50 MM MESH | 890 FOOT CTR",
         "certificationText": "MADE IN BRITAIN | UKCA CERTIFIED"
       }
+    },
+    "SSS-AFR-2315": {
+      "sku": "SSS-AFR-2315",
+      "fileName": "sss-afr-2315-editable.svg",
+      "productTitle": "Large A-Frame Transport & Storage Stillage (2300 x 1000 x 1500mm)",
+      "baseRenderUrl": "/images/products/base-render-sss-afr-2315.jpg",
+      "dimensions": [
+        { "id": "dim-afr-hooks", "label": "2200 mm (Between Centre of Lifting Hooks)", "x1": 332, "y1": 292, "x2": 856, "y2": 46, "extX1": 345, "extY1": 318, "extX2": 870, "extY2": 68, "color": "primary" },
+        { "id": "dim-afr-total-h", "label": "1500 mm", "x1": 162, "y1": 294, "x2": 162, "y2": 662, "extX1": 310, "extY1": 356, "extX2": 175, "extY2": 672, "color": "primary" },
+        { "id": "dim-afr-face-h", "label": "1260 mm", "x1": 196, "y1": 654, "x2": 274, "y2": 342, "extX1": 175, "extY1": 662, "extX2": 310, "extY2": 356, "color": "primary" },
+        { "id": "dim-afr-width", "label": "1000 mm Width", "x1": 164, "y1": 696, "x2": 418, "y2": 856, "extX1": 190, "extY1": 672, "extX2": 445, "extY2": 835, "color": "primary", "labelSide": "below" },
+        { "id": "dim-afr-bay-1", "label": "700 mm", "x1": 414, "y1": 778, "x2": 575, "y2": 698, "color": "teal" },
+        { "id": "dim-afr-bay-2", "label": "700 mm", "x1": 617, "y1": 677, "x2": 769, "y2": 601, "color": "teal" },
+        { "id": "dim-afr-bay-3", "label": "700 mm", "x1": 810, "y1": 580, "x2": 951, "y2": 510, "color": "teal" },
+        { "id": "dim-afr-pkt-centres", "label": "520 mm (Pocket Centres)", "x1": 676, "y1": 774, "x2": 871, "y2": 676, "extX1": 653, "extY1": 756, "extX2": 848, "extY2": 658, "color": "amber" },
+        { "id": "dim-afr-length", "label": "2300 mm Length", "x1": 528, "y1": 863, "x2": 1126, "y2": 563, "extX1": 444, "extY1": 837, "extX2": 1042, "extY2": 537, "color": "primary", "labelSide": "below" },
+        { "id": "dim-afr-ledge", "label": "270 mm", "x1": 1002, "y1": 460, "x2": 1068, "y2": 498, "extX1": 960, "extY1": 484, "extX2": 1025, "extY2": 522, "color": "primary" }
+      ],
+      "callouts": [
+        { "id": "callout-afr-box", "title": "Main Frame & A-Frames:", "detail": "50 x 50 x 3 mm Box Section", "targetX": 920, "targetY": 342, "elbowX": 952, "elbowY": 312, "boxX": 958, "boxY": 290, "color": "primary" },
+        { "id": "callout-afr-weight", "title": "Unladen Tare Weight:", "detail": "97 kg", "targetX": 345, "targetY": 332, "elbowX": 280, "elbowY": 225, "boxX": 80, "boxY": 202, "color": "primary" }
+      ],
+      "titleBlock": {
+        "companyName": "STILLAGE STORAGE SOLUTIONS",
+        "drawingTitle": "LARGE A-FRAME STILLAGE",
+        "sku": "SKU: SSS-AFR-2315",
+        "dimensionsSummary": "FOOTPRINT: 2300 x 1000 x 1500 MM | TARE: 97 KG",
+        "swlSummary": "3x 700 MM BAYS | 520 MM POCKET CENTRES",
+        "certificationText": "MADE IN BRITAIN | UKCA CERTIFIED"
+      }
     }
   }
 }

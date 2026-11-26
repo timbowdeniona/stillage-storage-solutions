@@ -58,6 +58,7 @@ test('Multi-layer editable SVG blueprints exist in public/images/blueprints with
     'bbfh2-1-editable.svg',
     'bbfh2-1-hopper-editable.svg',
     'bbfh2-1-stand-editable.svg',
+    'sss-afr-2315-editable.svg',
     'sss-cant-3b8a-editable.svg',
     'sss-ibc-1012-editable.svg',
     'sss-msh-0940sq-editable.svg',
