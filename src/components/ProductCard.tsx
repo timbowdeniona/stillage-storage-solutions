@@ -66,14 +66,6 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
               className="absolute inset-0 w-full h-full p-2 object-contain opacity-0 group-hover:opacity-100 group-hover:scale-105 transition-all duration-200 pointer-events-none"
             />
           ) : null}
-
-          {/* CAD Blueprint Badge on Hover */}
-          {hasDrawing ? (
-            <span className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-brand-navy/95 text-white border border-white/20 text-[10px] font-mono uppercase px-2 py-0.5 rounded flex items-center gap-1 shadow-sm pointer-events-none">
-              <span className="w-1.5 h-1.5 rounded-full bg-accent-teal animate-pulse" />
-              {cardCopy.cadBadgeLabel || 'CAD Drawing'}
-            </span>
-          ) : null}
         </Link>
 
         {/* Product Title */}
