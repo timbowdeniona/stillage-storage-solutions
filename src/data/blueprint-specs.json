@@ -34,6 +34,63 @@
         "certificationText": "MADE IN BRITAIN | UKCA CERTIFIED"
       }
     },
+    "BBFH2-1-HOPPER": {
+      "sku": "BBFH2-1-HOPPER",
+      "fileName": "bbfh2-1-hopper-editable.svg",
+      "productTitle": "Bulk Bag Filling Hopper (Modular Top Unit)",
+      "baseRenderUrl": "/images/products/base-render-bbfh2-1-hopper.jpg",
+      "dimensions": [
+        { "id": "dim-hopper-only-top-left", "label": "1120 mm", "x1": 345, "y1": 310, "x2": 588, "y2": 182, "extX1": 368, "extY1": 330, "extX2": 598, "extY2": 198, "color": "primary" },
+        { "id": "dim-hopper-only-top-right", "label": "1120 mm", "x1": 610, "y1": 178, "x2": 856, "y2": 310, "extX1": 600, "extY1": 196, "extX2": 830, "extY2": 330, "color": "primary" },
+        { "id": "dim-hopper-only-funnel-h", "label": "450 mm", "x1": 885, "y1": 330, "x2": 885, "y2": 422, "extX1": 832, "extY1": 330, "extX2": 824, "extY2": 422, "color": "primary" },
+        { "id": "dim-hopper-only-collar-h", "label": "150 mm", "x1": 885, "y1": 422, "x2": 885, "y2": 488, "extX1": 824, "extY1": 422, "extX2": 845, "extY2": 488, "color": "primary" },
+        { "id": "dim-hopper-only-total-h", "label": "600 mm", "x1": 942, "y1": 330, "x2": 942, "y2": 488, "extX1": 832, "extY1": 330, "extX2": 845, "extY2": 488, "color": "primary" },
+        { "id": "dim-hopper-only-base-left", "label": "1120 mm", "x1": 308, "y1": 512, "x2": 550, "y2": 652, "extX1": 356, "extY1": 476, "extX2": 598, "extY2": 616, "color": "primary", "labelSide": "below" },
+        { "id": "dim-hopper-only-foot-centres", "label": "1080 mm (Foot Centres)", "x1": 632, "y1": 638, "x2": 851, "y2": 511, "extX1": 600, "extY1": 616, "extX2": 819, "extY2": 489, "color": "teal", "labelSide": "below" }
+      ],
+      "callouts": [
+        { "id": "callout-hopper-only-legs", "title": "Hopper Support Legs:", "detail": "30 x 30 mm Box Section", "targetX": 377, "targetY": 385, "elbowX": 295, "elbowY": 347, "boxX": 60, "boxY": 325, "color": "primary" },
+        { "id": "callout-hopper-only-opening", "title": "Bottom Opening:", "detail": "200 x 200 mm", "targetX": 580, "targetY": 398, "elbowX": 295, "elbowY": 422, "boxX": 60, "boxY": 400, "color": "primary" },
+        { "id": "callout-hopper-only-frame", "title": "Base & Cradle Frame:", "detail": "50 x 50 mm Box Section", "targetX": 368, "targetY": 454, "elbowX": 290, "elbowY": 462, "boxX": 60, "boxY": 475, "color": "primary" },
+        { "id": "callout-hopper-only-feet", "title": "Stacking Receiver Feet:", "detail": "4x Pressed Pyramid Cups", "targetX": 599, "targetY": 621, "elbowX": 615, "elbowY": 706, "boxX": 632, "boxY": 684, "color": "teal" }
+      ],
+      "titleBlock": {
+        "companyName": "STILLAGE STORAGE SOLUTIONS",
+        "drawingTitle": "BULK BAG FILLING HOPPER",
+        "sku": "SKU: BBFH2-1-HOPPER",
+        "dimensionsSummary": "FOOTPRINT: 1120 x 1120 x 600 MM",
+        "swlSummary": "200 x 200 MM OPENING | 1080 FOOT CTR",
+        "certificationText": "MADE IN BRITAIN | UKCA CERTIFIED"
+      }
+    },
+    "BBFH2-1-STAND": {
+      "sku": "BBFH2-1-STAND",
+      "fileName": "bbfh2-1-stand-editable.svg",
+      "productTitle": "Bulk Bag Filling Stand (1250mm Support Frame)",
+      "baseRenderUrl": "/images/products/base-render-bbfh2-1-stand.jpg",
+      "dimensions": [
+        { "id": "dim-stand-only-top-left", "label": "1120 mm", "x1": 350, "y1": 180, "x2": 586, "y2": 52, "extX1": 378, "extY1": 200, "extX2": 598, "extY2": 73, "color": "primary" },
+        { "id": "dim-stand-only-top-right", "label": "1120 mm", "x1": 612, "y1": 52, "x2": 848, "y2": 180, "extX1": 601, "extY1": 73, "extX2": 819, "extY2": 200, "color": "primary" },
+        { "id": "dim-stand-only-height", "label": "1250 mm", "x1": 875, "y1": 202, "x2": 875, "y2": 666, "extX1": 825, "extY1": 202, "extX2": 822, "extY2": 666, "color": "primary" },
+        { "id": "dim-stand-only-pocket-centres", "label": "665 mm (Pocket Centres)", "x1": 402, "y1": 690, "x2": 532, "y2": 765, "extX1": 425, "extY1": 668, "extX2": 553, "extY2": 742, "color": "amber", "labelSide": "below" },
+        { "id": "dim-stand-only-base-left", "label": "1120 mm", "x1": 300, "y1": 705, "x2": 548, "y2": 848, "extX1": 358, "extY1": 652, "extX2": 598, "extY2": 793, "color": "primary", "labelSide": "below" },
+        { "id": "dim-stand-only-foot-centres", "label": "1080 mm (Foot Centres)", "x1": 625, "y1": 808, "x2": 846, "y2": 683, "extX1": 601, "extY1": 793, "extX2": 818, "extY2": 666, "color": "teal", "labelSide": "below" }
+      ],
+      "callouts": [
+        { "id": "callout-stand-only-hooks", "title": "FIBC Bag Loop Hooks:", "detail": "4x Inward-Facing Top Hooks", "targetX": 410, "targetY": 255, "elbowX": 318, "elbowY": 277, "boxX": 68, "boxY": 255, "color": "teal" },
+        { "id": "callout-stand-only-frame", "title": "Stand & Main Frame:", "detail": "All 50 x 50 mm Box Section", "targetX": 367, "targetY": 430, "elbowX": 318, "elbowY": 430, "boxX": 68, "boxY": 408, "color": "primary" },
+        { "id": "callout-stand-only-pockets", "title": "Fork Pockets:", "detail": "165 x 75 mm", "targetX": 406, "targetY": 658, "elbowX": 310, "elbowY": 610, "boxX": 100, "boxY": 588, "color": "amber" },
+        { "id": "callout-stand-only-mobility", "title": "Option of Castors or Forklift", "detail": "Pockets (Either or Both)", "targetX": 835, "targetY": 668, "elbowX": 895, "elbowY": 696, "boxX": 910, "boxY": 674, "color": "primary" }
+      ],
+      "titleBlock": {
+        "companyName": "STILLAGE STORAGE SOLUTIONS",
+        "drawingTitle": "BULK BAG FILLING STAND",
+        "sku": "SKU: BBFH2-1-STAND",
+        "dimensionsSummary": "FOOTPRINT: 1120 x 1120 x 1250 MM",
+        "swlSummary": "1080 MM FOOT CTR | INWARD BAG HOOKS",
+        "certificationText": "MADE IN BRITAIN | UKCA CERTIFIED"
+      }
+    },
     "SSS-CANT-3B8A": {
       "sku": "SSS-CANT-3B8A",
       "fileName": "sss-cant-3b8a-editable.svg",
@@ -86,6 +143,86 @@
         "sku": "SKU: SSS-MSH-1210HD",
         "dimensionsSummary": "FOOTPRINT: 1200 x 1000 x 900 MM",
         "swlSummary": "SWL: 1,000 KG | 4-HIGH STACKABLE",
+        "certificationText": "MADE IN BRITAIN | UKCA CERTIFIED"
+      }
+    },
+    "HDPS-1": {
+      "sku": "HDPS-1",
+      "fileName": "hdps-1-editable.svg",
+      "productTitle": "Large Open-Ended Pipe Stillage (3500 x 1100 x 1275mm)",
+      "baseRenderUrl": "/images/products/base-render-hdps-1.jpg",
+      "dimensions": [
+        { "id": "dim-hdps-ext-length", "label": "3500 mm (Ext. Length)", "x1": 212, "y1": 378, "x2": 747, "y2": 76, "extX1": 242, "extY1": 432, "extX2": 777, "extY2": 130, "color": "primary" },
+        { "id": "dim-hdps-ext-width", "label": "1100 mm (Ext. Width)", "x1": 805, "y1": 82, "x2": 986, "y2": 191, "extX1": 777, "extY1": 130, "extX2": 958, "extY2": 239, "color": "primary" },
+        { "id": "dim-hdps-int-width", "label": "1000 mm (Int. Width)", "x1": 214, "y1": 708, "x2": 402, "y2": 814, "extX1": 242, "extY1": 660, "extX2": 430, "extY2": 766, "color": "teal", "labelSide": "below" },
+        { "id": "dim-hdps-ext-height", "label": "1275 mm (Overall)", "x1": 168, "y1": 432, "x2": 168, "y2": 660, "extX1": 236, "extY1": 432, "extX2": 236, "extY2": 660, "color": "primary" },
+        { "id": "dim-hdps-int-height", "label": "1125 mm (Internal)", "x1": 1022, "y1": 254, "x2": 1022, "y2": 442, "extX1": 962, "extY1": 254, "extX2": 962, "extY2": 442, "color": "teal" },
+        { "id": "dim-hdps-pocket-gap", "label": "520 mm", "x1": 656, "y1": 680, "x2": 776, "y2": 612, "extX1": 636, "extY1": 646, "extX2": 756, "extY2": 578, "color": "primary" },
+        { "id": "dim-hdps-pocket-centres", "label": "700 mm (Pocket Centres)", "x1": 652, "y1": 740, "x2": 828, "y2": 640, "extX1": 606, "extY1": 665, "extX2": 782, "extY2": 565, "color": "amber", "labelSide": "below" }
+      ],
+      "callouts": [
+        { "id": "callout-hdps-bays", "title": "3-Bay Open-Ended Frame:", "detail": "1100 mm Bays • 50 x 50 mm Box", "targetX": 236, "targetY": 468, "elbowX": 180, "elbowY": 272, "boxX": 44, "boxY": 250, "color": "primary" },
+        { "id": "callout-hdps-pockets", "title": "Enclosed Fork Pockets:", "detail": "180 mm Wide • 520 Gap • 700 Ctr.", "targetX": 604, "targetY": 668, "elbowX": 592, "elbowY": 834, "boxX": 612, "boxY": 812, "color": "amber" },
+        { "id": "callout-hdps-base", "title": "Base Deck & Tare Weight:", "detail": "480 mm Bearer Gap • 138 kg Unladen", "targetX": 735, "targetY": 460, "elbowX": 885, "elbowY": 557, "boxX": 895, "boxY": 535, "color": "primary" },
+        { "id": "callout-hdps-internal", "title": "Internal Capacity:", "detail": "3400(L) x 1000(W) x 1125(H) mm", "targetX": 845, "targetY": 405, "elbowX": 885, "elbowY": 647, "boxX": 895, "boxY": 625, "color": "teal" }
+      ],
+      "titleBlock": {
+        "companyName": "STILLAGE STORAGE SOLUTIONS",
+        "drawingTitle": "LARGE PIPE STILLAGE (OPEN ENDED)",
+        "sku": "SKU: HDPS-1",
+        "dimensionsSummary": "EXT: 3500 x 1100 x 1275 MM | TARE: 138 KG",
+        "swlSummary": "INT: 3400 x 1000 x 1125 MM | 138 KG TARE",
+        "certificationText": "MADE IN BRITAIN | UKCA CERTIFIED"
+      }
+    },
+    "SSS-IBC-1012": {
+      "sku": "SSS-IBC-1012",
+      "fileName": "sss-ibc-1012-editable.svg",
+      "productTitle": "Heavy-Duty Steel IBC Stand (1000 x 1200 x 920mm)",
+      "baseRenderUrl": "/images/products/base-render-sss-ibc-1012.jpg",
+      "dimensions": [
+        { "id": "dim-ibc-length", "label": "1200 mm", "x1": 305, "y1": 224, "x2": 578, "y2": 65, "extX1": 323, "extY1": 255, "extX2": 596, "extY2": 96, "color": "primary" },
+        { "id": "dim-ibc-width", "label": "1000 mm", "x1": 620, "y1": 65, "x2": 894, "y2": 224, "extX1": 602, "extY1": 96, "extX2": 876, "extY2": 255, "color": "primary" },
+        { "id": "dim-ibc-lug-h", "label": "80 mm", "x1": 924, "y1": 260, "x2": 924, "y2": 299, "extX1": 879, "extY1": 260, "extX2": 879, "extY2": 299, "color": "primary" },
+        { "id": "dim-ibc-stand-h", "label": "920 mm", "x1": 924, "y1": 299, "x2": 924, "y2": 668, "extX1": 879, "extY1": 299, "extX2": 827, "extY2": 668, "color": "primary" }
+      ],
+      "callouts": [
+        { "id": "callout-ibc-lugs", "title": "Corner Retaining Lugs:", "detail": "4x 80 mm Flared Upstands", "targetX": 326, "targetY": 288, "elbowX": 296, "elbowY": 288, "boxX": 68, "boxY": 266, "color": "teal" },
+        { "id": "callout-ibc-frame", "title": "Main Frame:", "detail": "50 x 50 mm Box Section", "targetX": 367, "targetY": 485, "elbowX": 316, "elbowY": 485, "boxX": 88, "boxY": 463, "color": "primary" }
+      ],
+      "titleBlock": {
+        "companyName": "STILLAGE STORAGE SOLUTIONS",
+        "drawingTitle": "HEAVY-DUTY STEEL IBC STAND",
+        "sku": "SKU: SSS-IBC-1012",
+        "dimensionsSummary": "EXT: 1000 x 1200 x 920 MM (+80 MM LUGS)",
+        "swlSummary": "50 x 50 MM BOX SECTION | SINGLE BEARERS",
+        "certificationText": "MADE IN BRITAIN | UKCA CERTIFIED"
+      }
+    },
+    "SSS-MSH-0940SQ": {
+      "sku": "SSS-MSH-0940SQ",
+      "fileName": "sss-msh-0940sq-editable.svg",
+      "productTitle": "Square Stillage with Mesh Sides (940 x 940 x 650mm)",
+      "baseRenderUrl": "/images/products/base-render-sss-msh-0940sq.jpg",
+      "dimensions": [
+        { "id": "dim-sqmesh-ext", "label": "940 mm Square", "x1": 249, "y1": 248, "x2": 578, "y2": 63, "extX1": 267, "extY1": 280, "extX2": 596, "extY2": 95, "color": "primary" },
+        { "id": "dim-sqmesh-total-h", "label": "650 mm", "x1": 148, "y1": 284, "x2": 148, "y2": 615, "extX1": 264, "extY1": 284, "extX2": 277, "extY2": 615, "color": "primary", "labelSide": "below" },
+        { "id": "dim-sqmesh-top-lip", "label": "125 mm", "x1": 220, "y1": 284, "x2": 220, "y2": 324, "extX1": 264, "extY1": 284, "extX2": 264, "extY2": 324, "color": "primary", "labelSide": "below" },
+        { "id": "dim-sqmesh-side-h", "label": "375 mm", "x1": 220, "y1": 324, "x2": 220, "y2": 546, "extX1": 264, "extY1": 324, "extX2": 264, "extY2": 546, "color": "primary", "labelSide": "below" },
+        { "id": "dim-sqmesh-foot-h", "label": "100 mm", "x1": 984, "y1": 568, "x2": 984, "y2": 615, "extX1": 936, "extY1": 568, "extX2": 922, "extY2": 615, "color": "amber" },
+        { "id": "dim-sqmesh-foot-centres", "label": "890 mm (Centre of Feet)", "x1": 619, "y1": 833, "x2": 934, "y2": 651, "extX1": 601, "extY1": 802, "extX2": 916, "extY2": 620, "color": "teal" }
+      ],
+      "callouts": [
+        { "id": "callout-sqmesh-opening", "title": "Opening Inside of Crate Lip:", "detail": "890 mm Sq.", "targetX": 755, "targetY": 224, "elbowX": 855, "elbowY": 142, "boxX": 870, "boxY": 120, "color": "teal" },
+        { "id": "callout-sqmesh-box", "title": "Frame: Made from", "detail": "50 x 50 mm Box Section", "targetX": 930, "targetY": 345, "elbowX": 960, "elbowY": 345, "boxX": 972, "boxY": 323, "color": "primary" },
+        { "id": "callout-sqmesh-mesh", "title": "Mesh Squares:", "detail": "50 x 50 mm", "targetX": 882, "targetY": 465, "elbowX": 960, "elbowY": 465, "boxX": 972, "boxY": 443, "color": "primary" }
+      ],
+      "titleBlock": {
+        "companyName": "STILLAGE STORAGE SOLUTIONS",
+        "drawingTitle": "SQUARE STILLAGE WITH MESH SIDES",
+        "sku": "SKU: SSS-MSH-0940SQ",
+        "dimensionsSummary": "FOOTPRINT: 940 x 940 x 650 MM (890 SQ INSIDE)",
+        "swlSummary": "FIXED 4-SIDED 50 x 50 MM MESH | 890 FOOT CTR",
         "certificationText": "MADE IN BRITAIN | UKCA CERTIFIED"
       }
     }

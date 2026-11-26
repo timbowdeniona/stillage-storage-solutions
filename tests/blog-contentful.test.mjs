@@ -56,7 +56,11 @@ test('Stillage Product Contentful model defines primaryImage, secondaryImage, an
 test('Multi-layer editable SVG blueprints exist in public/images/blueprints with named CAD layers', () => {
   const expectedFiles = [
     'bbfh2-1-editable.svg',
+    'bbfh2-1-hopper-editable.svg',
+    'bbfh2-1-stand-editable.svg',
     'sss-cant-3b8a-editable.svg',
+    'sss-ibc-1012-editable.svg',
+    'sss-msh-0940sq-editable.svg',
     'sss-msh-1210hd-editable.svg',
   ];
 
