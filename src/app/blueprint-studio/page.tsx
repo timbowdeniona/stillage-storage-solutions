@@ -69,6 +69,13 @@ export default async function BlueprintStudioPage({ searchParams }: BlueprintStu
       jpgHref: '/images/products/sss-msh-0940sq-blueprint.jpg',
       dims: '940 × 940 × 650 mm (Fixed 4-Sided 50×50 Mesh)',
     },
+    {
+      sku: 'SSS-AFR-2315',
+      title: 'Large A-Frame Transport & Storage Stillage',
+      svgHref: '/images/blueprints/sss-afr-2315-editable.svg',
+      jpgHref: '/images/products/sss-afr-2315-blueprint.jpg',
+      dims: '2300 × 1000 × 1500 mm (3× 700 mm Bays • 520 mm Pocket Centres)',
+    },
   ];
 
   return (
